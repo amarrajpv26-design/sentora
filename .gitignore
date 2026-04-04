@@ -1,7 +1,14 @@
-venv/
-*.pyc
+# Python
 __pycache__/
-.env
+*.py[cod]
+*$py.class
+
+# Django
 db.sqlite3
 media/
-static/
+static_root/
+.env
+
+# Environments
+venv/
+env/
