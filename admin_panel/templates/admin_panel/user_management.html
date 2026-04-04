@@ -1,0 +1,76 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">User Management</h2>
+    {% if query %}
+        <a href="{% url 'user_management' %}" class="btn btn-outline-warning btn-sm">Clear Search</a>
+    {% endif %}
+</div>
+
+<div class="card-custom p-0">
+    <table class="table table-dark table-hover mb-0" style="--bs-table-bg: transparent;">
+        <thead class="border-bottom border-secondary text-muted">
+            <tr>
+                <th class="ps-4 py-3">USER</th>
+                <th>EMAIL</th>
+                <th>STATUS</th>
+                <th>DATE JOINED</th>
+                <th class="text-end pe-4">ACTION</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td class="ps-4 py-3 align-middle">
+                    <div class="d-flex align-items-center">
+                        <img src="{% if user.profile_image %}{{ user.profile_image.url }}{% else %}https://via.placeholder.com/35{% endif %}" class="rounded-circle me-3" width="35">
+                        {{ user.username }}
+                    </div>
+                </td>
+                <td class="align-middle text-muted">{{ user.email }}</td>
+                <td class="align-middle">
+                    {% if user.is_blocked %}
+                        <span class="badge bg-danger">Blocked</span>
+                    {% else %}
+                        <span class="badge bg-success">Active</span>
+                    {% endif %}
+                </td>
+                <td class="align-middle text-muted">{{ user.date_joined|date:"M d, Y" }}</td>
+                <td class="text-end pe-4 align-middle">
+                    <button class="btn btn-sm {% if user.is_blocked %}btn-outline-success{% else %}btn-outline-danger{% endif %}" 
+                            onclick="confirmToggle('{{ user.id }}', '{{ user.is_blocked }}')">
+                        {% if user.is_blocked %}Unblock{% else %}Block{% endif %}
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center py-5 text-muted">No users found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="mt-4 d-flex justify-content-center">
+    <nav>
+        <ul class="pagination">
+            {% if users.has_previous %}
+                <li class="page-item"><a class="page-link bg-dark border-secondary text-gold" href="?page={{ users.previous_page_number }}">Previous</a></li>
+            {% endif %}
+            <li class="page-item"><span class="page-link bg-dark border-secondary text-white">Page {{ users.number }} of {{ users.paginator.num_pages }}</span></li>
+            {% if users.has_next %}
+                <li class="page-item"><a class="page-link bg-dark border-secondary text-gold" href="?page={{ users.next_page_number }}">Next</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+
+<script>
+function confirmToggle(userId, isBlocked) {
+    const action = isBlocked === 'True' ? 'Unblock' : 'Block';
+    if (confirm(`Are you sure you want to ${action} this user?`)) {
+        window.location.href = `/admin-control/users/toggle/${userId}/`;
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scentora Admin | Executive Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --bg-dark: #12100a; /* Dark warm charcoal from your image */
+            --card-bg: #1c1912;
+            --input-bg: #15130d;
+            --sentora-gold: #f4b41a; /* Vibrant gold from your button */
+            --text-muted: #8a857a;
+            --border-color: #2a271f;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 50%, #1e1b12 0%, var(--bg-dark) 100%);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+
+        /* Top Branding */
+        .brand-logo {
+            color: var(--sentora-gold);
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        .brand-title {
+            font-weight: 800;
+            letter-spacing: 2px;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        .brand-title span { color: var(--sentora-gold); }
+
+        .brand-subtitle {
+            color: var(--sentora-gold);
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        /* The Main Card */
+        .auth-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: left;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+
+        .auth-card h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .auth-card p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 30px;
+        }
+
+        /* Input Well Styling */
+        .field-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+            display: block;
+            color: #e0ddd5;
+        }
+
+        .input-well {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            transition: 0.3s;
+        }
+
+        .input-well:focus-within {
+            border-color: var(--sentora-gold);
+            box-shadow: 0 0 0 1px var(--sentora-gold);
+        }
+
+        .input-well i {
+            color: var(--text-muted);
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        .input-well input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        .input-well input::placeholder { color: #3d3a33; }
+
+        /* Remember Me & Forgot Row */
+        .util-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .form-check-input {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--sentora-gold);
+            border-color: var(--sentora-gold);
+        }
+
+        .util-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .forgot-link {
+            color: var(--sentora-gold);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* The Glowing Gold Button */
+        .btn-login {
+            background: var(--sentora-gold);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+            padding: 14px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(244, 180, 26, 0.2);
+        }
+
+        .btn-login:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 15px 30px rgba(244, 180, 26, 0.3);
+        }
+
+        /* Footer */
+        .secure-footer {
+            margin-top: 40px;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .footer-links {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.75rem;
+        }
+        /* Add this to your <style> section */
+.bi-eye {
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.bi-eye:hover {
+    color: var(--sentora-gold); /* Subtle glow on hover to match the button */
+}
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <div class="brand-logo"><i class="bi bi-hurricane"></i></div>
+        <div class="brand-title">SCENTORA <span>ADMIN</span></div>
+        <div class="brand-subtitle">Executive Dashboard</div>
+
+        <div class="auth-card">
+            <h2>Admin Login</h2>
+            <p>Enter your secure credentials to manage Scentora.</p>
+
+            <form method="POST" action="{% url 'admin_login' %}">
+                {% csrf_token %}
+                
+                <label class="field-label">Email Address</label>
+                <div class="input-well">
+                    <i class="bi bi-envelope"></i>
+                    <input type="email" name="email" placeholder="admin@scentora.com" required>
+                </div>
+
+                <label class="field-label">Password</label>
+                <div class="input-well">
+                    <i class="bi bi-lock"></i>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                    <i class="bi bi-eye ms-auto" style="cursor: pointer; font-size: 0.9rem;"></i>
+                </div>
+
+                <div class="util-row">
+                    <div class="d-flex align-items-center">
+                        <input type="checkbox" name="remember_me" class="form-check-input me-2" id="rem">
+                        <label class="util-label" for="rem">Remember Me</label>
+                    </div>
+<a href="{% url 'forgot_password' %}" class="forgot-link">Forgot Password?</a>                </div>
+
+                <button type="submit" class="btn-login">
+                    LOGIN TO DASHBOARD <i class="bi bi-box-arrow-in-right"></i>
+                </button>
+            </form>
+        </div>
+
+        <div class="secure-footer">
+            <hr style="border-color: #222; margin-bottom: 20px;">
+            SECURE ACCESS ONLY
+            <div class="footer-links">
+                <a href="#">Support</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+            </div>
+        </div>
+    </div>
+<script>
+    // This script will work for any eye icon inside an input-well
+document.querySelectorAll('.bi-eye').forEach(eye => {
+    eye.addEventListener('click', function() {
+        const input = this.parentElement.querySelector('input');
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
+        this.classList.toggle('bi-eye');
+        this.classList.toggle('bi-eye-slash');
+    });
+});
+
+</script>
+</body>
+</html>
