@@ -1,0 +1,150 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block breadcrumb %}User Details{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-end mb-8">
+    <div>
+        <a href="{% url 'user_management' %}" class="flex items-center gap-2 text-gold text-[11px] uppercase tracking-[2px] font-bold mb-3 hover:gap-3 transition-all">
+            <i class="bi bi-arrow-left"></i> Back to User List
+        </a>
+        <h2 class="text-3xl font-bold text-white tracking-tight">User Details</h2>
+    </div>
+    <div class="flex gap-3">
+        <button class="px-5 py-2.5 bg-white/[0.03] border border-white/10 rounded-lg text-[12px] font-semibold text-white/90 hover:bg-white/[0.08] transition-all">
+            <i class="bi bi-pencil me-2"></i> Edit Profile
+        </button>
+        <form action="{% url 'block_user' customer.id %}" method="POST" class="inline">
+            {% csrf_token %}
+            <button class="px-5 py-2.5 bg-red-500/5 border border-red-500/20 rounded-lg text-[12px] font-semibold text-red-500 hover:bg-red-500/10 transition-all">
+                <i class="bi bi-slash-circle me-2"></i> Block User
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="grid grid-cols-12 gap-6">
+    <div class="col-span-8 space-y-6">
+        <div class="bg-rich border border-white/[0.05] rounded-2xl p-8 flex gap-10 relative overflow-hidden">
+            <div class="absolute -top-24 -left-24 w-48 h-48 bg-gold/5 blur-[100px]"></div>
+            
+            <div class="relative flex-shrink-0">
+                <img src="https://ui-avatars.com/api/?name={{ customer.first_name }}+{{ customer.last_name }}&background=111&color=f4b41a&size=128" 
+                     class="w-32 h-32 rounded-2xl object-cover border border-white/10 shadow-2xl shadow-black">
+                <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-[4px] border-rich rounded-full"></div>
+            </div>
+
+            <div class="flex-grow grid grid-cols-2 gap-y-8">
+                <div class="col-span-2">
+                    <div class="flex items-center gap-4 mb-1">
+                        <h3 class="text-3xl font-bold text-white">{{ customer.get_full_name }}</h3>
+                        <span class="px-3 py-1 bg-gold/10 border border-gold/20 text-gold text-[10px] font-bold uppercase tracking-widest rounded-md">
+                            Active Member
+                        </span>
+                    </div>
+                    <p class="text-muted text-xs">Customer ID: <span class="text-white/40">#USR-{{ customer.id|stringformat:"04d" }}</span></p>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] text-muted uppercase tracking-[2px] font-bold mb-1.5">Email Address</label>
+                    <p class="text-white/90 font-medium">{{ customer.email }}</p>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-muted uppercase tracking-[2px] font-bold mb-1.5">Phone Number</label>
+                    <p class="text-white/90 font-medium">+1 234 567 890</p>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-muted uppercase tracking-[2px] font-bold mb-1.5">Customer Since</label>
+                    <p class="text-white/90 font-medium">{{ customer.date_joined|date:"F d, Y" }}</p>
+                </div>
+                <div>
+                    <label class="block text-[10px] text-muted uppercase tracking-[2px] font-bold mb-1.5">Total Spent</label>
+                    <p class="text-gold text-2xl font-bold tracking-tight">${{ total_spent|default:"0.00" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-rich border border-white/[0.05] rounded-2xl overflow-hidden">
+            <div class="px-6 py-5 border-b border-white/[0.05] flex justify-between items-center">
+                <h4 class="text-sm font-bold text-white uppercase tracking-widest">Recent Orders</h4>
+                <a href="#" class="text-gold text-[11px] font-bold hover:underline">View All Orders <i class="bi bi-box-arrow-up-right ms-1"></i></a>
+            </div>
+            <table class="w-full text-left">
+                <thead class="bg-white/[0.02]">
+                    <tr>
+                        <th class="px-6 py-4 text-[10px] text-muted uppercase tracking-widest font-bold">Order ID</th>
+                        <th class="px-6 py-4 text-[10px] text-muted uppercase tracking-widest font-bold">Date</th>
+                        <th class="px-6 py-4 text-[10px] text-muted uppercase tracking-widest font-bold">Items</th>
+                        <th class="px-6 py-4 text-[10px] text-muted uppercase tracking-widest font-bold">Amount</th>
+                        <th class="px-6 py-4 text-[10px] text-muted uppercase tracking-widest font-bold">Status</th>
+                        <th class="px-6 py-4 text-[10px] text-muted uppercase tracking-widest font-bold text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/[0.02]">
+                    {% for order in orders %}
+                    <tr class="hover:bg-white/[0.01] transition-colors">
+                        <td class="px-6 py-4 font-bold text-white/60 text-xs">#ORD-{{ order.id }}</td>
+                        <td class="px-6 py-4 text-xs text-muted">{{ order.created_at|date:"M d, Y" }}</td>
+                        <td class="px-6 py-4 text-xs text-white/80">3 x Scented Candle Pack</td>
+                        <td class="px-6 py-4 text-xs font-bold text-white">${{ order.total_price }}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 bg-blue-500/10 text-blue-400 text-[9px] font-bold uppercase rounded tracking-tighter">Shipped</span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <button class="text-muted hover:text-white transition-all"><i class="bi bi-eye"></i></button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-10 text-center text-muted text-xs italic">No orders found for this user.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-span-4 space-y-6">
+        <div class="bg-rich border border-white/[0.05] rounded-2xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h4 class="text-xs font-bold text-gold uppercase tracking-widest flex items-center gap-2">
+                    <i class="bi bi-geo-alt-fill"></i> Saved Addresses
+                </h4>
+                <button class="text-[10px] text-muted font-bold hover:text-white uppercase tracking-widest transition-colors">Manage</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div class="p-4 bg-white/[0.02] border border-white/5 rounded-xl group hover:border-gold/20 transition-all">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="bi bi-house text-muted group-hover:text-gold"></i>
+                        <span class="text-[10px] font-bold text-white/40 uppercase tracking-widest">Home</span>
+                    </div>
+                    <p class="text-xs text-muted leading-relaxed">123 Fragrance Lane, Suite 4B<br>Manhattan, NY 10001, USA</p>
+                </div>
+                
+                <div class="p-4 bg-white/[0.02] border border-white/5 rounded-xl group hover:border-gold/20 transition-all">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="bi bi-briefcase text-muted group-hover:text-gold"></i>
+                        <span class="text-[10px] font-bold text-white/40 uppercase tracking-widest">Work</span>
+                    </div>
+                    <p class="text-xs text-muted leading-relaxed">456 Corporate Ave, Floor 12<br>Jersey City, NJ 07302, USA</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-rich border border-white/[0.05] rounded-2xl p-6">
+            <h4 class="text-xs font-bold text-gold uppercase tracking-widest flex items-center gap-2 mb-6">
+                <i class="bi bi-journal-text"></i> Internal Admin Notes
+            </h4>
+            <form action="#" method="POST">
+                {% csrf_token %}
+                <textarea class="w-full bg-obsidian border border-white/5 rounded-xl p-4 text-xs text-white/80 placeholder:text-muted/40 focus:border-gold/30 focus:outline-none transition-all h-32 mb-4" 
+                          placeholder="Add private note about this user for other admins..."></textarea>
+                <button class="w-full py-3 bg-gold text-black font-bold text-[11px] uppercase tracking-widest rounded-lg hover:shadow-[0_0_20px_rgba(244,180,26,0.2)] transition-all">
+                    Save Note
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
