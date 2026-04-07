@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Scentora | Luxury Access</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Manrope:wght@200;300;400;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ecb613",
+                        "background-dark": "#000000",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"],
+                        "serif": ["Cormorant Garamond", "serif"],
+                    },
+                },
+            },
+        }
+    </script>
+
+    <style>
+        @keyframes luxury-entrance {
+            0% { letter-spacing: 1.2em; opacity: 0; filter: blur(10px); }
+            100% { letter-spacing: 0.5em; opacity: 1; filter: blur(0); }
+        }
+
+        @keyframes border-trace {
+    0%, 100% { clip-path: inset(0 0 98% 0); }
+    25% { clip-path: inset(0 0 0 98%); }
+    50% { clip-path: inset(98% 0 0 0); }
+    75% { clip-path: inset(0 98% 0 0); }
+}
+        /* Reverted Glitch Animation */
+        @keyframes header-glitch {
+            0% { transform: skew(0deg); text-shadow: 2px 0 #ecb613, -2px 0 #fff; }
+            20% { transform: skew(-3deg); }
+            40% { transform: skew(3deg); }
+            60% { transform: skew(0deg); text-shadow: -2px 0 #ecb613, 2px 0 #fff; }
+            100% { transform: skew(0deg); }
+        }
+
+        .animate-brand { animation: luxury-entrance 2s cubic-bezier(0.19, 1, 0.22, 1) forwards; }
+        
+        .header-brand-hover:hover {
+            animation: header-glitch 0.3s ease-in-out infinite;
+            color: #ecb613;
+            text-shadow: 0 0 8px rgba(236, 182, 19, 0.6);
+        }
+
+        body { background-color: #000000; color: #fff; margin: 0; }
+
+       .luxury-vault {
+    position: relative;
+    background: rgba(10, 10, 10, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1), box-shadow 0.6s ease;
+    /* Ensures everything inside stays aligned */
+    display: flex;
+    flex-direction: column;
+}
+
+        .luxury-vault::before {
+    content: '';
+    position: absolute;
+    inset: -1px; /* Perfectly aligns with the 1px border */
+    border: 1px solid #ecb613;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 10;
+}
+     .luxury-vault:hover::before {
+    opacity: 1;
+    animation: border-trace 6s linear infinite; /* Slower, smoother trace */
+}
+
+.luxury-vault:hover {
+    box-shadow: 0 0 50px rgba(236, 182, 19, 0.05);
+}
+/* Force the symbol to render correctly */
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined' !important;
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+}
+        input:focus { border-bottom: 1px solid #ecb613 !important; }
+    </style>
+</head>
+<body class="font-display antialiased min-h-screen flex flex-col">
+
+    <header class="w-full border-b border-white/5 px-6 py-8 sticky top-0 z-[100] bg-black/90">
+        <div class="max-w-[1440px] mx-auto flex justify-center items-center">
+            <h1 class="header-brand-hover text-2xl font-black tracking-[0.5em] text-white uppercase transition-all cursor-crosshair">
+                $CENTOR@
+            </h1>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center py-16 px-6 relative">
+        <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full"></div>
+        </div>
+
+        <div class="luxury-vault z-10 w-full max-w-[640px] p-10 lg:p-16 rounded-sm">
+    
+    <div class="w-full flex flex-col items-center justify-center mb-16">
+    
+    <div class="animate-brand flex justify-center items-center w-full overflow-visible">
+        <h2 class="text-4xl lg:text-5xl font-serif italic text-white uppercase flex gap-[0.5em] translate-x-[0.25em]">
+            <span>S</span><span>C</span><span>E</span><span>N</span><span>T</span><span>O</span><span>R</span><span>A</span>
+        </h2>
+    </div>
+
+    <div class="h-[1px] w-20 bg-primary/40 mt-8 mb-8"></div>
+    
+    <div class="flex justify-center w-full">
+        <p class="text-[9px] uppercase tracking-[0.6em] text-slate-500 font-light -mr-[0.6em] whitespace-nowrap">
+            Private Authentication
+        </p>
+    </div>
+</div>
+
+    <form class="space-y-10" method="POST" action="{% url 'user_login' %}">
+        {% csrf_token %}
+        
+        <div class="space-y-10">
+            <div class="relative group">
+                <label class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mb-2 block group-focus-within:text-primary transition-colors">
+                    Email Address
+                </label>
+                <input class="w-full bg-transparent border-b border-white/10 border-t-0 border-x-0 rounded-none px-0 py-3 text-white focus:ring-0 outline-none transition-all placeholder:text-white/5 font-light" 
+                       placeholder="identity@scentora.com" type="email" name="email" required/>
+            </div>
+
+           <div class="relative group">
+    <label class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mb-2 block group-focus-within:text-primary transition-colors">
+        Password
+    </label>
+    <div class="relative flex items-center">
+        <input id="password-input" 
+               class="w-full bg-transparent border-b border-white/10 border-t-0 border-x-0 rounded-none px-0 py-3 pr-10 text-white focus:ring-0 outline-none transition-all placeholder:text-white/5 font-light" 
+               placeholder="••••••••" 
+               type="password" 
+               name="password" 
+               required/>
+        
+        <button type="button" 
+                onclick="togglePassword()" 
+                class="absolute right-0 bottom-3 flex items-center justify-center text-slate-500 hover:text-primary transition-all focus:outline-none z-[50] cursor-pointer"
+                style="background: transparent; border: none;">
+            <span id="eye-icon" class="material-symbols-outlined select-none">
+                visibility
+            </span>
+        </button>
+    </div>
+    <div class="flex justify-end mt-4">
+        <a class="text-[9px] text-slate-600 hover:text-primary transition-all uppercase tracking-widest font-medium" href="#">
+            Forget Password?
+        </a>
+    </div>
+</div>
+        </div>
+
+        <div class="pt-4">
+            <button class="w-full bg-primary hover:bg-white text-black font-bold py-5 transition-all duration-700 uppercase tracking-[0.4em] text-[11px] shadow-xl">
+               Sign In
+            </button>
+        </div>
+
+        <div class="space-y-6">
+            <div class="relative flex items-center">
+                <div class="flex-grow border-t border-white/5"></div>
+                <span class="flex-shrink mx-6 text-[8px] uppercase tracking-[0.5em] text-slate-700 font-bold">Access Via</span>
+                <div class="flex-grow border-t border-white/5"></div>
+            </div>
+
+            {% load socialaccount %}
+<div class="grid grid-cols-1 gap-4">
+    <a href="{% provider_login_url 'google' %}" class="flex items-center justify-center border border-white/5 hover:border-primary/40 py-4 transition-all group w-full">
+        <span class="text-[9px] font-bold uppercase tracking-widest text-slate-500 group-hover:text-white">Google</span>
+    </a>
+</div>
+        </div>
+    </form>
+
+    <div class="mt-16 text-center border-t border-white/5 pt-10">
+        <p class="text-[9px] uppercase tracking-[0.3em] text-slate-600 mb-4">Not a member yet?</p>
+        <a href="{% url 'user_signup' %}" class="inline-block text-[10px] font-bold tracking-[0.4em] uppercase text-primary hover:text-white transition-all pb-1 border-b border-transparent hover:border-white">
+            Create Account
+        </a>
+    </div>
+</div>
+    </main>
+
+    <footer class="w-full border-t border-white/5 px-6 py-12 lg:px-20 bg-black text-slate-500">
+        <div class="max-w-[1440px] mx-auto flex flex-col items-center gap-6">
+            <h3 class="text-xl font-bold tracking-[0.3em] text-white uppercase">Scentora</h3>
+            <p class="text-[9px] uppercase tracking-[0.4em] text-slate-700">© 2026 Scentora. All Rights Reserved.</p>
+        </div>
+    </footer>
+<script>
+    function togglePassword() {
+        const input = document.getElementById('password-input');
+        const icon = document.getElementById('eye-icon');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.innerText = 'visibility_off'; // Changes symbol to eye-slash
+        } else {
+            input.type = 'password';
+            icon.innerText = 'visibility'; // Changes symbol back to eye
+        }
+    }
+</script>
+</body>
+</html>

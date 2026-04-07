@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="relative h-[90vh] flex items-center justify-center overflow-hidden">
+    <div class="absolute inset-0 z-0">
+        <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-[#050505] z-10"></div>
+        <img src="https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&q=80&w=2000" 
+             class="w-full h-full object-cover opacity-60 scale-105 hover:scale-100 transition-transform duration-[10s]">
+    </div>
+
+    <div class="relative z-20 text-center px-6">
+        <h1 class="font-serif text-6xl md:text-8xl font-bold text-white mb-6 leading-tight tracking-tighter">
+            Define Your <br> <span class="text-gold italic">Aura.</span>
+        </h1>
+        <p class="max-w-xl mx-auto text-gray-400 text-sm md:text-base uppercase tracking-[4px] mb-10 leading-relaxed">
+            Curating the world's most exclusive <br> olfactory masterpieces.
+        </p>
+        <div class="flex flex-col md:flex-row items-center justify-center gap-6">
+            <a href="#" class="px-10 py-4 bg-gold text-black text-xs font-bold uppercase tracking-[3px] rounded-full hover:bg-white transition-all">
+                Explore Collections
+            </a>
+            <a href="#" class="px-10 py-4 border border-white/20 text-white text-xs font-bold uppercase tracking-[3px] rounded-full hover:bg-white/10 transition-all backdrop-blur-sm">
+                The Scent Finder
+            </a>
+        </div>
+    </div>
+
+    <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-40">
+        <i class="bi bi-chevron-down text-2xl"></i>
+    </div>
+</section>
+
+<section class="py-32 max-w-7xl mx-auto px-6">
+    <div class="flex justify-between items-end mb-16">
+        <div>
+            <span class="text-gold text-[10px] font-bold uppercase tracking-[4px]">New Arrivals</span>
+            <h2 class="font-serif text-4xl mt-2 italic">The Noir Series</h2>
+        </div>
+        <a href="#" class="text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-gold transition-colors">View All &rarr;</a>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+        {% for i in "123" %}
+        <div class="group cursor-pointer">
+            <div class="aspect-[3/4] bg-white/[0.03] border border-white/5 rounded-2xl mb-6 overflow-hidden relative">
+                <div class="absolute inset-0 bg-gold/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 translate-y-10 group-hover:translate-y-0 transition-transform opacity-0 group-hover:opacity-100">
+                    <button class="bg-white text-black px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest">Quick View</button>
+                </div>
+            </div>
+            <h3 class="font-serif text-xl">Essence No. {{ i }}</h3>
+            <p class="text-gold font-bold text-xs mt-1">$180.00</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
