@@ -27,16 +27,11 @@ def admin_login(request):
     if request.method == "POST":
         email = request.POST.get("email")
         password = request.POST.get("password")
-        remember_me = request.POST.get("remember_me")
 
         user = authenticate(request, email=email, password=password)
 
         if user is not None and user.is_staff:
             login(request, user)
-            if remember_me:
-                request.session.set_expiry(1209600)
-            else:
-                request.session.set_expiry(0)
 
             return redirect("admin_dashboard")
         else:
@@ -49,14 +44,12 @@ def admin_logout(request):
     return redirect("admin_login")
 
 
-def forgot_password(request):
-    return render(request, "admin_panel/forgot_password.html")
-
-
 @staff_member_required
 def user_management(request):
     users = User.objects.filter(is_superuser=False).order_by("-date_joined")
-    search_query = request.GET.get("search", "") or ""
+    search_query = request.GET.get("search", "")
+    sort_order = request.GET.get("sort", "newest")
+
     if search_query:
         users = users.filter(
             Q(username__icontains=search_query)
@@ -69,6 +62,13 @@ def user_management(request):
         users = users.filter(is_active=True)
     elif status_filter == "blocked":
         users = users.filter(is_active=False)
+
+    if sort_order == "oldest":
+        users = users.order_by("date_joined")
+    elif sort_order == "alpha":
+        users = users.order_by("username")
+    else:
+        users = users.order_by("-date_joined")
 
     active_count = User.objects.filter(is_active=True, is_superuser=False).count()
     blocked_count = User.objects.filter(is_active=False, is_superuser=False).count()
@@ -85,63 +85,69 @@ def user_management(request):
         "total_count": total_count,
         "search_query": search_query,
         "status_filter": status_filter,
+        "sort_order": sort_order,
     }
 
     return render(request, "admin_panel/user_management.html", context)
 
 
+def confirm_block_user(request, user_id):
+    user_to_manage = get_object_or_404(User, id=user_id)
+
+    return render(
+        request, "admin_panel/confirm_block.html", {"user_to_manage": user_to_manage}
+    )
+
+
 @staff_member_required
 def toggle_user_status(request, user_id):
-    target_user = get_object_or_404(User, id=user_id)
-    target_user.is_active = not target_user.is_active
-    target_user.save()
-    return redirect("user_management")
-
-
-def block_user(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    user.is_active = False
-    user.save()
-    messages.success(request, f"User {user.username} has been blocked.")
-    return redirect("user_management")
-
-
-def unblock_user(request, user_id):
-    user = get_object_or_404(User, id=user_id)
-    user.is_active = True
-    user.save()
-    messages.success(request, f"User {user.username} has been unblocked.")
-    return redirect("user_management")
-
-
-@staff_member_required
-def user_detail(request, user_id):
-    customer = get_object_or_404(User, id=user_id)
-
-    orders = customer.orders.all().order_by("-created_at")[:5]
-    addresses = customer.addresses.all()
-    total_spent = sum(
-        order.total_price for order in customer.orders.filter(status="Delivered")
-    )
-    context = {
-        "customer": customer,
-        "orders": orders,
-        "addresses": addresses,
-        "total_spent": total_spent,
-    }
-
-    return render(request, "admin_panel/user_detail.html", context)
-
-
-@staff_member_required
-def save_admin_note(request, user_id):
     if request.method == "POST":
-        customer = get_object_or_404(User, id=user_id)
-        note_text = request.POST.get("note_content", "").strip()
-        note, created = AdminNote.objects.get_or_create(user=customer)
-        note.content = note_text
-        note.save()
+        user = get_object_or_404(User, id=user_id)
 
-        messages.sucesss(request, "Note saved sucessfully")
-        return redirect("user_detail", user_id=user_id)
+        if user.is_active:
+            user.is_active = False
+            action = "blocked"
+        else:
+            user.is_active = True
+            action = "unblocked"
+
+        user.save()
+        messages.success(
+            request, f"User {user.username} has been successfully {action}."
+        )
+        return redirect("user_management")
+
     return redirect("user_management")
+
+
+# @staff_member_required
+# def user_detail(request, user_id):
+#     customer = get_object_or_404(User, id=user_id)
+
+#     orders = customer.orders.all().order_by("-created_at")[:5]
+#     addresses = customer.addresses.all()
+#     total_spent = sum(
+#         order.total_price for order in customer.orders.filter(status="Delivered")
+#     )
+#     context = {
+#         "customer": customer,
+#         "orders": orders,
+#         "addresses": addresses,
+#         "total_spent": total_spent,
+#     }
+
+#     return render(request, "admin_panel/user_detail.html", context)
+
+
+# @staff_member_required
+# def save_admin_note(request, user_id):
+#     if request.method == "POST":
+#         customer = get_object_or_404(User, id=user_id)
+#         note_text = request.POST.get("note_content", "").strip()
+#         note, created = AdminNote.objects.get_or_create(user=customer)
+#         note.content = note_text
+#         note.save()
+
+#         messages.sucesss(request, "Note saved sucessfully")
+#         return redirect("user_detail", user_id=user_id)
+#     return redirect("user_management")

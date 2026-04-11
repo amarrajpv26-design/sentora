@@ -1,66 +1,127 @@
-{% extends 'base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Scentora | Security Access</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#F4B41A',
+                        'bg-dark': '#050505',
+                        'vault-card': '#0A0A0A',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .otp-input:focus { border-color: #F4B41A; box-shadow: 0 0 15px rgba(244, 180, 26, 0.1); }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
 
-{% block content %}
-<div class="min-h-screen flex items-center justify-center bg-[#050505] px-4">
-    <div class="max-w-md w-full bg-white/[0.03] border border-white/10 backdrop-blur-xl rounded-3xl p-10 shadow-2xl">
+<body class="bg-bg-dark font-['Manrope'] text-white antialiased">
+<div class="relative min-h-screen flex items-center justify-center overflow-hidden px-4">
+    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-gold/5 blur-[120px] rounded-full"></div>
+
+    <div class="max-w-md w-full bg-vault-card border border-white/10 rounded-[2.5rem] p-10 shadow-2xl relative z-10">
         
         <div class="text-center mb-10">
-            <h2 class="text-3xl font-bold text-white tracking-tight mb-2">Verify Your Account</h2>
-            <p class="text-gray-400 text-sm">We've sent a 6-digit code to <br><span class="text-gold font-medium">{{ email }}</span></p>
+            <div class="inline-flex items-center justify-center size-12 rounded-full bg-gold/10 text-gold mb-6">
+                <span class="material-symbols-outlined text-3xl">shield_person</span>
+            </div>
+            <h1 class="text-3xl font-black tracking-tight mb-2">Security Access</h1>
+            <p class="text-gray-500 text-xs uppercase tracking-[3px]">Verify your identity</p>
         </div>
 
-        <form action="{% url 'verify_otp' %}" method="POST" class="space-y-8">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="bg-red-500/10 border border-red-500/50 text-red-500 text-xs p-3 rounded-lg mb-6 text-center">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'verify_otp' %}" id="otp-form">
             {% csrf_token %}
-            
-            <div class="flex justify-center">
-                <input type="text" name="otp" maxlength="6" placeholder="000000"
-                       class="w-full bg-black/40 border border-white/10 rounded-xl py-4 text-center text-3xl tracking-[15px] font-bold text-gold focus:border-gold/50 focus:outline-none transition-all placeholder:text-white/5"
-                       required autocomplete="off">
+            <input type="hidden" name="otp" id="combined-otp">
+
+            <div class="flex justify-between gap-2 mb-10" id="otp-inputs">
+                <input autofocus class="otp-input w-12 h-16 bg-white/[0.03] border border-white/10 rounded-xl text-center text-2xl font-bold focus:outline-none transition-all" maxlength="1" type="number">
+                <input class="otp-input w-12 h-16 bg-white/[0.03] border border-white/10 rounded-xl text-center text-2xl font-bold focus:outline-none transition-all" maxlength="1" type="number">
+                <input class="otp-input w-12 h-16 bg-white/[0.03] border border-white/10 rounded-xl text-center text-2xl font-bold focus:outline-none transition-all" maxlength="1" type="number">
+                <input class="otp-input w-12 h-16 bg-white/[0.03] border border-white/10 rounded-xl text-center text-2xl font-bold focus:outline-none transition-all" maxlength="1" type="number">
+                <input class="otp-input w-12 h-16 bg-white/[0.03] border border-white/10 rounded-xl text-center text-2xl font-bold focus:outline-none transition-all" maxlength="1" type="number">
+                <input class="otp-input w-12 h-16 bg-white/[0.03] border border-white/10 rounded-xl text-center text-2xl font-bold focus:outline-none transition-all" maxlength="1" type="number">
             </div>
 
-            <button type="submit" 
-                    class="w-full py-4 bg-gold text-black font-bold uppercase tracking-[2px] text-xs rounded-xl hover:bg-[#e2a616] hover:shadow-[0_0_30px_rgba(244,180,26,0.3)] transition-all transform hover:-translate-y-0.5">
-                Verify Identity
-            </button>
+            <div class="flex flex-col items-center gap-6">
+                <button type="submit" class="w-full h-14 bg-gold text-black font-black uppercase tracking-[3px] text-[10px] rounded-xl hover:bg-[#e2a616] transition-all transform active:scale-95 shadow-[0_10px_40px_rgba(244,180,26,0.15)]">
+                    Verify & Authenticate
+                </button>
+
+                <div class="text-center">
+                    <p class="text-xs text-gray-500 uppercase tracking-widest mb-3" id="resend-text">
+                        Resend code in <span class="text-white font-bold" id="timer-span">60s</span>
+                    </p>
+                    <a href="{% url 'resend_otp' %}" id="resend-btn" class="hidden text-gold text-xs font-bold uppercase tracking-widest hover:underline cursor-pointer">
+                        Resend New OTP
+                    </a>
+                </div>
+            </div>
         </form>
-
-        <div class="mt-10 text-center">
-            <div id="timer-container" class="text-sm text-gray-500 mb-4">
-                Code expires in: <span id="timer" class="text-white font-mono font-bold">02:00</span>
-            </div>
-            
-            <a href="{% url 'resend_otp' %}" id="resend-btn" 
-               class="text-[11px] font-bold uppercase tracking-widest text-gray-600 pointer-events-none transition-colors duration-500">
-                Resend New Code
-            </a>
-        </div>
-
     </div>
 </div>
 
 <script>
-    let timeLeft = 120; // 2 minutes in seconds
-    const timerDisplay = document.getElementById('timer');
-    const resendBtn = document.getElementById('resend-btn');
+    document.addEventListener('DOMContentLoaded', () => {
+        const inputs = document.querySelectorAll('.otp-input');
+        const form = document.getElementById('otp-form');
+        const combinedInput = document.getElementById('combined-otp');
+        const timerSpan = document.getElementById('timer-span');
+        const resendBtn = document.getElementById('resend-btn');
+        const resendText = document.getElementById('resend-text');
 
-    const countdown = setInterval(() => {
-        const minutes = Math.floor(timeLeft / 60);
-        let seconds = timeLeft % 60;
-        seconds = seconds < 10 ? '0' + seconds : seconds;
+        // OTP Input Logic
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !input.value && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
 
-        timerDisplay.innerHTML = `0${minutes}:${seconds}`;
+        // Combine inputs on submit
+        form.addEventListener('submit', (e) => {
+            let otpValue = "";
+            inputs.forEach(input => otpValue += input.value);
+            combinedInput.value = otpValue;
+        });
 
-        if (timeLeft <= 0) {
-            clearInterval(countdown);
-            timerDisplay.innerHTML = "00:00";
-            document.getElementById('timer-container').classList.add('opacity-30');
-            
-            // Activate Resend Button with Gold Style
-            resendBtn.classList.remove('text-gray-600', 'pointer-events-none');
-            resendBtn.classList.add('text-gold', 'hover:text-white');
-        } else {
+        // Timer Logic
+        let timeLeft = 60;
+        const countdown = setInterval(() => {
             timeLeft--;
-        }
-    }, 1000);
+            timerSpan.textContent = `${timeLeft}s`;
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                resendText.classList.add('hidden');
+                resendBtn.classList.remove('hidden');
+            }
+        }, 1000);
+    });
 </script>
-{% endblock %}
+</body>
+</html>

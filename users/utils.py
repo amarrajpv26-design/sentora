@@ -1,8 +1,9 @@
 import random
 import string
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 from django.conf import settings
-from django.utils import timezone
 
 
 def generate_otp():
@@ -10,9 +11,16 @@ def generate_otp():
 
 
 def send_otp_email(user_email, otp):
-    subject = "Verify Your Scentora Account"
-    message = f"Your verification code is: {otp}. This code expires in 2 minutes."
-    email_from = settings.DEFAULT_FROM_EMAIL
-    recipient_list = [user_email]
+    subject = "Scentora | Verify Your Identity"
+    from_email = settings.DEFAULT_FROM_EMAIL
 
-    send_mail(subject, message, email_from, recipient_list)
+    context = {"otp": otp, "email": user_email}
+    html_content = render_to_string('email/otp_email.html', context)
+
+    text_content = strip_tags(html_content)
+
+    msg = EmailMultiAlternatives(subject, text_content, from_email, [user_email])
+
+    msg.attach_alternative(html_content, "text/html")
+
+    msg.send()

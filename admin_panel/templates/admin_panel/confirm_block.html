@@ -1,0 +1,118 @@
+<!doctype html>
+<html class="dark" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Scentora Admin | Security Protocol</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#ecb613",
+              "background-dark": "#0a0a0a",
+              "card-dark": "#141414",
+            },
+            fontFamily: { display: ["Manrope", "sans-serif"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body
+    class="font-display bg-background-dark text-slate-100 antialiased min-h-screen flex items-center justify-center p-6"
+  >
+    <div class="fixed inset-0 pointer-events-none">
+      <div
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full"
+      ></div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-lg">
+      <div class="text-center mb-12">
+        <h1
+          class="text-2xl font-black tracking-[0.6em] text-white uppercase opacity-50"
+        >
+          Scentora
+        </h1>
+        <div class="h-[1px] w-12 bg-primary mx-auto mt-4"></div>
+      </div>
+
+      <div
+        class="bg-card-dark border border-white/5 rounded-2xl p-8 lg:p-12 shadow-2xl relative overflow-hidden"
+      >
+        <div
+          class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-transparent"
+        ></div>
+
+        <div class="flex flex-col items-center text-center">
+          <div
+            class="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-6 border border-primary/20"
+          >
+            <span class="material-symbols-outlined text-4xl">
+  {% if user_to_manage.is_active %}block{% else %}lock_open{% endif %}
+</span>
+          </div>
+
+          <h2 class="text-3xl font-extrabold tracking-tight mb-4">
+    {% if user_to_manage.is_active %}Restrict Access?{% else %}Restore Access?{% endif %}
+</h2>
+
+<p class="text-slate-500 text-sm leading-relaxed mb-10 max-w-sm">
+    You are modifying the security status for this account. 
+    {% if user_to_manage.is_active %}
+        This user will be immediately barred from the Scentora ecosystem.
+    {% else %}
+        This user will regain full access to their Scentora profile.
+    {% endif %}
+</p>
+
+          <div
+            class="w-full bg-black/40 border border-white/5 rounded-xl p-4 flex items-center gap-4 mb-10"
+          >
+            <div
+              class="size-12 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-bold"
+            >
+              {{ user_to_manage.username|first|upper }}
+            </div>
+            <div class="text-left">
+              <p class="text-sm font-bold text-white">
+                {{ user_to_manage.username }}
+              </p>
+              <p class="text-[10px] uppercase tracking-widest text-slate-500">
+                {{ user_to_manage.email }}
+              </p>
+            </div>
+          </div>
+
+          <form
+            method="POST"
+            action="{% url 'toggle_user_status' user_to_manage.id %}"
+            class="w-full flex flex-col gap-4"
+          >
+            {% csrf_token %}
+           <button type="submit" class="w-full py-4 bg-primary text-black font-black uppercase tracking-widest text-xs rounded-lg hover:brightness-110 transition-all active:scale-95 shadow-lg shadow-primary/10">
+    Confirm {% if user_to_manage.is_active %}Block{% else %}Unblock{% endif %} User
+</button>
+            <a
+              href="{% url 'user_management' %}"
+              class="w-full py-4 bg-transparent border border-white/10 text-white font-bold uppercase tracking-widest text-xs rounded-lg hover:bg-white/5 transition-all text-center"
+            >
+              Abort Mission
+            </a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

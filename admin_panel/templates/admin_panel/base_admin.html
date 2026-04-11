@@ -86,7 +86,7 @@
     </aside>
 
     <div class="flex-grow flex flex-col min-w-0 bg-obsidian">
-        <header class="h-16 border-b border-white/[0.04] flex items-center justify-between px-8 bg-obsidian/50 backdrop-blur-md sticky top-0 z-50">
+     <header class="h-16 border-b border-white/[0.04] flex items-center justify-between px-8 bg-obsidian/50 backdrop-blur-md sticky top-0 z-50">
     
     <div class="flex items-center gap-2 text-[10px] uppercase tracking-[2px] font-medium text-muted">
         <span>Admin</span>
@@ -96,31 +96,7 @@
         </span>
     </div>
 
-    <div class="flex-grow max-w-md mx-8">
-        <form action="{% url 'user_management' %}" method="GET" class="relative group flex items-center">
-    <i class="bi bi-search absolute left-0 top-1/2 -translate-y-1/2 text-muted/30 group-focus-within:text-gold transition-all text-sm"></i>
-    
-    <input type="text" 
-       name="search" 
-       placeholder="Search by name or email..." 
-       value="{{ search_query|default:'' }}" 
-       class="w-full bg-transparent border-none text-[13px] pl-7 pr-10 py-2 focus:outline-none focus:ring-0 text-white/80">
-    {% if search_query %}
-    <a href="{% url 'user_management' %}" class="absolute right-0 top-1/2 -translate-y-1/2 text-muted/40 hover:text-gold transition-colors">
-        <i class="bi bi-x-circle-fill text-sm"></i>
-    </a>
-    {% endif %}
-</form>
-    </div>
-
     <div class="flex items-center gap-6">
-        <button class="text-muted/50 hover:text-white transition-colors relative">
-            <i class="bi bi-bell text-lg"></i>
-            <span class="absolute top-0 right-0 w-1 h-1 bg-gold rounded-full"></span>
-        </button>
-
-        <div class="h-6 w-px bg-white/[0.05]"></div>
-
         <div class="flex items-center gap-3.5 group cursor-pointer">
             <div class="text-right leading-tight">
                 <p class="text-[12px] font-semibold text-white/90 group-hover:text-gold transition-colors tracking-tight">
