@@ -221,6 +221,22 @@
         <div class="brand-subtitle">Executive Dashboard</div>
 
         <div class="auth-card">
+            {% if messages %}
+        <div style="margin-bottom: 20px;">
+            {% for message in messages %}
+                <div style="padding: 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; 
+                    {% if message.tags == 'error' %} 
+                        background: rgba(255, 0, 0, 0.1); color: #ff4d4d; border: 1px solid rgba(255, 0, 0, 0.2);
+                    {% else %} 
+                        background: rgba(244, 180, 26, 0.1); color: var(--sentora-gold); border: 1px solid rgba(244, 180, 26, 0.2);
+                    {% endif %}">
+                    <i class="bi bi-exclamation-octagon-fill" style="margin-right: 8px;"></i>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
             <h2>Admin Login</h2>
             <p>Enter your secure credentials to manage Scentora.</p>
 
