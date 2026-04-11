@@ -40,8 +40,13 @@ def admin_login(request):
 
 
 def admin_logout(request):
-    logout(request)
-    return redirect("admin_login")
+    if request.method == "POST":
+        logout(request)
+        messages.success(request, "You have been logged out successfully.")
+        return redirect("admin_login")
+    
+
+    return render(request, "admin_panel/confirm_logout.html")
 
 
 @staff_member_required
