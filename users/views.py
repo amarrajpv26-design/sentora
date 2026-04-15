@@ -125,13 +125,21 @@ def user_login(request):
         email = request.POST.get("email")
         password = request.POST.get("password")
 
+        
+        try:
+            user_obj = User.objects.filter(email=email).first()
+
+            if user_obj:
+                if not user_obj.is_active or getattr(user_obj, 'is_blocked', False):
+                    messages.error(request, "This account has been restricted.")
+                    return redirect("user_login")
+
+        except Exception as e:
+            pass
+
         user = authenticate(request, username=email, password=password)
 
         if user is not None:
-            if user.is_blocked:
-                messages.error(request, "This account has been restricted")
-                return render(request, "login.html")
-
             login(request, user)
             return redirect("home")
         else:

@@ -84,18 +84,28 @@
                            class="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-3.5 text-white focus:border-gold/50 focus:outline-none transition-all placeholder:text-white/5">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2 ml-1">Password</label>
-                        <input type="password" name="password" placeholder="••••••••" required
-                               class="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-3.5 text-white focus:border-gold/50 focus:outline-none transition-all placeholder:text-white/5">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2 ml-1">Confirm</label>
-                        <input type="password" name="confirm_password" placeholder="••••••••" required
-                               class="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-3.5 text-white focus:border-gold/50 focus:outline-none transition-all placeholder:text-white/5">
-                    </div>
-                </div>
+               <div class="grid grid-cols-2 gap-4">
+    <div>
+        <label class="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2 ml-1">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••" required
+               class="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-3.5 text-white focus:border-gold/50 focus:outline-none transition-all placeholder:text-white/5">
+    </div>
+    <div>
+        <label class="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2 ml-1">Confirm</label>
+        <input type="password" name="confirm_password" placeholder="••••••••" required
+               class="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-3.5 text-white focus:border-gold/50 focus:outline-none transition-all placeholder:text-white/5">
+    </div>
+</div>
+
+<div id="pass-requirements" class="mt-3 space-y-1 hidden px-1">
+    <p id="req-length" class="text-[9px] text-red-500/80 uppercase tracking-widest transition-colors duration-300">
+        <i class="bi bi-dot"></i> Min 8 characters
+    </p>
+    <p id="req-char" class="text-[9px] text-red-500/80 uppercase tracking-widest transition-colors duration-300">
+        <i class="bi bi-dot"></i> One uppercase & one special char
+    </p>
+</div>
+                
 
                 <div class="pt-4">
                     <button type="submit" 
@@ -110,5 +120,45 @@
             </p>
         </div>
     </div>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById('password');
+    const reqLength = document.getElementById('req-length');
+    const reqChar = document.getElementById('req-char');
+    const passReqs = document.getElementById('pass-requirements');
+
+    passwordInput.addEventListener('input', function() {
+        const val = this.value;
+        
+        // Only show requirements if user has started typing
+        if (val.length > 0) {
+            passReqs.classList.remove('hidden');
+        } else {
+            passReqs.classList.add('hidden');
+        }
+
+        // Rule 1: Length
+        if (val.length >= 8) {
+            reqLength.classList.remove('text-red-500/80');
+            reqLength.classList.add('text-green-500');
+        } else {
+            reqLength.classList.remove('text-green-500');
+            reqLength.classList.add('text-red-500/80');
+        }
+
+        // Rule 2: Upper & Special
+        const hasUpper = /[A-Z]/.test(val);
+        const hasSpecial = /[@$!%*?&]/.test(val);
+        
+        if (hasUpper && hasSpecial) {
+            reqChar.classList.remove('text-red-500/80');
+            reqChar.classList.add('text-green-500');
+        } else {
+            reqChar.classList.remove('text-green-500');
+            reqChar.classList.add('text-red-500/80');
+        }
+    });
+});
+</script>
 </body>
 </html>

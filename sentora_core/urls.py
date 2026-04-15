@@ -18,8 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-urlpatterns = [
-    path("django-admin/", admin.site.urls),
+urlpatterns = [ 
     path('admin-control/', include('admin_panel.urls')),
     path("", include("users.urls")),
     path('accounts/',include('allauth.urls')),
