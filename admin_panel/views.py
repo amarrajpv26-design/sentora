@@ -96,6 +96,21 @@ def user_management(request):
     return render(request, "admin_panel/user_management.html", context)
 
 
+def user_detail_view(request, user_id):
+    # Fetch the specific user or 404
+    customer = get_object_or_404(User, id=user_id)
+    
+    # Optional: Fetch their orders for the table
+    orders = customer.orders.all().order_by('-created_at')[:5]
+    
+    context = {
+        'customer': customer,
+        'orders': orders,
+        'total_spent': sum(order.total_price for order in orders) # Example logic
+    }
+    
+    return render(request, 'admin_panel/user_detail.html', context)
+
 def confirm_block_user(request, user_id):
     user_to_manage = get_object_or_404(User, id=user_id)
 
@@ -124,35 +139,3 @@ def toggle_user_status(request, user_id):
 
     return redirect("user_management")
 
-
-# @staff_member_required
-# def user_detail(request, user_id):
-#     customer = get_object_or_404(User, id=user_id)
-
-#     orders = customer.orders.all().order_by("-created_at")[:5]
-#     addresses = customer.addresses.all()
-#     total_spent = sum(
-#         order.total_price for order in customer.orders.filter(status="Delivered")
-#     )
-#     context = {
-#         "customer": customer,
-#         "orders": orders,
-#         "addresses": addresses,
-#         "total_spent": total_spent,
-#     }
-
-#     return render(request, "admin_panel/user_detail.html", context)
-
-
-# @staff_member_required
-# def save_admin_note(request, user_id):
-#     if request.method == "POST":
-#         customer = get_object_or_404(User, id=user_id)
-#         note_text = request.POST.get("note_content", "").strip()
-#         note, created = AdminNote.objects.get_or_create(user=customer)
-#         note.content = note_text
-#         note.save()
-
-#         messages.sucesss(request, "Note saved sucessfully")
-#         return redirect("user_detail", user_id=user_id)
-#     return redirect("user_management")

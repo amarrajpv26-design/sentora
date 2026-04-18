@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
+
 import os
 from pathlib import Path
 
@@ -56,13 +57,13 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
-ACCOUNT_LOGOUT_ON_GET = True
-SOCIALACCOUNT_ADAPTER = 'admin_panel.adapter.ScentoraSocialAdapter'
+ACCOUNT_LOGOUT_ON_GET = False
+SOCIALACCOUNT_ADAPTER = "admin_panel.adapter.ScentoraSocialAdapter"
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_QUERY_EMAIL = True
 
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'admin_login'
+LOGIN_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "admin_login"
 ACCOUNT_USER_MODEL_USERNAME_FIELD = "username"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_UNIQUE_EMAIL = True
@@ -139,6 +140,11 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 8},
+    },
+    {"NAME": "users.validators.ScentoraComplexityValidator"},  # Add this
 ]
 
 
@@ -158,9 +164,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 AUTH_USER_MODEL = "users.User"
-LOGIN_URL = 'user_login'
+LOGIN_URL = "user_login"
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
@@ -170,3 +176,7 @@ EMAIL_HOST_USER = "scentoraadmin@gmail.com"
 EMAIL_HOST_PASSWORD = "totd ofvc ookn sgzw"
 DEFAULT_FROM_EMAIL = "Scentora <scentoraadmin@gmail.com>"
 
+PASSWORD_RESET_TIMEOUT = 14400
+# sentora_core/settings.py
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

@@ -139,12 +139,15 @@
 {% if messages %}
 <div class="mb-10 space-y-3 animate-pulse">
     {% for message in messages %}
-        <div class="flex items-center justify-center gap-3 p-4 bg-red-500/5 border border-red-500/20 rounded-sm">
-            <span class="material-symbols-outlined text-red-500 text-sm">error</span>
-            <p class="text-[10px] uppercase tracking-[0.2em] text-red-500 font-bold">
-                {{ message }}
-            </p>
-        </div>
+        {# KEYWORD FILTER: Only show if the message is about credentials or restrictions #}
+        {% if "invalid" in message.message|lower or "credentials" in message.message|lower or "restricted" in message.message|lower or "blocked" in message.message|lower %}
+            <div class="flex items-center justify-center gap-3 p-4 bg-red-500/5 border border-red-500/20 rounded-sm">
+                <span class="material-symbols-outlined text-red-500 text-sm">error</span>
+                <p class="text-[10px] uppercase tracking-[0.2em] text-red-500 font-bold">
+                    {{ message }}
+                </p>
+            </div>
+        {% endif %}
     {% endfor %}
 </div>
 {% endif %}
@@ -183,7 +186,7 @@
         </button>
     </div>
     <div class="flex justify-end mt-4">
-        <a class="text-[9px] text-slate-600 hover:text-primary transition-all uppercase tracking-widest font-medium" href="#">
+        <a class="text-[9px] text-slate-600 hover:text-primary transition-all uppercase tracking-widest font-medium" href="{% url 'password_reset' %}">
             Forget Password?
         </a>
     </div>

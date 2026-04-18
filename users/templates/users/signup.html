@@ -58,16 +58,22 @@
                 <span class="absolute bg-[#080808] px-4 text-[10px] text-gray-600 uppercase tracking-[2px]">Or via Email</span>
             </div>
             {% if messages %}
-<div class="mb-6 space-y-2">
+<div class="mb-6 space-y-3">
     {% for message in messages %}
-        {% if 'error' in message.tags %} 
-            <div class="text-[10px] uppercase tracking-widest font-bold p-3 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 flex items-center">
-                <i class="bi bi-exclamation-circle mr-2"></i> {{ message }}
+        {# This filter keeps success messages from the profile out of your signup screen #}
+        {% if message.tags == 'error' or "invalid" in message.message|lower or "expired" in message.message|lower %}
+            <div class="flex items-center justify-center gap-3 p-4 bg-red-500/5 border border-red-500/20 rounded-xl">
+                <i class="bi bi-exclamation-circle text-red-500 text-sm"></i>
+                <p class="text-[10px] uppercase tracking-[0.2em] text-red-500 font-bold text-center">
+                    {{ message }}
+                </p>
             </div>
         {% endif %}
     {% endfor %}
 </div>
 {% endif %}
+
+
 
             <form action="{% url 'user_signup' %}" method="POST" class="space-y-5">
                 {% csrf_token %}

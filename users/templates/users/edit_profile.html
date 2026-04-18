@@ -1,0 +1,204 @@
+{% extends 'users/index.html' %} 
+{% load static %} 
+
+{% block content %}
+<main class="flex-grow max-w-[800px] mx-auto w-full px-6 py-12">
+  <div class="mb-12 text-center">
+    <h1 class="text-4xl font-light tracking-tight mb-2">
+      Edit <span class="font-bold uppercase tracking-widest">Profile</span>
+    </h1>
+    <p class="text-slate-500 text-xs italic">Refine your Scentora identity</p>
+  </div>
+
+  
+  <form
+    method="POST"
+    enctype="multipart/form-data"
+    class="bg-white dark:bg-primary/5 rounded-xl border border-primary/10 overflow-hidden shadow-2xl"
+  >
+    {% csrf_token %}
+
+ <div class="p-8 border-b border-primary/10 flex flex-col items-center gap-6 bg-primary/5">
+  <div class="relative group">
+    <div class="size-32 rounded-full border-2 border-primary p-1">
+      {% if user.profile_image %}
+      <img
+        id="imagePreview"
+        src="{{ user.profile_image.url }}"
+        class="size-full rounded-full object-cover"
+      />
+      {% else %}
+      <div
+        id="imagePlaceholder"
+        class="size-full rounded-full bg-slate-800 flex items-center justify-center"
+      >
+        <span class="material-symbols-outlined text-4xl text-slate-600">person</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <input type="file" 
+           name="profile_image" 
+           id="profile_image_input" 
+           accept="image/*" 
+           class="hidden">
+
+    <label
+      for="profile_image_input"
+      class="absolute bottom-0 right-0 bg-primary text-background-dark size-10 rounded-full flex items-center justify-center border-4 border-background-dark cursor-pointer hover:scale-110 transition-transform"
+    >
+      <span class="material-symbols-outlined text-xl">photo_camera</span>
+    </label>
+  </div>
+  
+  <p class="text-[10px] text-primary uppercase font-bold tracking-[0.2em]">
+    Change Portrait
+  </p>
+</div>
+
+    <div class="p-8 space-y-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-2">
+          <label class="text-xs font-bold text-primary uppercase tracking-widest">First Name</label>
+          <input
+            type="text"
+            name="first_name"
+            value="{{ user.first_name }}"
+            class="w-full bg-transparent border-b border-primary/20 py-3 text-white outline-none focus:border-primary transition-colors text-sm"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-xs font-bold text-primary uppercase tracking-widest">Last Name</label>
+          <input
+            type="text"
+            name="last_name"
+            value="{{ user.last_name }}"
+            class="w-full bg-transparent border-b border-primary/20 py-3 text-white outline-none focus:border-primary transition-colors text-sm"
+          />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+       <div class="space-y-2">
+  <label class="text-xs font-bold text-primary uppercase tracking-widest">Username</label>
+  <input
+    type="text"
+    name="username"
+    value="{{ user.username }}"
+    class="w-full bg-transparent border-b border-primary/20 py-3 text-white outline-none focus:border-primary transition-colors text-sm"
+    required
+  />
+  {% for message in messages %}
+    {% if "username" in message.extra_tags %}
+      <p class="text-[9px] text-red-500 font-bold uppercase tracking-tighter mt-1">{{ message }}</p>
+    {% endif %}
+  {% endfor %}
+</div>
+
+        <div class="space-y-2">
+          <label class="text-xs font-bold text-primary uppercase tracking-widest">Phone Number</label>
+          <input type="tel" 
+                 name="phone_number" 
+                 value="{{ user.phone_number|default:'' }}" 
+                 placeholder="10-digit mobile number"
+                 pattern="[0-9]{10}"
+                 title="Please enter a valid 10-digit phone number"
+                 class="w-full bg-transparent border-b border-primary/20 py-3 text-white outline-none focus:border-primary transition-colors text-sm"
+                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+          
+          {% for message in messages %}
+            {% if "phone" in message.message|lower or "digit" in message.message|lower %}
+              <p class="text-[9px] text-red-500 font-bold uppercase tracking-tighter mt-1">{{ message }}</p>
+            {% endif %}
+          {% endfor %}
+          <p class="text-[9px] text-slate-500 italic">Format: 10 digits only (e.g., 8304963347)</p>
+        </div>
+      </div>
+
+      <div class="space-y-2 pt-4 border-t border-primary/10">
+        <label class="text-xs font-bold text-primary uppercase tracking-widest">Email Address</label>
+
+        <div class="relative flex items-center gap-4">
+          <input
+            type="email"
+            name="email"
+            value="{{ user.email }}"
+            class="flex-grow bg-transparent border-b border-neutral-border py-3 outline-none transition-colors text-sm {% if user.socialaccount_set.all %}text-slate-500 opacity-60{% else %}text-white focus:border-primary{% endif %}"
+            readonly
+          />
+
+          {% if not user.socialaccount_set.all %}
+          <a
+            href="{% url 'change_email_request' %}"
+            class="text-[10px] font-bold text-primary uppercase border border-primary/30 px-4 py-2 hover:bg-primary hover:text-black transition-all"
+          >
+            Change Email
+          </a>
+          {% else %}
+          <div class="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+            <span class="material-symbols-outlined text-sm">google</span>
+            Linked
+          </div>
+          {% endif %}
+        </div>
+        
+        {% for message in messages %}
+            {% if "email" in message.message|lower %}
+              <p class="text-[9px] text-red-500 font-bold uppercase tracking-tighter mt-1">{{ message }}</p>
+            {% endif %}
+        {% endfor %}
+
+        <p class="text-[10px] text-slate-500 italic mt-2">
+          {% if user.socialaccount_set.all %} This account is managed via
+          Google. Email changes must be handled through your Google Account
+          settings. {% else %} Email can be updated through the security
+          settings with OTP verification for your protection. {% endif %}
+        </p>
+      </div>
+    </div>
+
+    <div class="p-8 bg-primary/5 flex flex-col md:flex-row gap-4 border-t border-primary/10">
+      <button
+        type="submit"
+        class="flex-1 bg-primary text-background-dark py-4 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-white transition-all"
+      >
+        Save Changes
+      </button>
+      <a
+        href="{% url 'profile' %}"
+        class="flex-1 border border-primary/30 text-primary text-center py-4 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-primary hover:text-background-dark transition-all"
+      >
+        Cancel
+      </a>
+    </div>
+  </form>
+</main>
+
+<script>
+  document.getElementById('profile_image_input').onchange = (evt) => {
+    const [file] = evt.target.files;
+    if (file) {
+      const preview = document.getElementById("imagePreview");
+      const placeholder = document.getElementById("imagePlaceholder");
+      const objectUrl = URL.createObjectURL(file);
+
+      if (preview) {
+        // Update existing image
+        preview.src = objectUrl;
+      } else if (placeholder) {
+        // Replace the "person" icon placeholder with a new image element
+        const img = document.createElement("img");
+        img.id = "imagePreview";
+        img.src = objectUrl;
+        img.className = "size-full rounded-full object-cover";
+        
+        // Find the parent container of the placeholder and swap them
+        const container = placeholder.parentElement;
+        container.appendChild(img);
+        placeholder.remove();
+      }
+    }
+  };
+</script>
+{% endblock %}

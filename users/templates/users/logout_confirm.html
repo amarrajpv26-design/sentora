@@ -1,0 +1,31 @@
+{% extends 'users/index.html' %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center">
+    <div class="max-w-md w-full mx-6">
+        <div class="bg-neutral-dark border border-neutral-border p-10 rounded-sm text-center shadow-2xl">
+            <div class="inline-flex items-center justify-center size-20 rounded-full bg-primary/10 mb-8">
+                <span class="material-symbols-outlined text-primary text-4xl">lock_open</span>
+            </div>
+
+            <h2 class="text-3xl font-light tracking-tight text-white mb-3">Leaving Scentora?</h2>
+            <p class="text-slate-500 text-xs uppercase tracking-[0.2em] mb-10 leading-relaxed">
+                Your luxury fragrance collection <br> will be waiting for your return.
+            </p>
+
+            <div class="space-y-4">
+                <form action="{% url 'user_logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="w-full bg-primary text-background-dark py-4 text-[11px] font-black uppercase tracking-[0.3em] hover:brightness-110 transition-all rounded-sm">
+                        Confirm Logout
+                    </button>
+                </form>
+
+                <a href="{% url 'profile' %}" class="block w-full border border-neutral-border text-slate-400 py-4 text-[11px] font-black uppercase tracking-[0.3em] hover:text-white hover:border-white transition-all rounded-sm">
+                    Keep Exploring
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -14,6 +14,13 @@ def linked_social_account(request, sociallogin, **kwargs):
     user.save()
 
 class User(AbstractUser):
+    # users/models.py
+    username = models.CharField(
+        max_length=150, 
+        unique=True,     
+        blank=False,    
+        null=False      
+    )
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15, null=True, blank=True)
     profile_image = models.ImageField(upload_to="profiles/", null=True, blank=True)
@@ -37,22 +44,30 @@ class User(AbstractUser):
         return timezone.now() > self.otp_created_at + datetime.timedelta(minutes=2)
 
 
-# class Address(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="addresses")
-#     full_name = models.CharField(max_length=100)
-#     phone_number = models.CharField(max_length=15)
-#     address_line_1 = models.CharField(max_length=255)
-#     city = models.CharField(max_length=100)
-#     state = models.CharField(max_length=100)
-#     pincode = models.CharField(max_length=10)
-#     is_default = models.BooleanField(default=False)
-#     created_at = models.DateTimeField(auto_now_add=True)
-    
-#     ADDRESS_TYPES = (
-#     ('HOME', 'Home'),
-#     ('WORK', 'Work'),
-# )
-# address_type = models.CharField(max_length=10, choices=ADDRESS_TYPES, default='HOME')
+class Address(models.Model):
+    ADDRESS_TYPES = (
+        ('HOME', 'Home'),
+        ('WORK', 'Work'),
+        ('OTHER', 'Other'),
+    )
 
-#     def __str__(self):
-#         return f"{self.full_name} - {self.city}"
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="addresses")
+    full_name = models.CharField(max_length=100)
+    phone_number = models.CharField(max_length=15)
+    address_line_1 = models.CharField(max_length=255)
+    address_line_2 = models.CharField(max_length=255, null=True, blank=True) # Added for luxury apartments/suites
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    pincode = models.CharField(max_length=10)
+    address_type = models.CharField(max_length=10, choices=ADDRESS_TYPES, default='HOME')
+    is_default = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        # Logic: If this address is set as default, unset all other addresses for this user
+        if self.is_default:
+            Address.objects.filter(user=self.user, is_default=True).update(is_default=False)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.full_name} ({self.address_type}) - {self.city}"

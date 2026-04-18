@@ -1,0 +1,186 @@
+{% extends 'users/index.html' %}
+
+{% block content %}
+<style>
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-luxury {
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* User-friendly Input Focus Glow */
+    .input-group:focus-within label {
+        color: #c5a059; /* Your primary gold */
+        transform: translateY(-2px);
+    }
+    .input-group:focus-within .bottom-line {
+        transform: scaleX(1);
+    }
+
+    /* Clean Select Styling */
+    select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23c5a059'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1em;
+    }
+
+    /* Error handling style */
+    .errorlist {
+        color: #ff4444;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-top: 5px;
+        list-style: none;
+    }
+    /* 1. Style the Select box itself */
+select {
+    background-color: transparent !important; /* Matches your input-group style */
+    color: #ffffff !important;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px 0;
+    width: 100%;
+    outline: none;
+    cursor: pointer;
+}
+
+/* 2. Style the dropdown menu (the part that pops out) */
+select option {
+    background-color: #171717; /* Matches neutral-900 */
+    color: #ffffff;
+    padding: 10px;
+}
+
+/* 3. Remove the blue highlight in Chrome/Safari/Firefox */
+select:focus {
+    outline: none;
+    border-color: #c5a059; /* Your primary gold color */
+}
+.custom-select-wrapper select {
+    background-color: #0a0a0a !important;
+    border-radius: 8px;
+    padding-left: 15px;
+    font-size: 13px;
+}
+</style>
+
+<main class="min-h-screen flex items-center justify-center py-20 px-6 bg-black">
+    <div class="max-w-[800px] w-full animate-luxury">
+        
+        <div class="mb-12">
+            <a href="{% url 'profile' %}" class="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-primary transition-colors mb-8 group">
+                <span class="material-symbols-outlined text-sm group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                Back to Vault
+            </a>
+            <h1 class="text-4xl md:text-5xl font-extralight tracking-tight text-white">Shipping <span class="font-serif italic text-primary">Preferences</span></h1>
+            <p class="text-slate-400 text-sm mt-4 font-light">Please ensure all details match your legal identification for secure delivery.</p>
+        </div>
+
+        <form method="POST" class="bg-neutral-900/50 backdrop-blur-md border border-white/5 rounded-3xl p-8 md:p-12 shadow-2xl">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="mb-8 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-xs tracking-wide">
+                Please correct the marked fields below.
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                
+                <div class="input-group relative flex flex-col gap-2">
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all duration-300">Full Name</label>
+                    {{ form.full_name }}
+                    <div class="bottom-line absolute bottom-0 left-0 w-full h-px bg-primary scale-x-0 transition-transform duration-500 origin-left"></div>
+                    {{ form.full_name.errors }}
+                </div>
+
+               <div class="input-group relative flex flex-col gap-2">
+    <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all duration-300">
+        Phone Number
+    </label>
+    {{ form.phone_number }}
+    <div class="bottom-line absolute bottom-0 left-0 w-full h-px bg-primary scale-x-0 transition-transform duration-500 origin-left"></div>
+    
+    {% if form.phone_number.errors %}
+        <span class="text-[9px] text-red-500 font-bold uppercase tracking-tighter mt-1">
+            {{ form.phone_number.errors.0 }}
+        </span>
+    {% endif %}
+</div>
+                <div class="md:col-span-2 input-group relative flex flex-col gap-2">
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all duration-300">Street Address / Landmark</label>
+                    {{ form.address_line_1 }}
+                    <div class="bottom-line absolute bottom-0 left-0 w-full h-px bg-primary scale-x-0 transition-transform duration-500 origin-left"></div>
+                </div>
+
+                <div class="md:col-span-2 input-group relative flex flex-col gap-2">
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all duration-300">Apartment, Suite, Unit (Optional)</label>
+                    {{ form.address_line_2 }}
+                    <div class="bottom-line absolute bottom-0 left-0 w-full h-px bg-primary scale-x-0 transition-transform duration-500 origin-left"></div>
+                </div>
+
+                <div class="input-group relative flex flex-col gap-2">
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all duration-300">City</label>
+                    {{ form.city }}
+                    <div class="bottom-line absolute bottom-0 left-0 w-full h-px bg-primary scale-x-0 transition-transform duration-500 origin-left"></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="input-group relative flex flex-col gap-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all duration-300">State</label>
+                        {{ form.state }}
+                        <div class="bottom-line absolute bottom-0 left-0 w-full h-px bg-primary scale-x-0 transition-transform duration-500 origin-left"></div>
+                    </div>
+                    <div class="input-group relative flex flex-col gap-2">
+                        <label class="text-[10px] font-bold uppercase tracking-widest text-slate-500 transition-all duration-300">Pincode</label>
+                        {{ form.pincode }}
+                        <div class="bottom-line absolute bottom-0 left-0 w-full h-px bg-primary scale-x-0 transition-transform duration-500 origin-left"></div>
+                    </div>
+                </div>
+
+               <div class="md:col-span-2 space-y-4 pt-4">
+    <label class="text-[10px] font-bold uppercase tracking-widest text-primary">Save address as:</label>
+    <div class="relative max-w-xs custom-select-wrapper">
+        {{ form.address_type }}
+        <div class="bottom-line absolute bottom-0 left-0 w-full h-px bg-primary scale-x-0 transition-transform duration-500 origin-left"></div>
+    </div>
+</div>
+
+            </div>
+
+            <div class="mt-16 pt-8 border-t border-white/5 flex flex-col-reverse md:flex-row items-center justify-between gap-6">
+                <button type="submit" class="w-full md:w-auto px-16 py-5 bg-primary text-black text-[11px] font-black uppercase tracking-[0.3em] rounded-full hover:bg-white hover:scale-105 transition-all duration-300">
+                    Confirm Destination
+                </button>
+                <p class="text-[10px] text-slate-600 italic">Information is encrypted and stored in Scentora Vault.</p>
+            </div>
+        </form>
+    </div>
+</main>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const phoneField = document.querySelector('input[name="phone_number"]');
+        const pinField = document.querySelector('input[name="pincode"]');
+
+        const restrictToNumbers = (el, maxLen) => {
+            if (!el) return;
+            el.addEventListener('input', (e) => {
+                // Remove non-numbers
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                // Cap length
+                if (e.target.value.length > maxLen) {
+                    e.target.value = e.target.value.slice(0, maxLen);
+                }
+            });
+        };
+
+        restrictToNumbers(phoneField, 10);
+        restrictToNumbers(pinField, 6);
+    });
+</script>
+{% endblock %}

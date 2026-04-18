@@ -2,10 +2,18 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
-from .models import User
+from .models import User, Address
+from django.contrib.auth.decorators import login_required
 from .utils import generate_otp, send_otp_email
 from django.utils import timezone
 from django.db import IntegrityError
+from .forms import UserEditForm
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+from .forms import UserProfileForm, AddressForm
+import random
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 def home(request):
@@ -105,7 +113,7 @@ def resend_otp(request):
         return redirect("user_signup")
 
     try:
-        
+
         new_otp = generate_otp()
 
         signup_data["otp"] = new_otp
@@ -125,12 +133,11 @@ def user_login(request):
         email = request.POST.get("email")
         password = request.POST.get("password")
 
-        
         try:
             user_obj = User.objects.filter(email=email).first()
 
             if user_obj:
-                if not user_obj.is_active or getattr(user_obj, 'is_blocked', False):
+                if not user_obj.is_active or getattr(user_obj, "is_blocked", False):
                     messages.error(request, "This account has been restricted.")
                     return redirect("user_login")
 
@@ -152,3 +159,257 @@ def user_login(request):
 def user_logout(request):
     logout(request)
     return redirect("home")
+
+
+@login_required
+def logout_confirmation_view(request):
+    return render(request, "users/logout_confirm.html")
+
+
+@login_required
+def profile_view(request):
+    return render(
+        request,
+        "users/profile.html",
+        {
+            "user": request.user,
+            "active_tab": "personal_info",
+        },
+    )
+
+
+@login_required
+def edit_profile_view(request):
+    user = request.user
+
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        phone_number = request.POST.get("phone_number", "").strip()
+        new_email = request.POST.get("email", "").strip()
+        profile_image = request.FILES.get("profile_image")
+
+        errors = False
+
+        if not username:
+            messages.error(
+                request,
+                "Username is required. It cannot be empty or just spaces.",
+                extra_tags="username",
+            )
+            errors = True
+
+        elif User.objects.filter(username=username).exclude(pk=user.pk).exists():
+            messages.error(
+                request,
+                f"The identity '{username}' is already claimed by another vault.",
+                extra_tags="username",
+            )
+            errors = True
+
+        if phone_number and (not phone_number.isdigit() or len(phone_number) != 10):
+            messages.error(
+                request, "Phone number must be exactly 10 digits.", extra_tags="phone"
+            )
+            errors = True
+
+        # 4. Email Conflict Check (Before triggering the OTP flow)
+        if new_email and new_email != user.email:
+            if User.objects.filter(email=new_email).exists():
+                messages.error(
+                    request,
+                    "This email is already linked to another identity.",
+                    extra_tags="email",
+                )
+                errors = True
+
+        if errors:
+            return render(request, "users/edit_profile.html", {"user": user})
+
+        if new_email and new_email != user.email:
+            request.session["pending_profile_update"] = {
+                "username": username,
+                "first_name": first_name,
+                "last_name": last_name,
+                "phone_number": phone_number,
+            }
+            return redirect("change_email_request")
+
+        user.username = username
+        user.first_name = first_name
+        user.last_name = last_name
+        user.phone_number = phone_number
+
+        if profile_image:
+            user.profile_image = profile_image
+
+        user.save()
+        messages.success(request, "VAULT UPDATED: YOUR IDENTITY HAS BEEN REFINED.")
+        return redirect("profile")
+
+    return render(request, "users/edit_profile.html", {"user": user})
+
+
+@login_required
+def verify_email_change(request):
+    saved_otp = request.session.get("email_change_otp")
+
+    if not saved_otp:
+        messages.error(request, "SECURITY ERROR: INITIAL OTP NOT FOUND.")
+        return redirect("profile")
+
+    if request.method == "POST":
+        user_otp = request.POST.get("otp")
+        if user_otp == saved_otp:
+            request.session["email_otp_verified"] = True
+            request.session.save()
+            request.session.modified = True
+            return redirect("final_email_update_view")
+        else:
+            messages.error(request, "INVALID CODE.")
+
+    return render(request, "users/verify_email_otp.html")
+
+
+
+@login_required
+def password_change_view(request):
+    if request.method == "POST":
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, "Your password was successfully updated!")
+            return redirect("profile")
+        else:
+            messages.error(request, "Please correct the error below.")
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, "users/change_password.html", {"form": form})
+
+
+@login_required
+def add_address_view(request):
+    if request.method == "POST":
+        form = AddressForm(request.POST)
+        if form.is_valid():
+            address = form.save(commit=False)
+            address.user = request.user
+            address.save()
+            messages.success(request, "New address added to your vault.")
+            return redirect("profile")
+    else:
+        form = AddressForm()
+    return render(request, "users/add_address.html", {"form": form})
+
+
+@login_required
+def edit_address_view(request, pk):
+    address = get_object_or_404(Address, pk=pk, user=request.user)
+
+    if request.method == "POST":
+        form = AddressForm(request.POST, instance=address)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Address updated in your vault.")
+            return redirect("profile")
+    else:
+        form = AddressForm(instance=address)
+
+    return render(request, "users/add_address.html", {"form": form, "edit_mode": True})
+
+
+@login_required
+def delete_address_view(request, pk):
+    if request.method == "POST":
+        address = get_object_or_404(Address, pk=pk, user=request.user)
+        address.delete()
+        messages.success(request, "Destination removed from archive.")
+    return redirect("profile")
+
+
+@login_required
+def change_email_request_view(request):
+    otp = str(random.randint(100000, 999999))
+
+    request.session["email_change_otp"] = otp
+    request.session.modified = True
+
+    try:
+        send_mail(
+            "Scentora Vault: Email Change",
+            f"Verification Code: {otp}",
+            settings.EMAIL_HOST_USER,
+            [request.user.email],
+            fail_silently=False,
+        )
+        messages.success(request, f"CODE SENT TO {request.user.email}")
+    except Exception as e:
+        messages.error(request, f"MAIL ERROR: {str(e)}")
+        return redirect("profile")
+
+    return redirect("verify_email_otp")
+
+
+@login_required
+def verify_new_email_otp(request):
+    new_email = request.session.get("pending_new_email")
+    correct_otp = request.session.get("new_email_otp")
+
+    if not new_email or not correct_otp:
+        messages.error(request, "SESSION EXPIRED. PLEASE START THE PROCESS AGAIN.")
+        return redirect("profile")
+
+    if request.method == "POST":
+        entered_otp = request.POST.get("otp")
+
+        if entered_otp == correct_otp:
+            user = request.user
+            user.email = new_email
+            user.save()
+
+            temp_keys = [
+                "email_otp_verified",
+                "pending_new_email",
+                "new_email_otp",
+                "email_change_otp",
+            ]
+            for key in temp_keys:
+                if key in request.session:
+                    del request.session[key]
+
+            messages.success(request, "IDENTITY UPDATED: YOUR NEW EMAIL IS NOW ACTIVE.")
+            return redirect("profile")
+        else:
+            messages.error(request, "INVALID VERIFICATION CODE.")
+
+    return render(request, "users/verify_new_email.html", {"email": new_email})
+
+
+def final_email_update_view(request):
+    if not request.session.get("email_otp_verified"):
+        messages.error(request, "PLEASE VERIFY YOUR IDENTITY FIRST.")
+        return redirect("profile")
+
+    if request.method == "POST":
+        new_email = request.POST.get("new_email")
+
+        new_otp = str(random.randint(100000, 999999))
+        request.session["pending_new_email"] = new_email
+        request.session["new_email_otp"] = new_otp
+
+        send_mail(
+            "Scentora Vault: Verify New Email",
+            f"Your code for the new email is: {new_otp}",
+            settings.EMAIL_HOST_USER,
+            [new_email],
+        )
+
+        request.session.save()
+        return redirect("verify_new_email")
+
+    return render(request, "users/final_email_update.html")
+
+
+

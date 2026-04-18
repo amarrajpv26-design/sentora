@@ -49,9 +49,9 @@
     <div class="max-w-[1440px] mx-auto px-8 lg:px-12 py-5 flex items-center justify-between">
         <div class="flex items-center gap-16">
             <a class="flex items-center gap-2 group" href="{% url 'home' %}">
-                <span class="material-symbols-outlined text-primary text-3xl transition-transform group-hover:rotate-12">chair</span>
-                <h1 class="text-2xl font-extrabold tracking-tighter uppercase">Decora</h1>
-            </a>
+    <span class="material-symbols-outlined text-primary text-3xl transition-transform group-hover:rotate-12">fluid</span>
+    <h1 class="text-2xl font-extrabold tracking-tighter uppercase">Scentora</h1>
+</a>
             <nav class="hidden lg:flex items-center gap-10">
                 <a class="text-xs font-bold uppercase tracking-widest text-primary" href="{% url 'home' %}">Home</a>
                 <a class="text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors" href="#">Shop</a>
@@ -62,36 +62,51 @@
         <div class="flex items-center gap-6">
             <div class="hidden md:flex items-center bg-neutral-dark border border-neutral-border rounded-full px-4 py-2 group focus-within:border-primary transition-all">
                 <span class="material-symbols-outlined text-slate-500 text-xl">search</span>
-                <input class="bg-transparent border-none focus:ring-0 text-xs w-48 placeholder:text-slate-600" placeholder="Search furniture..." type="text"/>
-            </div>
+<input class="bg-transparent border-none focus:ring-0 text-xs w-48 placeholder:text-slate-600" 
+       placeholder="Search fragrances..." type="text"/>
+                </div>
 
             <div class="flex items-center gap-4 border-l border-neutral-border pl-6">
                 {% if user.is_authenticated %}
-                    <div class="flex items-center gap-6">
-                        <a href="#" class="relative group">
-                            <span class="material-symbols-outlined text-slate-100 group-hover:text-primary transition-colors">shopping_bag</span>
-                            <span class="absolute -top-1 -right-1 bg-primary text-[8px] text-background-dark font-black w-4 h-4 flex items-center justify-center rounded-full">0</span>
-                        </a>
-                        
-                        <div class="flex flex-col items-end">
-                            <span class="text-[9px] uppercase tracking-[0.2em] text-slate-500">Welcome</span>
-                            <a href="#" class="text-[11px] font-bold uppercase tracking-widest text-white hover:text-primary">{{ user.username }}</a>
+    <div class="flex items-center gap-6">
+        <a href="#" class="relative group">
+            <span class="material-symbols-outlined text-slate-100 group-hover:text-primary transition-colors">shopping_bag</span>
+            <span class="absolute -top-1 -right-1 bg-primary text-[8px] text-background-dark font-black w-4 h-4 flex items-center justify-center rounded-full">0</span>
+        </a>
+        
+        <a href="{% url 'profile' %}" class="flex items-center gap-4 group border-l border-neutral-border pl-6">
+            <div class="flex flex-col items-end hidden sm:flex">
+                <span class="text-[8px] uppercase tracking-[0.3em] text-slate-500 group-hover:text-primary transition-colors">Access Vault</span>
+                <span class="text-[11px] font-bold uppercase tracking-widest text-white">{{ user.username }}</span>
+            </div>
+            
+            <div class="relative">
+                <div class="w-10 h-10 rounded-full border border-neutral-border group-hover:border-primary transition-all p-0.5 overflow-hidden">
+                    {% if user.profile_image %}
+                        <img src="{{ user.profile_image.url }}" alt="{{ user.username }}" class="w-full h-full object-cover rounded-full">
+                    {% else %}
+                        <div class="w-full h-full bg-neutral-dark rounded-full flex items-center justify-center">
+                            <span class="material-symbols-outlined text-slate-500 text-xl group-hover:text-primary transition-colors">person</span>
                         </div>
+                    {% endif %}
+                </div>
+                <div class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-background-dark rounded-full"></div>
+            </div>
+        </a>
 
-                        <a href="{% url 'user_logout' %}" class="bg-neutral-border text-slate-100 text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-sm hover:bg-red-900/20 hover:text-red-500 transition-all border border-transparent hover:border-red-900/50">
-                            Logout
-                        </a>
-                    </div>
-                {% else %}
-                    <a href="{% url 'user_login' %}" class="text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors">Login</a>
-                    <a href="{% url 'user_signup' %}" class="bg-primary text-background-dark text-xs font-black uppercase tracking-widest px-6 py-3 rounded-sm hover:brightness-110 transition-all">Signup</a>
-                {% endif %}
+    </div>
+{% else %}
+    <a href="{% url 'user_login' %}" class="text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors">Login</a>
+    <a href="{% url 'user_signup' %}" class="bg-primary text-background-dark text-xs font-black uppercase tracking-widest px-6 py-3 rounded-sm hover:brightness-110 transition-all">Signup</a>
+{% endif %}
             </div>
         </div>
     </div>
 </header>
 
 <main>
+    {% block content %}
+
     <section class="relative h-[85vh] w-full overflow-hidden bg-black">
     <div id="hero-carousel" class="absolute inset-0 z-0 flex transition-transform duration-[1200ms] cubic-bezier(0.4, 0, 0.2, 1)">
         <div class="min-w-full h-full relative">
@@ -111,11 +126,11 @@
                 <h2 class="text-primary font-bold tracking-[0.4em] uppercase text-[10px]">Exquisite Collection 2026</h2>
             </div>
             <h1 class="text-6xl lg:text-8xl font-light leading-none tracking-tighter">
-    Design Your <br/><span class="font-extrabold text-white">Sanctuary.</span>
+    Capture Your <br/><span class="font-extrabold text-white">Essence.</span>
 </h1>
-            <p class="text-lg text-slate-400 font-light max-w-md leading-relaxed">
-                Explore an exclusive sanctuary of rare fragrances, curated from the most prestigious perfume houses in the world.
-            </p>
+<p class="text-lg text-slate-400 font-light max-w-md leading-relaxed">
+    Explore a curated collection of rare fragrances and signature scents from the world's most prestigious perfume houses.
+</p>
             <div class="flex flex-wrap gap-6 pt-4">
                 <button class="bg-primary text-background-dark font-black uppercase tracking-widest text-[11px] px-12 py-5 rounded-sm hover:brightness-110 transition-all">Shop Now</button>
                 <button class="border border-white/20 text-white font-bold uppercase tracking-widest text-[11px] px-12 py-5 rounded-sm hover:bg-white hover:text-black transition-all">The Collection</button>
@@ -299,6 +314,7 @@
             </div>
         </div>
     </section>
+    {% endblock content %}
 </main>
 
 <footer class="bg-neutral-dark pt-32 pb-16 border-t border-neutral-border">

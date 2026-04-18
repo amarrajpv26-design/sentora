@@ -1,0 +1,57 @@
+{% extends 'users/index.html' %}
+{% load static %}
+
+{% block content %}
+<main class="min-h-screen flex items-center justify-center py-20 px-6 bg-[#080808]">
+    <div class="max-w-[460px] w-full animate-luxury">
+        
+        <div class="mb-12 text-center border-b border-white/5 pb-8">
+            <h1 class="text-3xl font-extralight tracking-[0.1em] text-white uppercase">
+                Identity <span class="font-serif italic text-primary lowercase">Verification</span>
+            </h1>
+            <p class="text-slate-500 text-[10px] uppercase tracking-[0.3em] mt-4 font-medium italic">Vault Security Protocol</p>
+        </div>
+
+        <div class="bg-neutral-900/40 backdrop-blur-2xl border border-white/5 rounded-3xl p-10 md:p-14 shadow-2xl">
+            <p class="text-slate-400 text-xs text-center leading-relaxed mb-10 tracking-wide">
+                A unique security code has been dispatched to your current email. Please enter it below to unlock access.
+            </p>
+
+            <form method="POST" action="{% url 'verify_email_otp' %}" class="space-y-8">
+                {% csrf_token %}
+                
+                <div class="relative group">
+                    <label class="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500 group-focus-within:text-primary transition-colors">
+                        Security Code
+                    </label>
+                    <input type="text" name="otp" maxlength="6" required
+                           class="w-full bg-transparent border-b border-white/10 py-4 text-center text-2xl tracking-[0.5em] text-primary outline-none focus:border-primary transition-all font-light"
+                           placeholder="000000"
+                           style="letter-spacing: 1rem;">
+                </div>
+
+                <button type="submit" class="w-full py-5 bg-primary text-black text-[10px] font-black uppercase tracking-[0.4em] rounded-full hover:bg-white transition-all duration-500 shadow-xl shadow-primary/5">
+                    Verify Identity
+                </button>
+            </form>
+
+            <div class="mt-10 text-center pt-8 border-t border-white/5">
+                <a href="{% url 'edit_profile' %}" class="text-[9px] font-bold uppercase tracking-[0.3em] text-slate-600 hover:text-white transition-colors">
+                    Abort Protocol
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+    .text-primary { color: #d4af37; }
+    .bg-primary { background-color: #d4af37; }
+    
+    @keyframes luxuryFade {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-luxury { animation: luxuryFade 1s ease-out forwards; }
+</style>
+{% endblock %}

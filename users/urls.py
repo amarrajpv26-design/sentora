@@ -1,4 +1,6 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views
+from .forms import ScentoraPasswordResetForm
 from . import views
 
 urlpatterns = [
@@ -9,15 +11,48 @@ urlpatterns = [
     path("resend-otp/", views.resend_otp, name="resend_otp"),
     path("login/", views.user_login, name="user_login"),
     path("logout/", views.user_logout, name="user_logout"),
-    # path("forgot-password/", views.forgot_password, name="forgot_password"),
-    # path("profile/", views.user_profile, name="user_profile"),
-    # path("profile/edit/", views.edit_profile, name="edit_profile"),
-    # path("profile/change-password/", views.change_password, name="change_password"),
-    # path("profile/addresses/", views.address_management, name="address_management"),
-    # path("profile/addresses/add/", views.add_address, name="add_address"),
-    # path(
-    #     "profile/addresses/delete/<int:address_id>/",
-    #     views.delete_address,
-    #     name="delete_address",
-    # ),
+    path(
+        "password-reset/",
+        auth_views.PasswordResetView.as_view(
+            form_class=ScentoraPasswordResetForm,
+            template_name="users/password_reset_form.html",
+            email_template_name="email/password_reset_email.html",  # This is your HTML
+            subject_template_name="email/password_reset_subject.txt",
+            html_email_template_name="email/password_reset_email.html",  # ADD THIS LINE
+        ),
+        name="password_reset",
+    ),
+    path(
+        "password-reset/done/",
+        auth_views.PasswordResetDoneView.as_view(
+            template_name="users/password_reset_done.html"
+        ),
+        name="password_reset_done",
+    ),
+    path(
+        "password-reset-confirm/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(
+            template_name="users/password_reset_confirm.html"
+        ),
+        name="password_reset_confirm",
+    ),
+    path(
+        "password-reset-complete/",
+        auth_views.PasswordResetCompleteView.as_view(
+            template_name="users/password_reset_complete.html"
+        ),
+        name="password_reset_complete",
+    ),
+    path('profile/logout-confirmation/', views.logout_confirmation_view, name='logout_confirmation'),
+    path("profile/", views.profile_view, name="profile"),
+    path('profile/edit/', views.edit_profile_view, name='edit_profile'),
+    path('profile/password/', views.password_change_view, name='password_change'),
+    path('profile/address/add/', views.add_address_view, name='add_address'),
+    path("profile/address/edit/<int:pk>/", views.edit_address_view, name="edit_address"),
+    path("profile/address/delete/<int:pk>/", views.delete_address_view, name="delete_address"),
+    path('profile/edit/', views.edit_profile_view, name='edit_profile'),
+    path('profile/email/change/', views.change_email_request_view, name='change_email_request'),
+    path('profile/email/verify-otp/', views.verify_email_change, name='verify_email_otp'),
+    path('profile/email/update/', views.final_email_update_view, name='final_email_update_view'),
+    path('profile/email/verify-new/', views.verify_new_email_otp, name='verify_new_email'),
 ]
