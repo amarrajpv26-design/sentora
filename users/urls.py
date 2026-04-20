@@ -16,9 +16,9 @@ urlpatterns = [
         auth_views.PasswordResetView.as_view(
             form_class=ScentoraPasswordResetForm,
             template_name="users/password_reset_form.html",
-            email_template_name="email/password_reset_email.html",  # This is your HTML
+            email_template_name="email/password_reset_email.html",  
             subject_template_name="email/password_reset_subject.txt",
-            html_email_template_name="email/password_reset_email.html",  # ADD THIS LINE
+            html_email_template_name="email/password_reset_email.html", 
         ),
         name="password_reset",
     ),
@@ -45,7 +45,6 @@ urlpatterns = [
     ),
     path('profile/logout-confirmation/', views.logout_confirmation_view, name='logout_confirmation'),
     path("profile/", views.profile_view, name="profile"),
-    path('profile/edit/', views.edit_profile_view, name='edit_profile'),
     path('profile/password/', views.password_change_view, name='password_change'),
     path('profile/address/add/', views.add_address_view, name='add_address'),
     path("profile/address/edit/<int:pk>/", views.edit_address_view, name="edit_address"),

@@ -16,18 +16,18 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 
-def home(request):
-    return render(request, "users/index.html")
-
-
 def welcome_view(request):
     return render(request, "users/welcome.html")
 
 
+def home(request):
+    return render(request, "users/index.html")
+
+
 def user_signup(request):
     if request.method == "POST":
-        email = request.POST.get("email")
         username = request.POST.get("username")
+        email = request.POST.get("email")
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
 
@@ -37,12 +37,12 @@ def user_signup(request):
             messages.error(request, "Passwords do not match.")
             return render(request, "users/signup.html", context)
 
-        if User.objects.filter(email=email).exists():
-            messages.error(request, "Email already registered.")
-            return render(request, "users/signup.html", context)
-
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already taken.")
+            return render(request, "users/signup.html", context)
+
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered.")
             return render(request, "users/signup.html", context)
 
         otp = generate_otp()
@@ -214,7 +214,6 @@ def edit_profile_view(request):
             )
             errors = True
 
-        # 4. Email Conflict Check (Before triggering the OTP flow)
         if new_email and new_email != user.email:
             if User.objects.filter(email=new_email).exists():
                 messages.error(
@@ -270,7 +269,6 @@ def verify_email_change(request):
             messages.error(request, "INVALID CODE.")
 
     return render(request, "users/verify_email_otp.html")
-
 
 
 @login_required
@@ -410,6 +408,3 @@ def final_email_update_view(request):
         return redirect("verify_new_email")
 
     return render(request, "users/final_email_update.html")
-
-
-
