@@ -99,38 +99,54 @@
                     <div class="absolute -bottom-2 -right-2 w-8 h-8 {% if customer.is_active %}bg-green-500 pulse-active{% else %}bg-red-500{% endif %} border-[6px] border-[#0a0a0a] rounded-full"></div>
                 </div>
 
-                <div class="flex-grow grid grid-cols-2 gap-y-10">
-                    <div class="col-span-2">
-                        <div class="flex items-center gap-6 mb-2">
-                            <h3 class="text-4xl font-bold text-white tracking-tight">{{ customer.username }}</h3>
-                            {% if customer.is_active %}
-                                <span class="px-4 py-1.5 bg-gold text-black text-[9px] font-black uppercase tracking-[2px] rounded-full shadow-[0_0_20px_rgba(244,180,26,0.3)]">Active Member</span>
-                            {% else %}
-                                <span class="px-4 py-1.5 bg-red-500 text-white text-[9px] font-black uppercase tracking-[2px] rounded-full">Suspended</span>
-                            {% endif %}
-                        </div>
-                        <p class="text-white/30 text-[10px] uppercase tracking-[4px]">Customer ID: <span class="text-gold/60">#USR-{{ customer.id|stringformat:"04d" }}</span></p>
-                    </div>
+                <div class="flex-grow grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+    <div class="col-span-1 md:col-span-2">
+        <div class="flex flex-wrap items-center gap-6 mb-2">
+            <h3 class="text-4xl font-bold text-white tracking-tight break-all">{{ customer.username }}</h3>
+            {% if customer.is_active %}
+                <span class="px-4 py-1.5 bg-gold text-black text-[9px] font-black uppercase tracking-[2px] rounded-full shadow-[0_0_20px_rgba(244,180,26,0.3)]">Active Member</span>
+            {% else %}
+                <span class="px-4 py-1.5 bg-red-500 text-white text-[9px] font-black uppercase tracking-[2px] rounded-full">Suspended</span>
+            {% endif %}
+        </div>
+        <p class="text-white/30 text-[10px] uppercase tracking-[4px]">Customer ID: <span class="text-gold/60">#USR-{{ customer.id|stringformat:"04d" }}</span></p>
+    </div>
 
-                    <div class="space-y-1">
-                        <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black">Email Address</label>
-                        <p class="text-white text-lg font-light">{{ customer.email }}</p>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black">Phone Number</label>
-                        <p class="text-white text-lg font-light">{{ customer.phone_number|default:"Unlisted" }}</p>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black">Member Since</label>
-                        <p class="text-white/60 text-sm italic">{{ customer.date_joined|date:"d F, Y" }}</p>
-                    </div>
-                    <div class="space-y-1">
-                        <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black">Wallet Balance</label>
-                        <p class="text-3xl font-black text-white tracking-tighter">
-                            <span class="text-gold">$</span>{{ customer.wallet_balance }}
-                        </p>
-                    </div>
-                </div>
+    <div class="col-span-1 md:col-span-2 lg:col-span-1 space-y-1 overflow-hidden">
+        <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black">Email Address</label>
+        <p class="text-white text-lg font-light truncate hover:text-clip hover:whitespace-normal transition-all" title="{{ customer.email }}">
+            {{ customer.email }}
+        </p>
+    </div>
+
+    <div class="space-y-1">
+        <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black">Phone Number</label>
+        <p class="text-white text-lg font-light">{{ customer.phone_number|default:"Unlisted" }}</p>
+    </div>
+
+    <div class="space-y-1">
+        <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black">Date of Birth</label>
+        <p class="text-white text-lg font-light italic">
+            {% if customer.dob %}
+                {{ customer.dob|date:"d . m . Y" }}
+            {% else %}
+                <span class="text-white/10">Not Provided</span>
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="space-y-1">
+        <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black">Member Since</label>
+        <p class="text-white/60 text-sm italic">{{ customer.date_joined|date:"d F, Y" }}</p>
+    </div>
+
+    <div class="col-span-1 md:col-span-2 space-y-1 mt-4 pt-4 border-t border-white/5">
+        <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black">Wallet Balance</label>
+        <p class="text-4xl font-black text-white tracking-tighter">
+            <span class="text-gold">₹</span>{{ customer.wallet_balance }}
+        </p>
+    </div>
+</div>
             </div>
 
             <div class="glass-card rounded-[32px] overflow-hidden animate__animated animate__fadeInUp animate__delay-1s">
