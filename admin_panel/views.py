@@ -81,6 +81,8 @@ def user_management(request):
         users = users.order_by("date_joined")
     elif sort_order == "alpha":
         users = users.order_by("username")
+    elif sort_order == "dob":
+        users = users.order_by("dob")
     else:
         users = users.order_by("-date_joined")
 

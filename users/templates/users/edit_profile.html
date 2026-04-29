@@ -103,7 +103,20 @@
               {% endif %}
             {% endfor %}
           </div>
-
+<div class="space-y-3 group">
+    <label class="text-[10px] font-bold text-primary/40 uppercase tracking-[0.4em] group-focus-within:text-primary transition-colors">Date of Birth</label>
+    <input
+      type="date"
+      name="dob"
+      id="dob_input"
+      value="{{ user.dob|date:'Y-m-d' }}"
+      max="{% now 'Y-m-d' %}"
+      class="w-full bg-transparent border-b border-white/5 py-3 text-white font-light outline-none focus:border-primary transition-all duration-500 text-sm appearance-none"
+      style="color-scheme: dark;"
+    />
+    <p id="dob_error" class="text-[9px] text-red-500 font-bold uppercase tracking-tighter mt-1 hidden">Invalid Date Selection</p>
+    <p class="text-[9px] text-slate-600 italic tracking-tight mt-1">Select your birth date from the vault records</p>
+</div>
           <div class="space-y-3 group">
             <label class="text-[10px] font-bold text-primary/40 uppercase tracking-[0.4em] group-focus-within:text-primary transition-colors">Phone Number</label>
             <input type="tel" 
@@ -185,7 +198,7 @@
 </main>
 
 <script>
-  // Logic remains strictly original
+  // Profile Image Preview
   document.getElementById('profile_image_input').onchange = (evt) => {
     const [file] = evt.target.files;
     if (file) {
@@ -206,6 +219,34 @@
       }
     }
   };
+
+  const dobInput = document.getElementById('dob_input');
+const dobError = document.getElementById('dob_error');
+
+if (dobInput) {
+    dobInput.addEventListener('change', function() {
+        const birthDate = new Date(this.value);
+        const today = new Date();
+        
+        // Calculate the date 15 years ago
+        const minAgeDate = new Date(today.getFullYear() - 15, today.getMonth(), today.getDate());
+
+        if (this.value === "") return;
+
+        if (birthDate > today) {
+            dobError.innerText = "The future is unwritten. Please select a past date.";
+            dobError.classList.remove('hidden');
+            this.value = ''; 
+        } else if (birthDate > minAgeDate) {
+            dobError.innerText = "Access Denied: You must be at least 15 years of age.";
+            dobError.classList.remove('hidden');
+            this.value = ''; 
+        } else {
+            dobError.classList.add('hidden');
+        }
+    });
+
+  }
 </script>
 
 <style>

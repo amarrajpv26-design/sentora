@@ -14,6 +14,7 @@ from .forms import UserProfileForm, AddressForm
 import random
 from django.core.mail import send_mail
 from django.conf import settings
+from datetime import date,timedelta
 
 
 @never_cache
@@ -192,58 +193,77 @@ def edit_profile_view(request):
         last_name = request.POST.get("last_name", "").strip()
         phone_number = request.POST.get("phone_number", "").strip()
         new_email = request.POST.get("email", "").strip()
+        dob = request.POST.get('dob') # Get DOB here
         profile_image = request.FILES.get("profile_image")
 
         errors = False
 
+        processed_dob = user.dob
+        # --- VALIDATION ---
         if not username:
-            messages.error(
-                request,
-                "Username is required. It cannot be empty or just spaces.",
-                extra_tags="username",
-            )
+            messages.error(request, "Username is required.", extra_tags="username")
             errors = True
-
         elif User.objects.filter(username=username).exclude(pk=user.pk).exists():
-            messages.error(
-                request,
-                f"The identity '{username}' is already claimed by another vault.",
-                extra_tags="username",
-            )
+            messages.error(request, f"The identity '{username}' is already claimed.", extra_tags="username")
             errors = True
 
         if phone_number and (not phone_number.isdigit() or len(phone_number) != 10):
-            messages.error(
-                request, "Phone number must be exactly 10 digits.", extra_tags="phone"
-            )
+            messages.error(request, "Phone number must be exactly 10 digits.", extra_tags="phone")
             errors = True
+
+        # DOB Logic (Cleaned up)
+        valid_dob = None
+        if dob:
+            try:
+                selected_date = date.fromisoformat(dob)
+                today = date.today()
+        
+        # Calculate age
+                age = today.year - selected_date.year - ((today.month, today.day) < (selected_date.month, selected_date.day))
+        
+                if selected_date > today:
+                    messages.error(request, "Invalid Date: Future dates are not permitted.")
+                    errors = True
+                elif age < 15:
+                    messages.error(request, "Identity rejected: Minimum age requirement is 15 years.")
+                    errors = True
+                else:
+                    processed_dob = selected_date
+            
+            except ValueError:
+                messages.error(request, "Invalid date format.")
+                errors = True
+        else:
+            # If the user clears the date, we allow it to be None
+            processed_dob = None
 
         if new_email and new_email != user.email:
             if User.objects.filter(email=new_email).exists():
-                messages.error(
-                    request,
-                    "This email is already linked to another identity.",
-                    extra_tags="email",
-                )
+                messages.error(request, "This email is already linked.", extra_tags="email")
                 errors = True
 
         if errors:
             return render(request, "users/edit_profile.html", {"user": user})
 
+        # --- PROCESSING ---
+        # If email changed, save everything to session and redirect to OTP
         if new_email and new_email != user.email:
             request.session["pending_profile_update"] = {
                 "username": username,
                 "first_name": first_name,
                 "last_name": last_name,
                 "phone_number": phone_number,
+                "dob": dob, # Save DOB to session too!
             }
             return redirect("change_email_request")
 
+        # Standard Update
         user.username = username
         user.first_name = first_name
         user.last_name = last_name
         user.phone_number = phone_number
-
+        user.dob = processed_dob
+        
         if profile_image:
             user.profile_image = profile_image
 

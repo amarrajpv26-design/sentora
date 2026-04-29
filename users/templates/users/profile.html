@@ -149,6 +149,19 @@
                             <p class="text-xl font-extralight italic">{{ user.phone_number|default:"Not Linked" }}</p>
                         </div>
                     </div>
+                    <div class="bg-black/20 p-12 space-y-4 border-b md:border-b-0 border-white/5">
+    <label class="text-[10px] font-bold text-primary uppercase tracking-[0.4em]">Date of Birth</label>
+    <div class="flex items-center gap-4 text-white/70">
+        <span class="material-symbols-outlined font-light text-sm">calendar_today</span>
+        <p class="text-xl font-extralight italic">
+            {% if user.dob %}
+                {{ user.dob|date:"d . m . Y" }}
+            {% else %}
+                <span class="opacity-20">Not Set</span>
+            {% endif %}
+        </p>
+    </div>
+</div>
                     <div class="bg-black/20 p-12 space-y-4">
                         <label class="text-[10px] font-bold text-primary uppercase tracking-[0.4em]">Wallet Balance</label>
                         <div class="flex items-center gap-4 text-primary">

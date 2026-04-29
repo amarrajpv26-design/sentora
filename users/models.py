@@ -23,6 +23,7 @@ class User(AbstractUser):
     )
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15, null=True, blank=True)
+    dob = models.DateField(null=True, blank=True)
     profile_image = models.ImageField(upload_to="profiles/", null=True, blank=True)
     is_blocked = models.BooleanField(default=False)
 

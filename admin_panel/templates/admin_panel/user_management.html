@@ -94,6 +94,7 @@
                 <option value="newest" {% if sort_order == 'newest' %}selected{% endif %}>Newest First</option>
                 <option value="oldest" {% if sort_order == 'oldest' %}selected{% endif %}>Oldest First</option>
                 <option value="alpha" {% if sort_order == 'alpha' %}selected{% endif %}>A - Z</option>
+                <option value="dob" {% if sort_order == 'dob' %}selected{% endif %}>Age (DOB)</option>
             </select>
         </div>
     </form>
@@ -114,6 +115,8 @@
                     <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Name</th>
                     <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Email</th>
                     <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Phone</th>
+                                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Date of Birth</th>
+
                     <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Status</th>
                     <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Joined Date</th>
                     <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black text-right">Actions</th>
@@ -125,6 +128,7 @@
                     <td class="px-8 py-6 text-xs text-white/30 font-medium">#USR-{{ user.id }}</td>
                     <td class="px-8 py-6 text-sm text-white font-bold tracking-tight">{{ user.username }}</td>
                     <td class="px-8 py-6 text-xs text-white/60 font-light">{{ user.email }}</td>
+                    
                     <td class="px-8 py-6 text-xs text-white/60">
                         {% if user.phone_number %}
                             {{ user.phone_number }}
@@ -132,6 +136,13 @@
                             <span class="opacity-20 italic">Unlisted</span>
                         {% endif %}
                     </td>
+                    <td class="px-8 py-6 text-xs text-white/60">
+    {% if user.dob %}
+        <span class="tracking-widest">{{ user.dob|date:"d . m . Y" }}</span>
+    {% else %}
+        <span class="opacity-20 italic">Not Set</span>
+    {% endif %}
+</td>
                     <td class="px-8 py-6">
                         {% if user.is_active %}
                         <span class="px-3 py-1 bg-green-500/10 text-green-400 text-[9px] font-black uppercase tracking-widest rounded-full">Active</span>
@@ -168,9 +179,7 @@
             Showing <span class="text-gold">{{ users.start_index }}-{{ users.end_index }}</span> of {{ total_count }}
         </div>
        <div class="mt-10 flex items-center justify-between px-4 animate__animated animate__fadeIn">
-    <div class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
-        Showing <span class="text-gold">{{ users.start_index }}-{{ users.end_index }}</span> of {{ total_count }}
-    </div>
+    
     <div class="flex items-center gap-4">
         {% if users.has_previous %}
             <a href="?page={{ users.previous_page_number }}&search={{ search_query|default:'' }}&status={{ status_filter|default:'' }}&sort={{ sort_order|default:'newest' }}" 
