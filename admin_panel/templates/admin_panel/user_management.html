@@ -1,202 +1,212 @@
 {% extends 'admin_panel/base_admin.html' %}
 
-{% block breadcrumb %}Users{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<style>
+    /* Luxury Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #f4b41a; border-radius: 10px; }
+
+    /* Shimmer Effect */
+    .luxury-shimmer {
+        background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 4s linear infinite;
+    }
+    @keyframes shimmer { to { background-position: 200% center; } }
+
+    /* Glass Panels */
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.4s ease;
+    }
+    .glass-panel:hover { border-color: rgba(244, 180, 26, 0.2); }
+
+    /* Input Styling */
+    .luxury-input {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .luxury-input:focus {
+        border-color: #f4b41a;
+        box-shadow: 0 0 15px rgba(244, 180, 26, 0.1);
+        outline: none;
+    }
+
+    /* Table Hover */
+    .luxury-table tr { transition: all 0.3s ease; border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
+    .luxury-table tr:hover { background: rgba(255, 255, 255, 0.01); }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">User Management</span>
+{% endblock %}
 
 {% block content %}
-<style>
-    /* Section Headers */
-    .header-group { margin-bottom: 35px; }
-    .header-group h2 { font-size: 26px; font-weight: 600; margin: 0; color: #ffffff; letter-spacing: -0.5px; }
-    .header-group p { color: #555555; font-size: 13px; margin-top: 6px; }
-
-    /* Filter Card */
-    .filter-panel {
-        background: #0a0a0a;
-        border: 1px solid #1a1a1a;
-        border-radius: 12px;
-        padding: 22px 28px;
-        margin-bottom: 25px;
-        display: grid;
-        grid-template-columns: 1fr 1fr auto;
-        gap: 25px;
-        align-items: flex-end;
-    }
-    .filter-panel label { display: block; font-size: 10px; color: #444444; text-transform: uppercase; font-weight: 700; margin-bottom: 10px; letter-spacing: 0.8px; }
-    .filter-panel select {
-        background: #000000;
-        border: 1px solid #1a1a1a;
-        color: #888888;
-        padding: 10px 14px;
-        border-radius: 6px;
-        font-size: 13px;
-        width: 100%;
-        outline: none;
-        appearance: none;
-    }
-
-    /* Table Structure */
-    .data-card {
-        background: #0a0a0a;
-        border: 1px solid #1a1a1a;
-        border-radius: 12px;
-        overflow: hidden;
-    }
-    .scentora-list { width: 100%; border-collapse: collapse; }
-    .scentora-list th {
-        padding: 18px 25px;
-        text-align: left;
-        font-size: 11px;
-        color: #444444;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        border-bottom: 1px solid #1a1a1a;
-    }
-    .scentora-list td { padding: 16px 25px; font-size: 13px; border-bottom: 1px solid #141414; color: #cccccc; vertical-align: middle; }
-    
-    .status-pill { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-    .pill-green { background: rgba(46, 204, 113, 0.08); color: #2ecc71; }
-    .pill-red { background: rgba(231, 76, 60, 0.08); color: #e74c3c; }
-
-    /* Stats Grid */
-    .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px; }
-    .stat-box { background: #0f0e0c; border: 1px solid #1a1a1a; border-radius: 12px; padding: 25px; }
-    .stat-box .val { font-size: 34px; font-weight: 700; display: block; margin: 12px 0 5px; }
-</style>
-
-<div class="header-group">
-    <h2>Users</h2>
-    <p>Manage and monitor your customer base.</p>
-</div>
-
-<form method="GET" action="{% url 'user_management' %}" class="filter-panel">
-    <div>
-        <label>Search Directory</label>
-        <div class="relative flex items-center gap-2">
-            <div class="relative flex-grow">
-                <input type="text" name="search" value="{{ search_query|default:'' }}" 
-                       placeholder="Name or Email..." 
-                       class="bg-black border border-[#1a1a1a] text-[#888] py-[9px] px-4 rounded-md text-[13px] w-full focus:border-gold/50 outline-none transition-all">
-                {% if search_query %}
-                <a href="{% url 'user_management' %}" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted/40 hover:text-white">
-                    <i class="bi bi-x-circle-fill text-[10px]"></i>
-                </a>
-                {% endif %}
-            </div>
-            <button type="submit" class="px-4 py-[9px] text-[10px] font-bold uppercase tracking-widest text-gold bg-gold/5 border border-gold/20 rounded-md hover:bg-gold hover:text-black transition-all">
-                Search
-            </button>
-        </div>
+<div class="animate__animated animate__fadeIn">
+    <div class="mb-10">
+        <h2 class="text-4xl font-extralight text-white tracking-tighter">
+            Users <span class="font-black luxury-shimmer">Directory</span>
+        </h2>
+        <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">Manage and monitor your customer base.</p>
     </div>
 
-    <div>
-        <label>Filter by Status</label>
-        <select name="status" onchange="this.form.submit()">
-            <option value="" {% if not status_filter %}selected{% endif %}>All Statuses</option>
-            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
-            <option value="blocked" {% if status_filter == 'blocked' %}selected{% endif %}>Blocked</option>
-        </select>
-    </div>
-    <div>
-        <label>Sort Results</label>
-        <select name="sort" onchange="this.form.submit()">
-            <option value="newest" {% if sort_order == 'newest' %}selected{% endif %}>Newest First</option>
-            <option value="oldest" {% if sort_order == 'oldest' %}selected{% endif %}>Oldest First</option>
-            <option value="alpha" {% if sort_order == 'alpha' %}selected{% endif %}>A - Z</option>
-        </select>
-    </div>
-</form>
-
-<div class="data-card">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="p-4 bg-gold/10 border-b border-gold/20 text-gold text-[10px] font-bold uppercase tracking-widest flex items-center gap-3">
-                <i class="bi bi-shield-check"></i> {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-
-    <table class="scentora-list">
-        <thead>
-            <tr>
-                <th>User ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Status</th>
-                <th>Joined Date</th>
-                <th style="text-align: right;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in users %}
-            <tr>
-                <td style="color: #444;">#USR-{{ user.id }}</td>
-                <td style="color: #777;">{{ user.username }}</td>
-                <td style="color: #777;">{{ user.email }}</td>
-                <td style="color: #777;">
-    {% if user.phone_number %}
-        {{ user.phone_number }}
-    {% else %}
-        <span style="opacity: 0.3; font-style: italic;">Not Provided</span>
-    {% endif %}
-</td>
-                <td>
-                    {% if user.is_active %}
-                    <span class="status-pill pill-green">Active</span>
-                    {% else %}
-                    <span class="status-pill pill-red">Blocked</span>
+    <form method="GET" action="{% url 'user_management' %}" class="glass-panel rounded-2xl p-8 grid grid-cols-12 gap-8 items-end mb-8">
+        <div class="col-span-5">
+            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Search Directory</label>
+            <div class="relative flex items-center gap-3">
+                <div class="relative flex-grow">
+                    <input type="text" name="search" value="{{ search_query|default:'' }}" 
+                           placeholder="Name or Email..." 
+                           class="luxury-input py-3 px-5 rounded-xl text-sm w-full placeholder:text-white/20">
+                    {% if search_query %}
+                    <a href="{% url 'user_management' %}" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
+                        <i class="bi bi-x-circle-fill text-xs"></i>
+                    </a>
                     {% endif %}
-                </td>
-                <td style="color: #777;">{{ user.date_joined|date:"M d, Y" }}</td>
-                <td style="text-align: right;">
-                    <div class="flex items-center justify-end gap-4">
-                        <a href="#" class="text-muted/40 hover:text-white transition-colors">
-                            <i class="bi bi-eye"></i>
-                        </a>
+                </div>
+                <button type="submit" class="px-6 py-3 text-[10px] font-black uppercase tracking-[2px] text-black bg-gold rounded-xl hover:shadow-[0_0_20px_rgba(244,180,26,0.3)] transition-all">
+                    Search
+                </button>
+            </div>
+        </div>
 
-                        {% if user.is_active %}
-                        <a href="{% url 'confirm_block_user' user.id %}" class="text-muted/40 hover:text-red-500 transition-colors" title="Block User">
-                            <i class="bi bi-slash-circle"></i>
-                        </a>
-                        {% else %}
-                        <a href="{% url 'confirm_block_user' user.id %}" class="text-gold/60 hover:text-gold transition-colors" title="Unblock User">
-                            <i class="bi bi-check-circle"></i>
-                        </a>
-                        {% endif %}
-                    </div>
-                </td>
-            </tr>
+        <div class="col-span-3">
+            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Filter by Status</label>
+            <select name="status" onchange="this.form.submit()" class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none">
+                <option value="" {% if not status_filter %}selected{% endif %}>All Statuses</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                <option value="blocked" {% if status_filter == 'blocked' %}selected{% endif %}>Blocked</option>
+            </select>
+        </div>
+
+        <div class="col-span-4">
+            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Sort Results</label>
+            <select name="sort" onchange="this.form.submit()" class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none">
+                <option value="newest" {% if sort_order == 'newest' %}selected{% endif %}>Newest First</option>
+                <option value="oldest" {% if sort_order == 'oldest' %}selected{% endif %}>Oldest First</option>
+                <option value="alpha" {% if sort_order == 'alpha' %}selected{% endif %}>A - Z</option>
+            </select>
+        </div>
+    </form>
+
+    <div class="glass-panel rounded-[32px] overflow-hidden animate__animated animate__fadeInUp">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="p-4 bg-gold/10 border-b border-gold/20 text-gold text-[10px] font-black uppercase tracking-[2px] flex items-center gap-3">
+                    <i class="bi bi-shield-check"></i> {{ message }}
+                </div>
             {% endfor %}
-        </tbody>
-    </table>
-</div>
+        {% endif %}
 
-<div class="mt-8 flex items-center justify-between px-2">
-    <div class="text-[11px] text-muted uppercase tracking-widest font-medium">
-        Showing <span class="text-white">{{ users.start_index }}-{{ users.end_index }}</span> of {{ total_count }}
+        <table class="w-full text-left luxury-table">
+            <thead>
+                <tr class="bg-white/[0.01]">
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">User ID</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Name</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Email</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Phone</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Status</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Joined Date</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/[0.03]">
+                {% for user in users %}
+                <tr class="group cursor-pointer">
+                    <td class="px-8 py-6 text-xs text-white/30 font-medium">#USR-{{ user.id }}</td>
+                    <td class="px-8 py-6 text-sm text-white font-bold tracking-tight">{{ user.username }}</td>
+                    <td class="px-8 py-6 text-xs text-white/60 font-light">{{ user.email }}</td>
+                    <td class="px-8 py-6 text-xs text-white/60">
+                        {% if user.phone_number %}
+                            {{ user.phone_number }}
+                        {% else %}
+                            <span class="opacity-20 italic">Unlisted</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-6">
+                        {% if user.is_active %}
+                        <span class="px-3 py-1 bg-green-500/10 text-green-400 text-[9px] font-black uppercase tracking-widest rounded-full">Active</span>
+                        {% else %}
+                        <span class="px-3 py-1 bg-red-500/10 text-red-400 text-[9px] font-black uppercase tracking-widest rounded-full">Blocked</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-8 py-6 text-xs text-white/40 italic">{{ user.date_joined|date:"M d, Y" }}</td>
+                    <td class="px-8 py-6 text-right">
+                        <div class="flex items-center justify-end gap-5">
+                            <a href="{% url 'user_detail' user.id %}" class="text-white/20 hover:text-gold transition-all transform group-hover:scale-110">
+                                <i class="bi bi-eye text-lg"></i>
+                            </a>
+
+                            {% if user.is_active %}
+                            <a href="{% url 'confirm_block_user' user.id %}" class="text-white/20 hover:text-red-500 transition-all transform group-hover:scale-110" title="Block User">
+                                <i class="bi bi-slash-circle text-lg"></i>
+                            </a>
+                            {% else %}
+                            <a href="{% url 'confirm_block_user' user.id %}" class="text-gold/40 hover:text-gold transition-all transform group-hover:scale-110" title="Unblock User">
+                                <i class="bi bi-check-circle text-lg"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-    <div class="flex items-center gap-2">
+
+    <div class="mt-10 flex items-center justify-between px-4 animate__animated animate__fadeIn">
+        <div class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
+            Showing <span class="text-gold">{{ users.start_index }}-{{ users.end_index }}</span> of {{ total_count }}
+        </div>
+       <div class="mt-10 flex items-center justify-between px-4 animate__animated animate__fadeIn">
+    <div class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
+        Showing <span class="text-gold">{{ users.start_index }}-{{ users.end_index }}</span> of {{ total_count }}
+    </div>
+    <div class="flex items-center gap-4">
         {% if users.has_previous %}
-            <a href="?page={{ users.previous_page_number }}&search={{ search_query }}&status={{ status_filter }}" class="h-9 px-4 flex items-center bg-well border border-white/[0.05] rounded-lg text-[11px] uppercase text-muted hover:text-gold transition-all">Prev</a>
+            <a href="?page={{ users.previous_page_number }}&search={{ search_query|default:'' }}&status={{ status_filter|default:'' }}&sort={{ sort_order|default:'newest' }}" 
+               class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
+                Prev
+            </a>
         {% endif %}
-        <div class="px-4 text-[12px] font-semibold text-gold/80">{{ users.number }} / {{ users.paginator.num_pages }}</div>
+
+        <div class="text-[11px] font-black text-gold tracking-[2px]">{{ users.number }} / {{ users.paginator.num_pages }}</div>
+
         {% if users.has_next %}
-            <a href="?page={{ users.next_page_number }}&search={{ search_query }}&status={{ status_filter }}" class="h-9 px-4 flex items-center bg-well border border-white/[0.05] rounded-lg text-[11px] uppercase text-muted hover:text-gold transition-all">Next</a>
+            <a href="?page={{ users.next_page_number }}&search={{ search_query|default:'' }}&status={{ status_filter|default:'' }}&sort={{ sort_order|default:'newest' }}" 
+               class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
+                Next
+            </a>
         {% endif %}
     </div>
 </div>
+    </div>
 
-<div class="stat-row">
-    <div class="stat-box">
-        <label>Active Users</label>
-        <span class="val">{{ active_count }}</span>
-    </div>
-    <div class="stat-box">
-        <label>Total Users</label>
-        <span class="val">{{ total_count }}</span>
-    </div>
-    <div class="stat-box">
-        <label>Blocked Accounts</label>
-        <span class="val">{{ blocked_count }}</span>
+    <div class="grid grid-cols-3 gap-8 mt-12 animate__animated animate__fadeInUp animate__delay-1s">
+        <div class="glass-panel rounded-[24px] p-8 relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/5 blur-2xl rounded-full transition-all group-hover:bg-green-500/10"></div>
+            <label class="block text-[10px] text-white/30 uppercase tracking-[4px] font-black">Active Users</label>
+            <span class="text-4xl font-black text-white mt-4 block tracking-tighter">{{ active_count }}</span>
+        </div>
+        <div class="glass-panel rounded-[24px] p-8 relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-gold/5 blur-2xl rounded-full transition-all group-hover:bg-gold/10"></div>
+            <label class="block text-[10px] text-white/30 uppercase tracking-[4px] font-black">Total Users</label>
+            <span class="text-4xl font-black text-white mt-4 block tracking-tighter">{{ total_count }}</span>
+        </div>
+        <div class="glass-panel rounded-[24px] p-8 relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-red-500/5 blur-2xl rounded-full transition-all group-hover:bg-red-500/10"></div>
+            <label class="block text-[10px] text-white/30 uppercase tracking-[4px] font-black">Blocked Accounts</label>
+            <span class="text-4xl font-black text-white mt-4 block tracking-tighter">{{ blocked_count }}</span>
+        </div>
     </div>
 </div>
 {% endblock %}

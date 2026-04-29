@@ -2,180 +2,190 @@
 {% load static %} 
 
 {% block content %}
-<main class="flex-grow max-w-[800px] mx-auto w-full px-6 py-12">
-  <div class="mb-12 text-center">
-    <h1 class="text-4xl font-light tracking-tight mb-2">
-      Edit <span class="font-bold uppercase tracking-widest">Profile</span>
-    </h1>
-    <p class="text-slate-500 text-xs italic">Refine your Scentora identity</p>
-  </div>
-
+<main class="flex-grow flex items-center justify-center w-full px-6 py-20 bg-[#050505] selection:bg-primary/30">
   
-  <form
-    method="POST"
-    enctype="multipart/form-data"
-    class="bg-white dark:bg-primary/5 rounded-xl border border-primary/10 overflow-hidden shadow-2xl"
-  >
-    {% csrf_token %}
-
- <div class="p-8 border-b border-primary/10 flex flex-col items-center gap-6 bg-primary/5">
-  <div class="relative group">
-    <div class="size-32 rounded-full border-2 border-primary p-1">
-      {% if user.profile_image %}
-      <img
-        id="imagePreview"
-        src="{{ user.profile_image.url }}"
-        class="size-full rounded-full object-cover"
-      />
-      {% else %}
-      <div
-        id="imagePlaceholder"
-        class="size-full rounded-full bg-slate-800 flex items-center justify-center"
-      >
-        <span class="material-symbols-outlined text-4xl text-slate-600">person</span>
+  <div class="max-w-[850px] w-full animate-in fade-in duration-1000">
+    
+    <div class="mb-16 text-center space-y-4">
+      <h1 class="text-6xl font-extralight tracking-tighter text-white">
+        Edit <span class="font-serif italic text-primary">Profile</span>
+      </h1>
+      <div class="flex items-center justify-center gap-4">
+        <span class="h-px w-10 bg-primary/20"></span>
+        <p class="text-slate-500 text-[10px] uppercase tracking-[0.5em] font-medium">Refine your Scentora identity</p>
+        <span class="h-px w-10 bg-primary/20"></span>
       </div>
-      {% endif %}
     </div>
 
-    <input type="file" 
-           name="profile_image" 
-           id="profile_image_input" 
-           accept="image/*" 
-           class="hidden">
-
-    <label
-      for="profile_image_input"
-      class="absolute bottom-0 right-0 bg-primary text-background-dark size-10 rounded-full flex items-center justify-center border-4 border-background-dark cursor-pointer hover:scale-110 transition-transform"
+    <form
+      method="POST"
+      enctype="multipart/form-data"
+      class="bg-[#0A0A0A] rounded-[40px] border border-white/5 overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,1)]"
     >
-      <span class="material-symbols-outlined text-xl">photo_camera</span>
-    </label>
-  </div>
-  
-  <p class="text-[10px] text-primary uppercase font-bold tracking-[0.2em]">
-    Change Portrait
-  </p>
-</div>
+      {% csrf_token %}
 
-    <div class="p-8 space-y-8">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div class="space-y-2">
-          <label class="text-xs font-bold text-primary uppercase tracking-widest">First Name</label>
-          <input
-            type="text"
-            name="first_name"
-            value="{{ user.first_name }}"
-            class="w-full bg-transparent border-b border-primary/20 py-3 text-white outline-none focus:border-primary transition-colors text-sm"
-          />
-        </div>
-
-        <div class="space-y-2">
-          <label class="text-xs font-bold text-primary uppercase tracking-widest">Last Name</label>
-          <input
-            type="text"
-            name="last_name"
-            value="{{ user.last_name }}"
-            class="w-full bg-transparent border-b border-primary/20 py-3 text-white outline-none focus:border-primary transition-colors text-sm"
-          />
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-       <div class="space-y-2">
-  <label class="text-xs font-bold text-primary uppercase tracking-widest">Username</label>
-  <input
-    type="text"
-    name="username"
-    value="{{ user.username }}"
-    class="w-full bg-transparent border-b border-primary/20 py-3 text-white outline-none focus:border-primary transition-colors text-sm"
-    required
-  />
-  {% for message in messages %}
-    {% if "username" in message.extra_tags %}
-      <p class="text-[9px] text-red-500 font-bold uppercase tracking-tighter mt-1">{{ message }}</p>
-    {% endif %}
-  {% endfor %}
-</div>
-
-        <div class="space-y-2">
-          <label class="text-xs font-bold text-primary uppercase tracking-widest">Phone Number</label>
-          <input type="tel" 
-                 name="phone_number" 
-                 value="{{ user.phone_number|default:'' }}" 
-                 placeholder="10-digit mobile number"
-                 pattern="[0-9]{10}"
-                 title="Please enter a valid 10-digit phone number"
-                 class="w-full bg-transparent border-b border-primary/20 py-3 text-white outline-none focus:border-primary transition-colors text-sm"
-                 oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+      <div class="p-12 border-b border-white/5 flex flex-col items-center gap-8 bg-gradient-to-b from-primary/5 to-transparent">
+        <div class="relative group">
+          <div class="absolute -inset-1 bg-gradient-to-tr from-primary via-primary/20 to-primary rounded-full opacity-20 group-hover:opacity-100 transition duration-700 blur-[2px]"></div>
           
-          {% for message in messages %}
-            {% if "phone" in message.message|lower or "digit" in message.message|lower %}
-              <p class="text-[9px] text-red-500 font-bold uppercase tracking-tighter mt-1">{{ message }}</p>
-            {% endif %}
-          {% endfor %}
-          <p class="text-[9px] text-slate-500 italic">Format: 10 digits only (e.g., 8304963347)</p>
-        </div>
-      </div>
+          <div class="relative size-40 rounded-full border-2 border-[#0A0A0A] p-1.5 bg-black shadow-2xl">
+            <div class="size-full rounded-full overflow-hidden border border-white/10">
+                {% if user.profile_image %}
+                <img
+                  id="imagePreview"
+                  src="{{ user.profile_image.url }}"
+                  class="size-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                />
+                {% else %}
+                <div id="imagePlaceholder" class="size-full bg-neutral-900 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-5xl text-primary/10 font-thin">person_outline</span>
+                </div>
+                {% endif %}
+            </div>
 
-      <div class="space-y-2 pt-4 border-t border-primary/10">
-        <label class="text-xs font-bold text-primary uppercase tracking-widest">Email Address</label>
+            <input type="file" 
+                   name="profile_image" 
+                   id="profile_image_input" 
+                   accept="image/*" 
+                   class="hidden">
 
-        <div class="relative flex items-center gap-4">
-          <input
-            type="email"
-            name="email"
-            value="{{ user.email }}"
-            class="flex-grow bg-transparent border-b border-neutral-border py-3 outline-none transition-colors text-sm {% if user.socialaccount_set.all %}text-slate-500 opacity-60{% else %}text-white focus:border-primary{% endif %}"
-            readonly
-          />
-
-          {% if not user.socialaccount_set.all %}
-          <a
-            href="{% url 'change_email_request' %}"
-            class="text-[10px] font-bold text-primary uppercase border border-primary/30 px-4 py-2 hover:bg-primary hover:text-black transition-all"
-          >
-            Change Email
-          </a>
-          {% else %}
-          <div class="flex items-center gap-2 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-            <span class="material-symbols-outlined text-sm">google</span>
-            Linked
+            <label
+              for="profile_image_input"
+              class="absolute bottom-1 right-1 bg-primary text-black size-11 rounded-full flex items-center justify-center border-4 border-[#0A0A0A] cursor-pointer hover:scale-110 transition-all shadow-xl"
+            >
+              <span class="material-symbols-outlined text-xl">photo_camera</span>
+            </label>
           </div>
-          {% endif %}
         </div>
         
-        {% for message in messages %}
-            {% if "email" in message.message|lower %}
-              <p class="text-[9px] text-red-500 font-bold uppercase tracking-tighter mt-1">{{ message }}</p>
-            {% endif %}
-        {% endfor %}
-
-        <p class="text-[10px] text-slate-500 italic mt-2">
-          {% if user.socialaccount_set.all %} This account is managed via
-          Google. Email changes must be handled through your Google Account
-          settings. {% else %} Email can be updated through the security
-          settings with OTP verification for your protection. {% endif %}
+        <p class="text-[9px] text-primary uppercase font-black tracking-[0.6em] opacity-60">
+          Change Portrait
         </p>
       </div>
-    </div>
 
-    <div class="p-8 bg-primary/5 flex flex-col md:flex-row gap-4 border-t border-primary/10">
-      <button
-        type="submit"
-        class="flex-1 bg-primary text-background-dark py-4 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-white transition-all"
-      >
-        Save Changes
-      </button>
-      <a
-        href="{% url 'profile' %}"
-        class="flex-1 border border-primary/30 text-primary text-center py-4 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-primary hover:text-background-dark transition-all"
-      >
-        Cancel
-      </a>
-    </div>
-  </form>
+      <div class="p-10 md:p-16 space-y-16">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
+          <div class="space-y-3 group">
+            <label class="text-[10px] font-bold text-primary/40 uppercase tracking-[0.4em] group-focus-within:text-primary transition-colors">First Name</label>
+            <input
+              type="text"
+              name="first_name"
+              value="{{ user.first_name }}"
+              class="w-full bg-transparent border-b border-white/5 py-3 text-white font-light outline-none focus:border-primary transition-all duration-500 text-sm"
+            />
+          </div>
+
+          <div class="space-y-3 group">
+            <label class="text-[10px] font-bold text-primary/40 uppercase tracking-[0.4em] group-focus-within:text-primary transition-colors">Last Name</label>
+            <input
+              type="text"
+              name="last_name"
+              value="{{ user.last_name }}"
+              class="w-full bg-transparent border-b border-white/5 py-3 text-white font-light outline-none focus:border-primary transition-all duration-500 text-sm"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
+          <div class="space-y-3 group">
+            <label class="text-[10px] font-bold text-primary/40 uppercase tracking-[0.4em] group-focus-within:text-primary transition-colors">Username</label>
+            <input
+              type="text"
+              name="username"
+              value="{{ user.username }}"
+              class="w-full bg-transparent border-b border-white/5 py-3 text-primary font-serif italic text-base outline-none focus:border-primary transition-all duration-500"
+              required
+            />
+            {% for message in messages %}
+              {% if "username" in message.extra_tags %}
+                <p class="text-[9px] text-red-500 font-bold uppercase tracking-tighter mt-2">{{ message }}</p>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          <div class="space-y-3 group">
+            <label class="text-[10px] font-bold text-primary/40 uppercase tracking-[0.4em] group-focus-within:text-primary transition-colors">Phone Number</label>
+            <input type="tel" 
+                   name="phone_number" 
+                   value="{{ user.phone_number|default:'' }}" 
+                   placeholder="10-digit mobile number"
+                   pattern="[0-9]{10}"
+                   class="w-full bg-transparent border-b border-white/5 py-3 text-white font-light outline-none focus:border-primary transition-all duration-500 text-sm"
+                   oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+            
+            {% for message in messages %}
+              {% if "phone" in message.message|lower or "digit" in message.message|lower %}
+                <p class="text-[9px] text-red-500 font-bold uppercase tracking-tighter mt-1">{{ message }}</p>
+              {% endif %}
+            {% endfor %}
+            <p class="text-[9px] text-slate-600 italic tracking-tight mt-1">Format: 10 digits only</p>
+          </div>
+        </div>
+
+        <div class="space-y-6 pt-10 border-t border-white/5">
+          <label class="text-[10px] font-bold text-primary/40 uppercase tracking-[0.4em]">Email Address</label>
+
+          <div class="relative flex flex-col md:flex-row items-center gap-6 p-8 rounded-[24px] bg-white/[0.02] border border-white/5">
+            <input
+              type="email"
+              name="email"
+              value="{{ user.email }}"
+              class="flex-grow bg-transparent border-none p-0 outline-none text-sm font-light tracking-wide {% if user.socialaccount_set.all %}text-slate-500 opacity-60{% else %}text-white{% endif %}"
+              readonly
+            />
+
+            {% if not user.socialaccount_set.all %}
+            <a
+              href="{% url 'change_email_request' %}"
+              class="text-[9px] font-black text-primary uppercase border border-primary/20 px-8 py-3 rounded-full hover:bg-primary hover:text-black transition-all tracking-[0.2em]"
+            >
+              Update Email
+            </a>
+            {% else %}
+            <div class="flex items-center gap-2 text-[9px] text-primary font-bold uppercase tracking-widest">
+              <span class="material-symbols-outlined text-xs">verified</span>
+              Linked
+            </div>
+            {% endif %}
+          </div>
+          
+          {% for message in messages %}
+              {% if "email" in message.message|lower %}
+                <p class="text-[9px] text-red-500 font-bold uppercase tracking-tighter mt-1">{{ message }}</p>
+              {% endif %}
+          {% endfor %}
+
+          <p class="text-[10px] text-slate-500 italic max-w-lg mt-4">
+            {% if user.socialaccount_set.all %} 
+                Managed via Google secure SSO. 
+            {% else %} 
+                Updates require OTP verification for your protection. 
+            {% endif %}
+          </p>
+        </div>
+      </div>
+
+      <div class="p-10 bg-white/[0.01] flex flex-col md:flex-row gap-6 border-t border-white/5">
+        <button
+          type="submit"
+          class="flex-[2] bg-primary text-black h-20 text-[11px] font-black uppercase tracking-[0.6em] hover:bg-white transition-all shadow-[0_20px_40px_-10px_rgba(212,175,55,0.3)]"
+        >
+          Save Changes
+        </button>
+        <a
+          href="{% url 'profile' %}"
+          class="flex-1 flex items-center justify-center border border-white/10 text-white/40 h-20 text-[11px] font-bold uppercase tracking-[0.4em] hover:text-white hover:border-white/30 transition-all"
+        >
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
 </main>
 
 <script>
+  // Logic remains strictly original
   document.getElementById('profile_image_input').onchange = (evt) => {
     const [file] = evt.target.files;
     if (file) {
@@ -184,16 +194,12 @@
       const objectUrl = URL.createObjectURL(file);
 
       if (preview) {
-        // Update existing image
         preview.src = objectUrl;
       } else if (placeholder) {
-        // Replace the "person" icon placeholder with a new image element
         const img = document.createElement("img");
         img.id = "imagePreview";
         img.src = objectUrl;
-        img.className = "size-full rounded-full object-cover";
-        
-        // Find the parent container of the placeholder and swap them
+        img.className = "size-full rounded-full object-cover transition-transform duration-1000";
         const container = placeholder.parentElement;
         container.appendChild(img);
         placeholder.remove();
@@ -201,4 +207,9 @@
     }
   };
 </script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:italic&display=swap');
+  .font-serif { font-family: 'Playfair Display', serif; }
+</style>
 {% endblock %}

@@ -1,144 +1,187 @@
 {% extends 'admin_panel/base_admin.html' %}
 
-{% block breadcrumb %}Dashboard{% endblock %}
-
-{% block content %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 <style>
-    /* Dashboard Specific Layout */
-    .dashboard-container { display: flex; flex-direction: column; gap: 24px; }
-    
-    /* Stats Grid (Top 4 Cards) */
-    .stats-grid { 
-        display: grid; 
-        grid-template-columns: repeat(4, 1fr); 
-        gap: 20px; 
+    /* Luxury Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #f4b41a; border-radius: 10px; }
+
+    /* Shimmer Effect for Gold Text */
+    .luxury-shimmer {
+        background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 4s linear infinite;
     }
-    
-    .stat-card { 
-        background: #15130f; 
-        border: 1px solid #1f1d17; 
-        border-radius: 12px; 
-        padding: 20px; 
+    @keyframes shimmer { to { background-position: 200% center; } }
+
+    /* Glass Panels */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-    .stat-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
-    .stat-icon { font-size: 1.2rem; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.03); }
-    .trend-pill { font-size: 0.7rem; padding: 4px 8px; border-radius: 4px; font-weight: 600; }
-    .up { background: rgba(74, 222, 128, 0.1); color: #4ade80; }
-
-    .stat-val { font-size: 1.8rem; font-weight: 700; display: block; margin-top: 5px; }
-    .stat-lab { color: #7a766e; font-size: 0.85rem; }
-
-    /* Main Grid (Charts & Lists) */
-    .main-grid { 
-        display: grid; 
-        grid-template-columns: 2fr 1fr; 
-        gap: 24px; 
+    .glass-card:hover { 
+        border-color: rgba(244, 180, 26, 0.2);
+        background: rgba(255, 255, 255, 0.03);
     }
 
-    .section-card { background: #15130f; border: 1px solid #1f1d17; border-radius: 12px; padding: 24px; }
-    .card-title { font-size: 1.1rem; font-weight: 600; margin: 0 0 5px 0; }
-    .card-sub { font-size: 0.75rem; color: #7a766e; margin-bottom: 20px; }
+    /* Table Styling */
+    .luxury-table tr { border-bottom: 1px solid rgba(255, 255, 255, 0.02); transition: all 0.3s ease; }
+    .luxury-table tr:hover { background: rgba(255, 255, 255, 0.01); }
 
-    /* Activity & Tables */
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th { text-align: left; font-size: 0.7rem; color: #7a766e; padding-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
-    td { padding: 12px 0; border-top: 1px solid #1f1d17; font-size: 0.85rem; }
-    
-    .status-pill { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; }
+    /* Pill Badges */
+    .status-pill { 
+        padding: 4px 10px; 
+        border-radius: 20px; 
+        font-[9px] font-black uppercase tracking-[1px]; 
+    }
     .delivered { background: rgba(74, 222, 128, 0.1); color: #4ade80; }
     .processing { background: rgba(244, 180, 26, 0.1); color: #f4b41a; }
 </style>
+{% endblock %}
 
-<div class="dashboard-container">
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-header">
-                <div class="stat-icon" style="color: #6366f1;"><i class="bi bi-people"></i></div>
-                <span class="trend-pill up">+12%</span>
+{% block breadcrumb %}
+<span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">Executive Suite / Dashboard</span>
+{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn space-y-8">
+    
+    <div class="mb-10">
+        <h2 class="text-4xl font-extralight text-white tracking-tighter">
+            System <span class="font-black luxury-shimmer">Dashboard</span>
+        </h2>
+        <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">Real-time operational intelligence</p>
+    </div>
+
+    <div class="grid grid-cols-4 gap-6 stats-grid">
+        <div class="glass-card rounded-[24px] p-6 animate__animated animate__fadeInUp">
+            <div class="flex justify-between items-start mb-6">
+                <div class="p-3 rounded-xl bg-white/[0.03] text-indigo-400"><i class="bi bi-people text-xl"></i></div>
+                <span class="px-2 py-1 rounded bg-green-500/10 text-green-400 text-[10px] font-bold">+12%</span>
             </div>
-            <span class="stat-lab">Total Users</span>
-            <span class="stat-val">12,543</span>
+            <span class="block text-[10px] text-white/30 uppercase tracking-[3px] font-black">Total Users</span>
+            <span class="text-3xl font-black text-white mt-1 block tracking-tighter">12,543</span>
         </div>
-        <div class="stat-card">
-            <div class="stat-header">
-                <div class="stat-icon" style="color: #f4b41a;"><i class="bi bi-bag"></i></div>
-                <span class="trend-pill up">+8%</span>
+
+        <div class="glass-card rounded-[24px] p-6 animate__animated animate__fadeInUp animate__delay-100ms">
+            <div class="flex justify-between items-start mb-6">
+                <div class="p-3 rounded-xl bg-white/[0.03] text-gold"><i class="bi bi-bag text-xl"></i></div>
+                <span class="px-2 py-1 rounded bg-green-500/10 text-green-400 text-[10px] font-bold">+8%</span>
             </div>
-            <span class="stat-lab">Total Orders</span>
-            <span class="stat-val">8,421</span>
+            <span class="block text-[10px] text-white/30 uppercase tracking-[3px] font-black">Total Orders</span>
+            <span class="text-3xl font-black text-white mt-1 block tracking-tighter">8,421</span>
         </div>
-        <div class="stat-card">
-            <div class="stat-header">
-                <div class="stat-icon" style="color: #10b981;"><i class="bi bi-currency-dollar"></i></div>
-                <span class="trend-pill up">+24%</span>
+
+        <div class="glass-card rounded-[24px] p-6 animate__animated animate__fadeInUp animate__delay-200ms">
+            <div class="flex justify-between items-start mb-6">
+                <div class="p-3 rounded-xl bg-white/[0.03] text-emerald-400"><i class="bi bi-currency-dollar text-xl"></i></div>
+                <span class="px-2 py-1 rounded bg-green-500/10 text-green-400 text-[10px] font-bold">+24%</span>
             </div>
-            <span class="stat-lab">Total Revenue</span>
-            <span class="stat-val">$245,000</span>
+            <span class="block text-[10px] text-white/30 uppercase tracking-[3px] font-black">Total Revenue</span>
+            <span class="text-3xl font-black text-white mt-1 block tracking-tighter">$245,000</span>
         </div>
-        <div class="stat-card">
-            <div class="stat-header">
-                <div class="stat-icon" style="color: #a855f7;"><i class="bi bi-box-seam"></i></div>
-                <span class="trend-pill" style="background: rgba(255,255,255,0.05); color: #7a766e;">Stable</span>
+
+        <div class="glass-card rounded-[24px] p-6 animate__animated animate__fadeInUp animate__delay-300ms">
+            <div class="flex justify-between items-start mb-6">
+                <div class="p-3 rounded-xl bg-white/[0.03] text-purple-400"><i class="bi bi-box-seam text-xl"></i></div>
+                <span class="px-2 py-1 rounded bg-white/5 text-white/40 text-[10px] font-bold">Stable</span>
             </div>
-            <span class="stat-lab">Total Products</span>
-            <span class="stat-val">1,205</span>
+            <span class="block text-[10px] text-white/30 uppercase tracking-[3px] font-black">Total Products</span>
+            <span class="text-3xl font-black text-white mt-1 block tracking-tighter">1,205</span>
         </div>
     </div>
 
-    <div class="main-grid">
-        <div class="section-card">
-            <h3 class="card-title">Performance Overview</h3>
-            <p class="card-sub">Detailed look at your sales and order metrics</p>
-            <div style="height: 300px;"><canvas id="performanceChart"></canvas></div>
+    <div class="grid grid-cols-3 gap-8">
+        <div class="col-span-2 glass-card rounded-[32px] p-8 animate__animated animate__fadeInLeft">
+            <h3 class="text-lg font-bold text-white tracking-tight">Performance Overview</h3>
+            <p class="text-white/30 text-[11px] uppercase tracking-[2px] mb-8">Detailed look at your sales and order metrics</p>
+            <div class="h-[300px]"><canvas id="performanceChart"></canvas></div>
         </div>
 
-        <div class="section-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h3 class="card-title" style="margin:0;">Latest Joins</h3>
-                <i class="bi bi-person-plus" style="color: #7a766e;"></i>
+        <div class="glass-card rounded-[32px] p-8 animate__animated animate__fadeInRight">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-lg font-bold text-white tracking-tight">Latest Joins</h3>
+                <i class="bi bi-person-plus text-white/20 text-xl"></i>
             </div>
-            <div class="user-list">
-                <div style="display:flex; align-items:center; gap:12px; margin-bottom:15px;">
-                    <div style="width:35px; height:35px; border-radius:50%; background:#2a271f;"></div>
-                    <div><div style="font-size:0.85rem;">Lily Evans</div><div style="font-size:0.7rem; color:#7a766e;">Joined 5 mins ago</div></div>
+            <div class="space-y-6 mb-8">
+                <div class="flex items-center gap-4 group cursor-pointer">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gold/20 to-transparent flex items-center justify-center border border-white/5 group-hover:border-gold/30 transition-all">
+                        <span class="text-gold font-black text-xs">LE</span>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-white tracking-tight">Lily Evans</div>
+                        <div class="text-[10px] text-white/30 uppercase tracking-[1px]">Joined 5 mins ago</div>
+                    </div>
                 </div>
             </div>
-            <button style="width:100%; padding:10px; border-radius:8px; border:1px solid #1f1d17; background:transparent; color:#fff; cursor:pointer;">View All Users</button>
+            <button class="w-full py-4 rounded-2xl border border-white/5 bg-white/[0.02] text-[10px] font-black uppercase tracking-[3px] text-white/60 hover:bg-gold hover:text-black hover:border-gold transition-all duration-500">
+                View All Users
+            </button>
         </div>
     </div>
 
-    <div class="main-grid">
-        <div class="section-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 class="card-title" style="margin:0;">Recent Orders</h3>
-                <a href="#" style="color:#f4b41a; text-decoration:none; font-size:0.8rem;">View All <i class="bi bi-arrow-right"></i></a>
+    <div class="grid grid-cols-3 gap-8 pb-10">
+        <div class="col-span-2 glass-card rounded-[32px] overflow-hidden animate__animated animate__fadeInUp">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-white tracking-tight">Recent Orders</h3>
+                <a href="#" class="text-gold text-[10px] font-black uppercase tracking-[2px] hover:tracking-[4px] transition-all">View All <i class="bi bi-arrow-right ms-1"></i></a>
             </div>
-            <table>
-                <thead>
-                    <tr><th>Order ID</th><th>User</th><th>Amount</th><th>Status</th><th>Date</th></tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="color:#f4b41a;">#ORD-1234</td>
-                        <td>John Doe</td><td>$120.00</td>
-                        <td><span class="status-pill delivered">DELIVERED</span></td>
-                        <td style="color:#7a766e;">Oct 24, 2024</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left luxury-table">
+                    <thead class="bg-white/[0.01]">
+                        <tr>
+                            <th class="px-8 py-5 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Order ID</th>
+                            <th class="px-8 py-5 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">User</th>
+                            <th class="px-8 py-5 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Amount</th>
+                            <th class="px-8 py-5 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Status</th>
+                            <th class="px-8 py-5 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/[0.02]">
+                        <tr>
+                            <td class="px-8 py-6 text-xs text-gold font-bold tracking-widest">#ORD-1234</td>
+                            <td class="px-8 py-6 text-sm text-white font-medium">John Doe</td>
+                            <td class="px-8 py-6 text-sm text-white font-black">$120.00</td>
+                            <td class="px-8 py-6">
+                                <span class="status-pill delivered text-[9px]">DELIVERED</span>
+                            </td>
+                            <td class="px-8 py-6 text-xs text-white/30 italic">Oct 24, 2024</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <div class="section-card">
-            <h3 class="card-title">Recent Activity</h3>
+        <div class="glass-card rounded-[32px] p-8 animate__animated animate__fadeInUp">
+            <h3 class="text-lg font-bold text-white tracking-tight mb-6">Recent Activity</h3>
+            <div class="space-y-6">
+                <div class="relative pl-6 border-l border-white/5">
+                    <div class="absolute left-[-5px] top-1 w-2 h-2 rounded-full bg-gold"></div>
+                    <p class="text-xs text-white/80 font-medium">Stock Update</p>
+                    <p class="text-[10px] text-white/30 uppercase mt-1">2 hours ago</p>
+                </div>
             </div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const ctx = document.getElementById('performanceChart').getContext('2d');
+    
+    // Create Gradient for Chart
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(244, 180, 26, 0.2)');
+    gradient.addColorStop(1, 'rgba(244, 180, 26, 0)');
+
     new Chart(ctx, {
         type: 'line',
         data: {
@@ -149,9 +192,12 @@
                 borderColor: '#f4b41a',
                 borderWidth: 3,
                 tension: 0.4,
-                pointRadius: 0,
+                pointRadius: 4,
+                pointBackgroundColor: '#f4b41a',
+                pointBorderColor: '#000',
+                pointBorderWidth: 2,
                 fill: true,
-                backgroundColor: 'rgba(244, 180, 26, 0.1)'
+                backgroundColor: gradient
             }]
         },
         options: {
@@ -159,8 +205,14 @@
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-                y: { display: false },
-                x: { grid: { display: false }, ticks: { color: '#7a766e', font: { size: 10 } } }
+                y: { 
+                    grid: { color: 'rgba(255,255,255,0.02)' },
+                    ticks: { color: 'rgba(255,255,255,0.2)', font: { size: 10 } }
+                },
+                x: { 
+                    grid: { display: false }, 
+                    ticks: { color: 'rgba(255,255,255,0.2)', font: { size: 10, weight: 'bold' } } 
+                }
             }
         }
     });

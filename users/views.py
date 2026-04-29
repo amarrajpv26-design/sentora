@@ -1,7 +1,7 @@
-from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
+from django.views.decorators.cache import never_cache
 from .models import User, Address
 from django.contrib.auth.decorators import login_required
 from .utils import generate_otp, send_otp_email
@@ -16,14 +16,17 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 
+@never_cache
 def welcome_view(request):
     return render(request, "users/welcome.html")
 
 
+@never_cache
 def home(request):
     return render(request, "users/index.html")
 
 
+@never_cache
 def user_signup(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -64,6 +67,7 @@ def user_signup(request):
     return render(request, "users/signup.html")
 
 
+@never_cache
 def verify_otp(request):
     signup_data = request.session.get("pending_signup")
     if not signup_data:
@@ -99,12 +103,7 @@ def verify_otp(request):
     return render(request, "users/verify_otp.html", {"email": signup_data["email"]})
 
 
-def clear_otp(self):
-    self.otp_code = None
-    self.otp_created_at = None
-    self.save()
-
-
+@never_cache
 def resend_otp(request):
     signup_data = request.session.get("pending_signup")
 
@@ -128,6 +127,7 @@ def resend_otp(request):
     return redirect("verify_otp")
 
 
+@never_cache
 def user_login(request):
     if request.method == "POST":
         email = request.POST.get("email")
@@ -156,16 +156,19 @@ def user_login(request):
     return render(request, "users/login.html")
 
 
+@never_cache
 def user_logout(request):
     logout(request)
     return redirect("home")
 
 
+@never_cache
 @login_required
 def logout_confirmation_view(request):
     return render(request, "users/logout_confirm.html")
 
 
+@never_cache
 @login_required
 def profile_view(request):
     return render(
@@ -178,6 +181,7 @@ def profile_view(request):
     )
 
 
+@never_cache
 @login_required
 def edit_profile_view(request):
     user = request.user
@@ -250,27 +254,7 @@ def edit_profile_view(request):
     return render(request, "users/edit_profile.html", {"user": user})
 
 
-@login_required
-def verify_email_change(request):
-    saved_otp = request.session.get("email_change_otp")
-
-    if not saved_otp:
-        messages.error(request, "SECURITY ERROR: INITIAL OTP NOT FOUND.")
-        return redirect("profile")
-
-    if request.method == "POST":
-        user_otp = request.POST.get("otp")
-        if user_otp == saved_otp:
-            request.session["email_otp_verified"] = True
-            request.session.save()
-            request.session.modified = True
-            return redirect("final_email_update_view")
-        else:
-            messages.error(request, "INVALID CODE.")
-
-    return render(request, "users/verify_email_otp.html")
-
-
+@never_cache
 @login_required
 def password_change_view(request):
     if request.method == "POST":
@@ -287,6 +271,7 @@ def password_change_view(request):
     return render(request, "users/change_password.html", {"form": form})
 
 
+@never_cache
 @login_required
 def add_address_view(request):
     if request.method == "POST":
@@ -302,6 +287,7 @@ def add_address_view(request):
     return render(request, "users/add_address.html", {"form": form})
 
 
+@never_cache
 @login_required
 def edit_address_view(request, pk):
     address = get_object_or_404(Address, pk=pk, user=request.user)
@@ -318,6 +304,7 @@ def edit_address_view(request, pk):
     return render(request, "users/add_address.html", {"form": form, "edit_mode": True})
 
 
+@never_cache
 @login_required
 def delete_address_view(request, pk):
     if request.method == "POST":
@@ -327,6 +314,7 @@ def delete_address_view(request, pk):
     return redirect("profile")
 
 
+@never_cache
 @login_required
 def change_email_request_view(request):
     otp = str(random.randint(100000, 999999))
@@ -350,6 +338,55 @@ def change_email_request_view(request):
     return redirect("verify_email_otp")
 
 
+@never_cache
+@login_required
+def verify_email_change(request):
+    saved_otp = request.session.get("email_change_otp")
+
+    if not saved_otp:
+        messages.error(request, "SECURITY ERROR: INITIAL OTP NOT FOUND.")
+        return redirect("profile")
+
+    if request.method == "POST":
+        user_otp = request.POST.get("otp")
+        if user_otp == saved_otp:
+            request.session["email_otp_verified"] = True
+            request.session.save()
+            request.session.modified = True
+            return redirect("final_email_update_view")
+        else:
+            messages.error(request, "INVALID CODE.")
+
+    return render(request, "users/verify_email_otp.html")
+
+
+@never_cache
+def final_email_update_view(request):
+    if not request.session.get("email_otp_verified"):
+        messages.error(request, "PLEASE VERIFY YOUR IDENTITY FIRST.")
+        return redirect("profile")
+
+    if request.method == "POST":
+        new_email = request.POST.get("new_email")
+
+        new_otp = str(random.randint(100000, 999999))
+        request.session["pending_new_email"] = new_email
+        request.session["new_email_otp"] = new_otp
+
+        send_mail(
+            "Scentora Vault: Verify New Email",
+            f"Your code for the new email is: {new_otp}",
+            settings.EMAIL_HOST_USER,
+            [new_email],
+        )
+
+        request.session.save()
+        return redirect("verify_new_email")
+
+    return render(request, "users/final_email_update.html")
+
+
+@never_cache
 @login_required
 def verify_new_email_otp(request):
     new_email = request.session.get("pending_new_email")
@@ -383,28 +420,3 @@ def verify_new_email_otp(request):
             messages.error(request, "INVALID VERIFICATION CODE.")
 
     return render(request, "users/verify_new_email.html", {"email": new_email})
-
-
-def final_email_update_view(request):
-    if not request.session.get("email_otp_verified"):
-        messages.error(request, "PLEASE VERIFY YOUR IDENTITY FIRST.")
-        return redirect("profile")
-
-    if request.method == "POST":
-        new_email = request.POST.get("new_email")
-
-        new_otp = str(random.randint(100000, 999999))
-        request.session["pending_new_email"] = new_email
-        request.session["new_email_otp"] = new_otp
-
-        send_mail(
-            "Scentora Vault: Verify New Email",
-            f"Your code for the new email is: {new_otp}",
-            settings.EMAIL_HOST_USER,
-            [new_email],
-        )
-
-        request.session.save()
-        return redirect("verify_new_email")
-
-    return render(request, "users/final_email_update.html")

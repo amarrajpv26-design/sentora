@@ -57,9 +57,9 @@ def admin_logout(request):
 @staff_member_required
 def user_management(request):
     users = User.objects.filter(is_superuser=False).order_by("-date_joined")
-    sort_order = request.GET.get("sort", "newest")
-    search_query = request.GET.get("search", "")
 
+
+    search_query = request.GET.get("search", "")
     if search_query:
         users = users.filter(
             Q(username__icontains=search_query)
@@ -67,12 +67,16 @@ def user_management(request):
             | Q(first_name__icontains=search_query)
             | Q(last_name__icontains=search_query)
         )
+
+        
     status_filter = request.GET.get("status", "")
     if status_filter == "active":
         users = users.filter(is_active=True)
     elif status_filter == "blocked":
         users = users.filter(is_active=False)
 
+
+    sort_order = request.GET.get("sort", "newest")
     if sort_order == "oldest":
         users = users.order_by("date_joined")
     elif sort_order == "alpha":
@@ -80,9 +84,11 @@ def user_management(request):
     else:
         users = users.order_by("-date_joined")
 
-    active_count = User.objects.filter(is_active=True, is_superuser=False).count()
-    blocked_count = User.objects.filter(is_active=False, is_superuser=False).count()
+
+    active_count = users.filter(is_active=True, is_superuser=False).count()
+    blocked_count = users.filter(is_active=False, is_superuser=False).count()
     total_count = users.count()
+
 
     paginator = Paginator(users, 5)
     page_number = request.GET.get("page")
@@ -105,16 +111,15 @@ def user_management(request):
 @staff_member_required
 def user_detail_view(request, user_id):
     customer = get_object_or_404(User, id=user_id)
-
-    orders = customer.orders.all().order_by("-created_at")[:5]
-
+    
+    orders = [] 
+    
     context = {
-        "customer": customer,
-        "orders": orders,
-        "total_spent": sum(order.total_price for order in orders), 
+        'customer': customer,
+        'orders': orders,       
+        'total_spent': "0.00",  
     }
-
-    return render(request, "admin_panel/user_detail.html", context)
+    return render(request, 'admin_panel/user_detail.html', context)
 
 
 
@@ -144,6 +149,26 @@ def toggle_user_status(request, user_id):
 @never_cache
 def confirm_block_user(request, user_id):
     user_to_manage = get_object_or_404(User, id=user_id)
+
+    if request.method == "POST":
+        # Toggle the active status
+        if user_to_manage.is_active:
+            user_to_manage.is_active = False
+            action = "blocked"
+        else:
+            user_to_manage.is_active = True
+            action = "unblocked"
+        
+        user_to_manage.save()
+        
+        messages.success(request, f"User {user_to_manage.username} has been successfully {action}.")
+
+        referer = request.META.get('HTTP_REFERER')
+        
+        if referer and f'/users/{user_id}/' in referer:
+            return redirect('user_detail', user_id=user_id)
+        
+        return redirect('user_management')
 
     return render(
         request, "admin_panel/confirm_block.html", {"user_to_manage": user_to_manage}

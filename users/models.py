@@ -41,7 +41,7 @@ class User(AbstractUser):
     def is_otp_expired(self):
         if not self.otp_created_at:
             return True
-        return timezone.now() > self.otp_created_at + datetime.timedelta(minutes=2)
+        return timezone.now() > self.otp_created_at + datetime.timedelta(minutes=1)
 
 
 class Address(models.Model):
@@ -55,7 +55,7 @@ class Address(models.Model):
     full_name = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=15)
     address_line_1 = models.CharField(max_length=255)
-    address_line_2 = models.CharField(max_length=255, null=True, blank=True) # Added for luxury apartments/suites
+    address_line_2 = models.CharField(max_length=255, null=True, blank=True)
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=100)
     pincode = models.CharField(max_length=10)
@@ -64,7 +64,6 @@ class Address(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        # Logic: If this address is set as default, unset all other addresses for this user
         if self.is_default:
             Address.objects.filter(user=self.user, is_default=True).update(is_default=False)
         super().save(*args, **kwargs)

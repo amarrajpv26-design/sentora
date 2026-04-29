@@ -3,66 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scentora | Confirm Sign Out</title>
+    <title>Scentora | Executive Logout</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#f4b41a',
+                        obsidian: '#030303',
+                    },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #050505;
+        .luxury-shimmer {
+            background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 4s linear infinite;
         }
-        .gold-border {
-            border-color: rgba(212, 175, 55, 0.2);
+        @keyframes shimmer { to { background-position: 200% center; } }
+
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.9);
         }
-        .text-gold {
-            color: #D4AF37;
+
+        .btn-luxury {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .bg-gold {
-            background-color: #D4AF37;
+        .btn-luxury:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(244, 180, 26, 0.3);
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
+<body class="bg-[#020202] font-sans flex items-center justify-center min-h-screen p-6 overflow-hidden">
 
-    <div class="w-full max-w-md px-6">
+    <div class="fixed inset-0 pointer-events-none">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gold/5 blur-[120px] rounded-full"></div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-[400px] animate__animated animate__fadeIn">
         <div class="text-center mb-8">
-            <h1 class="text-gold text-3xl font-bold tracking-[0.2em] uppercase">Scentora</h1>
-            <p class="text-white/40 text-[10px] uppercase tracking-[0.3em] mt-2">Administrative Portal</p>
+            <h1 class="text-white/40 text-[10px] font-black tracking-[0.8em] uppercase mb-2">Scentora</h1>
+            <div class="h-[1px] w-6 bg-gradient-to-r from-transparent via-gold/50 to-transparent mx-auto"></div>
         </div>
 
-        <div class="bg-[#0a0a0a] border gold-border p-10 rounded-2xl shadow-2xl relative overflow-hidden">
-            <div class="absolute -top-24 -right-24 w-48 h-48 bg-gold/5 blur-[80px] rounded-full"></div>
+        <div class="glass-card rounded-[40px] p-10 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent"></div>
             
-            <div class="relative z-10 text-center">
-                <div class="w-20 h-20 bg-gold/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-gold/20">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-gold/5 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-gold/10 shadow-[inset_0_0_15px_rgba(244,180,26,0.1)]">
                     <i class="bi bi-door-open text-gold text-3xl"></i>
                 </div>
 
-                <h2 class="text-white text-2xl font-semibold mb-3">Ready to leave?</h2>
-                <p class="text-gray-500 text-sm mb-10 leading-relaxed">
-                    Ending your session will require you to sign back in to manage your inventory and users.
+                <h2 class="text-white text-2xl font-extralight tracking-tighter mb-3">
+                    Terminate <span class="font-black luxury-shimmer">Session?</span>
+                </h2>
+                <p class="text-white/30 text-[10px] uppercase tracking-[2px] leading-relaxed mb-10 font-bold">
+                    Administrative access will be restricted until re-authorization.
                 </p>
 
-                <form method="POST" action="{% url 'admin_logout' %}" class="space-y-4">
+                <form method="POST" action="{% url 'admin_logout' %}" class="space-y-3">
                     {% csrf_token %}
                     
                     <button type="submit" 
-                            class="w-full py-4 bg-gold text-black font-bold text-xs uppercase tracking-[0.2em] rounded-lg hover:bg-white transition-all duration-300 transform hover:-translate-y-1">
-                        Confirm Sign Out
+                            class="btn-luxury w-full py-4 bg-gold text-black font-black text-[10px] uppercase tracking-[3px] rounded-2xl">
+                        Execute Sign Out
                     </button>
 
                     <a href="{% url 'admin_dashboard' %}" 
-                       class="block w-full py-4 bg-transparent border border-white/10 text-white/60 font-bold text-[10px] uppercase tracking-[0.2em] rounded-lg hover:bg-white/5 hover:text-white transition-all">
+                       class="block w-full py-4 bg-white/[0.02] border border-white/5 text-white/40 font-bold text-[10px] uppercase tracking-[3px] rounded-2xl hover:bg-white/5 hover:text-white transition-all">
                         Back to Dashboard
                     </a>
                 </form>
             </div>
         </div>
 
-        <p class="text-center text-white/20 text-[10px] mt-8 uppercase tracking-widest">
-            &copy; 2026 Scentora Luxury Fragrances
-        </p>
+        <div class="mt-8 flex items-center justify-center gap-4 text-white/20">
+            <div class="h-[1px] w-6 bg-white/5"></div>
+            <p class="text-[8px] uppercase tracking-[4px] font-black">Secure Terminal &copy; 2026</p>
+            <div class="h-[1px] w-6 bg-white/5"></div>
+        </div>
     </div>
 
 </body>
