@@ -1,14 +1,50 @@
 {% extends 'users/index.html' %} 
 {% load static %} 
 
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<style>
+    /* Luxury Shimmer for specific elements */
+    .luxury-shimmer {
+        background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 4s linear infinite;
+    }
+    @keyframes shimmer { to { background-position: 200% center; } }
+
+    /* Refined Input Styling */
+    .premium-input {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        transition: all 0.4s ease;
+    }
+    .premium-input:focus-within {
+        border-color: rgba(244, 180, 26, 0.4);
+        background: rgba(255, 255, 255, 0.04);
+        box-shadow: 0 0 20px rgba(244, 180, 26, 0.05);
+    }
+
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(0.8) sepia(1) saturate(5) hue-rotate(10deg);
+        cursor: pointer;
+    }
+
+    .font-serif { font-family: 'Playfair Display', serif; }
+</style>
+{% endblock %}
+
 {% block content %}
-<main class="flex-grow flex items-center justify-center w-full px-6 py-20 bg-[#050505] selection:bg-primary/30">
-  
-  <div class="max-w-[850px] w-full animate-in fade-in duration-1000">
+<main class="flex-grow flex items-center justify-center w-full px-6 py-24 bg-[#050505] selection:bg-primary/30 relative">
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1000px] h-[600px] bg-primary/5 blur-[120px] rounded-full -z-10"></div>
+
+  <div class="max-w-[850px] w-full animate__animated animate__fadeIn">
     
     <div class="mb-16 text-center space-y-4">
       <h1 class="text-6xl font-extralight tracking-tighter text-white">
-        Edit <span class="font-serif italic text-primary">Profile</span>
+        Edit <span class="font-serif italic luxury-shimmer">Profile</span>
       </h1>
       <div class="flex items-center justify-center gap-4">
         <span class="h-px w-10 bg-primary/20"></span>
@@ -20,13 +56,13 @@
     <form
       method="POST"
       enctype="multipart/form-data"
-      class="bg-[#0A0A0A] rounded-[40px] border border-white/5 overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,1)]"
+      class="bg-[#0A0A0A]/90 backdrop-blur-xl rounded-[40px] border border-white/5 overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,1)]"
     >
       {% csrf_token %}
 
-      <div class="p-12 border-b border-white/5 flex flex-col items-center gap-8 bg-gradient-to-b from-primary/5 to-transparent">
+      <div class="p-12 border-b border-white/5 flex flex-col items-center gap-8 bg-gradient-to-b from-primary/10 to-transparent">
         <div class="relative group">
-          <div class="absolute -inset-1 bg-gradient-to-tr from-primary via-primary/20 to-primary rounded-full opacity-20 group-hover:opacity-100 transition duration-700 blur-[2px]"></div>
+          <div class="absolute -inset-2 bg-gradient-to-tr from-primary via-primary/20 to-primary rounded-full opacity-20 group-hover:opacity-100 transition duration-700 blur-[4px]"></div>
           
           <div class="relative size-40 rounded-full border-2 border-[#0A0A0A] p-1.5 bg-black shadow-2xl">
             <div class="size-full rounded-full overflow-hidden border border-white/10">
@@ -43,11 +79,7 @@
                 {% endif %}
             </div>
 
-            <input type="file" 
-                   name="profile_image" 
-                   id="profile_image_input" 
-                   accept="image/*" 
-                   class="hidden">
+            <input type="file" name="profile_image" id="profile_image_input" accept="image/*" class="hidden">
 
             <label
               for="profile_image_input"
@@ -68,64 +100,76 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
           <div class="space-y-3 group">
             <label class="text-[10px] font-bold text-primary/40 uppercase tracking-[0.4em] group-focus-within:text-primary transition-colors">First Name</label>
-            <input
-              type="text"
-              name="first_name"
-              value="{{ user.first_name }}"
-              class="w-full bg-transparent border-b border-white/5 py-3 text-white font-light outline-none focus:border-primary transition-all duration-500 text-sm"
-            />
+            <div class="premium-input rounded-xl px-4">
+              <input
+                type="text"
+                name="first_name"
+                value="{{ user.first_name }}"
+                class="w-full bg-transparent py-4 text-white font-light outline-none text-sm"
+              />
+            </div>
           </div>
 
           <div class="space-y-3 group">
             <label class="text-[10px] font-bold text-primary/40 uppercase tracking-[0.4em] group-focus-within:text-primary transition-colors">Last Name</label>
-            <input
-              type="text"
-              name="last_name"
-              value="{{ user.last_name }}"
-              class="w-full bg-transparent border-b border-white/5 py-3 text-white font-light outline-none focus:border-primary transition-all duration-500 text-sm"
-            />
+            <div class="premium-input rounded-xl px-4">
+              <input
+                type="text"
+                name="last_name"
+                value="{{ user.last_name }}"
+                class="w-full bg-transparent py-4 text-white font-light outline-none text-sm"
+              />
+            </div>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-12">
           <div class="space-y-3 group">
             <label class="text-[10px] font-bold text-primary/40 uppercase tracking-[0.4em] group-focus-within:text-primary transition-colors">Username</label>
-            <input
-              type="text"
-              name="username"
-              value="{{ user.username }}"
-              class="w-full bg-transparent border-b border-white/5 py-3 text-primary font-serif italic text-base outline-none focus:border-primary transition-all duration-500"
-              required
-            />
+            <div class="premium-input rounded-xl px-4 border-primary/10">
+              <input
+                type="text"
+                name="username"
+                value="{{ user.username }}"
+                class="w-full bg-transparent py-4 text-primary font-serif italic text-base outline-none"
+                required
+              />
+            </div>
             {% for message in messages %}
               {% if "username" in message.extra_tags %}
                 <p class="text-[9px] text-red-500 font-bold uppercase tracking-tighter mt-2">{{ message }}</p>
               {% endif %}
             {% endfor %}
           </div>
-<div class="space-y-3 group">
-    <label class="text-[10px] font-bold text-primary/40 uppercase tracking-[0.4em] group-focus-within:text-primary transition-colors">Date of Birth</label>
-    <input
-      type="date"
-      name="dob"
-      id="dob_input"
-      value="{{ user.dob|date:'Y-m-d' }}"
-      max="{% now 'Y-m-d' %}"
-      class="w-full bg-transparent border-b border-white/5 py-3 text-white font-light outline-none focus:border-primary transition-all duration-500 text-sm appearance-none"
-      style="color-scheme: dark;"
-    />
-    <p id="dob_error" class="text-[9px] text-red-500 font-bold uppercase tracking-tighter mt-1 hidden">Invalid Date Selection</p>
-    <p class="text-[9px] text-slate-600 italic tracking-tight mt-1">Select your birth date from the vault records</p>
-</div>
+
           <div class="space-y-3 group">
+              <label class="text-[10px] font-bold text-primary/40 uppercase tracking-[0.4em] group-focus-within:text-primary transition-colors">Date of Birth</label>
+              <div class="premium-input rounded-xl px-4">
+                <input
+                  type="date"
+                  name="dob"
+                  id="dob_input"
+                  value="{{ user.dob|date:'Y-m-d' }}"
+                  max="{% now 'Y-m-d' %}"
+                  class="w-full bg-transparent py-4 text-white font-light outline-none text-sm appearance-none"
+                  style="color-scheme: dark;"
+                />
+              </div>
+              <p id="dob_error" class="text-[9px] text-red-500 font-bold uppercase tracking-tighter mt-1 hidden">Invalid Date Selection</p>
+              <p class="text-[9px] text-slate-600 italic tracking-tight mt-1">Select your birth date from the vault records</p>
+          </div>
+
+          <div class="space-y-3 group md:col-span-2">
             <label class="text-[10px] font-bold text-primary/40 uppercase tracking-[0.4em] group-focus-within:text-primary transition-colors">Phone Number</label>
-            <input type="tel" 
-                   name="phone_number" 
-                   value="{{ user.phone_number|default:'' }}" 
-                   placeholder="10-digit mobile number"
-                   pattern="[0-9]{10}"
-                   class="w-full bg-transparent border-b border-white/5 py-3 text-white font-light outline-none focus:border-primary transition-all duration-500 text-sm"
-                   oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+            <div class="premium-input rounded-xl px-4">
+              <input type="tel" 
+                     name="phone_number" 
+                     value="{{ user.phone_number|default:'' }}" 
+                     placeholder="10-digit mobile number"
+                     pattern="[0-9]{10}"
+                     class="w-full bg-transparent py-4 text-white font-light outline-none text-sm"
+                     oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+            </div>
             
             {% for message in messages %}
               {% if "phone" in message.message|lower or "digit" in message.message|lower %}
@@ -139,7 +183,7 @@
         <div class="space-y-6 pt-10 border-t border-white/5">
           <label class="text-[10px] font-bold text-primary/40 uppercase tracking-[0.4em]">Email Address</label>
 
-          <div class="relative flex flex-col md:flex-row items-center gap-6 p-8 rounded-[24px] bg-white/[0.02] border border-white/5">
+          <div class="relative flex flex-col md:flex-row items-center gap-6 p-8 rounded-[24px] bg-white/[0.01] border border-white/5 transition-all hover:bg-white/[0.02]">
             <input
               type="email"
               name="email"
@@ -179,16 +223,16 @@
         </div>
       </div>
 
-      <div class="p-10 bg-white/[0.01] flex flex-col md:flex-row gap-6 border-t border-white/5">
+      <div class="p-10 bg-white/[0.02] flex flex-col md:flex-row gap-6 border-t border-white/5">
         <button
           type="submit"
-          class="flex-[2] bg-primary text-black h-20 text-[11px] font-black uppercase tracking-[0.6em] hover:bg-white transition-all shadow-[0_20px_40px_-10px_rgba(212,175,55,0.3)]"
+          class="flex-[2] bg-primary text-black h-20 text-[11px] font-black uppercase tracking-[0.6em] hover:bg-white transition-all shadow-[0_20px_40px_-10px_rgba(212,175,55,0.3)] hover:-translate-y-0.5"
         >
           Save Changes
         </button>
         <a
           href="{% url 'profile' %}"
-          class="flex-1 flex items-center justify-center border border-white/10 text-white/40 h-20 text-[11px] font-bold uppercase tracking-[0.4em] hover:text-white hover:border-white/30 transition-all"
+          class="flex-1 flex items-center justify-center border border-white/10 text-white/40 h-20 text-[11px] font-bold uppercase tracking-[0.4em] hover:text-white hover:border-white/30 transition-all rounded-xl"
         >
           Cancel
         </a>
@@ -221,14 +265,12 @@
   };
 
   const dobInput = document.getElementById('dob_input');
-const dobError = document.getElementById('dob_error');
+  const dobError = document.getElementById('dob_error');
 
-if (dobInput) {
+  if (dobInput) {
     dobInput.addEventListener('change', function() {
         const birthDate = new Date(this.value);
         const today = new Date();
-        
-        // Calculate the date 15 years ago
         const minAgeDate = new Date(today.getFullYear() - 15, today.getMonth(), today.getDate());
 
         if (this.value === "") return;
@@ -245,12 +287,6 @@ if (dobInput) {
             dobError.classList.add('hidden');
         }
     });
-
   }
 </script>
-
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:italic&display=swap');
-  .font-serif { font-family: 'Playfair Display', serif; }
-</style>
 {% endblock %}

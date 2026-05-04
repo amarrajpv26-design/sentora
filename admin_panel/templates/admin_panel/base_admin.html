@@ -83,14 +83,17 @@
             <a href="{% url 'admin_dashboard' %}" class="nav-item group {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
                 <i class="bi bi-grid-1x2 nav-icon"></i> Dashboard
             </a>
-            <a href="{% url 'user_management' %}" class="nav-item group {% if request.resolver_match.url_name == 'user_management' %}active{% endif %}">
-                <i class="bi bi-person nav-icon"></i> Users
-            </a>
+            <a href="{% url 'user_management' %}" 
+   class="nav-item group {% if 'user' in request.resolver_match.url_name or 'user' in request.path %}active{% endif %}">
+    <i class="bi bi-person nav-icon"></i> Users
+</a>
             
             <div class="pt-8 pb-2 px-6 text-[9px] text-gold/40 font-black uppercase tracking-[4px]">Catalog</div>
             <a href="#" class="nav-item group"><i class="bi bi-box-seam nav-icon"></i> Products</a>
-            <a href="#" class="nav-item group"><i class="bi bi-collection nav-icon"></i> Categories</a>
-            
+<a href="{% url 'admin_category_list' %}"
+   class="nav-item group {% if 'category' in request.resolver_match.url_name or 'category' in request.path %}active{% endif %}">
+   <i class="bi bi-collection nav-icon"></i> Categories
+</a>
             <div class="pt-8 pb-2 px-6 text-[9px] text-gold/40 font-black uppercase tracking-[4px]">Operations</div>
             <a href="#" class="nav-item group"><i class="bi bi-bag nav-icon"></i> Orders</a>
             <a href="#" class="nav-item group"><i class="bi bi-arrow-left-right nav-icon"></i> Transactions</a>

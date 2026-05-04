@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "users",
     "admin_panel",
+    "products",
     # google
     "django.contrib.sites",
     "allauth",
