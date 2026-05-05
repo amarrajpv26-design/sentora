@@ -174,11 +174,11 @@
                         <label class="switch">{{ form.is_active }}<span class="slider"></span></label>
                     </div>
                     <div class="flex items-center justify-between p-2">
-                        <span class="text-[10px] text-white/60 font-black uppercase">Global Nav</span>#Navigation & Access
+                        <span class="text-[10px] text-white/60 font-black uppercase">Global Nav</span> 
                         <label class="switch">{{ form.show_in_nav }}<span class="slider"></span></label>
                     </div>
                     <div class="flex items-center justify-between p-2">
-                        <span class="text-[10px] text-white/60 font-black uppercase">Featured</span>#Promotion & Attention
+                        <span class="text-[10px] text-white/60 font-black uppercase">Featured</span>
                         <label class="switch">{{ form.is_featured }}<span class="slider"></span></label>
                     </div>
                 </div>
@@ -223,11 +223,12 @@ input.addEventListener('change', (e) => {
             imageToCrop.src = event.target.result;
             modal.classList.remove('hidden');
             if (cropper) cropper.destroy();
-            cropper = new Cropper(imageToCrop, {
-                aspectRatio: 16 / 9,
-                viewMode: 2,
-                guides: true,
-            });
+            cropper = new Cropper(imageToCrop, { 
+    aspectRatio: NaN, // This removes the 16:9 restriction
+    viewMode: 1,      // Restricts the crop box to not exceed the size of the canvas
+    dragMode: 'move', // Allows you to move the image inside the crop box
+    autoCropArea: 1   // Starts with the crop box covering the whole image
+});
         };
         reader.readAsDataURL(files[0]);
     }

@@ -15,7 +15,7 @@ from django.core.exceptions import ValidationError
 @never_cache
 def admin_category_list(request):
     # Requirement a.iv: Sort in descending order
-    categories_list = Category.objects.all().order_by("created_at")
+    categories_list = Category.objects.all().order_by("-created_at")
 
     active_count = Category.objects.filter(is_active=True).count()
     featured_count = Category.objects.filter(is_featured=True).count()
@@ -23,10 +23,17 @@ def admin_category_list(request):
 
     # Requirement a.ii: Search Logic
     search_query = request.GET.get("search", "")
+    status_filter = request.GET.get('status', 'all')
+
     if search_query:
         categories_list = categories_list.filter(
-            Q(name__icontains=search_query) | Q(description__icontains=search_query)
+           Q(name__istartswith=search_query)
         )
+    if status_filter == 'active':
+        categories_list = categories_list.filter(is_active=True)
+    elif status_filter == 'archived':
+        categories_list = categories_list.filter(is_active=False)
+
 
     # Requirement a.iii: Pagination (Backend)
     paginator = Paginator(categories_list, 3)  # 10 categories per page
@@ -39,6 +46,7 @@ def admin_category_list(request):
         {
             "categories": categories,
             "search_query": search_query,
+            "status_filter": status_filter,
             "active_count": active_count,
             "featured_count": featured_count,
             "archived_count": archived_count,
