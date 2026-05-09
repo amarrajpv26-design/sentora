@@ -1,0 +1,182 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+<style>
+    /* Reuse your luxury styles */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #f4b41a; border-radius: 10px; }
+
+    .luxury-shimmer {
+        background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 4s linear infinite;
+    }
+    @keyframes shimmer { to { background-position: 200% center; } }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .scent-node {
+        border-left: 2px solid rgba(244, 180, 26, 0.3);
+        padding-left: 1.5rem;
+        position: relative;
+    }
+    .scent-node::before {
+        content: '';
+        position: absolute;
+        left: -5px;
+        top: 0;
+        width: 8px;
+        height: 8px;
+        background: #f4b41a;
+        border-radius: full;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">Product Dossier</span>
+{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+    <div class="flex justify-between items-center mb-10">
+        <div>
+            <a href="{% url 'admin_product_list' %}" class="group flex items-center gap-3 text-white/50 text-[10px] uppercase tracking-[3px] font-bold mb-4 hover:text-gold transition-all">
+                <i class="bi bi-arrow-left transition-transform group-hover:-translate-x-2"></i> 
+                Back to Registry
+            </a>
+            <h2 class="text-4xl font-extralight text-white tracking-tighter">
+                Scent <span class="font-black luxury-shimmer">Dossier</span>
+            </h2>
+        </div>
+        
+        <div class="flex gap-4">
+            <a href="{% url 'edit_product' product.id %}" class="px-8 py-3 bg-white/5 border border-white/10 rounded-full text-[11px] font-bold uppercase tracking-[2px] text-white hover:bg-white/10 transition-all">
+                <i class="bi bi-pencil-square me-2"></i> Edit Master
+            </a>
+            <button class="px-8 py-3 bg-gold text-black rounded-full text-[11px] font-bold uppercase tracking-[2px] hover:shadow-[0_0_20px_rgba(244,180,26,0.4)] transition-all">
+                View on Storefront
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-8">
+        <div class="col-span-8 space-y-8">
+            <div class="glass-card rounded-[32px] p-10 flex gap-12 relative overflow-hidden">
+                <div class="relative flex-shrink-0">
+                    <div class="p-1 rounded-[24px] bg-gradient-to-b from-white/10 to-transparent shadow-xl">
+                        {% with gallery.first as main_img %}
+                        <img src="{% if main_img %}{{ main_img.image.url }}{% else %}{% static 'img/placeholder.png' %}{% endif %}" 
+                             class="w-64 h-80 rounded-[20px] object-cover shadow-2xl">
+                        {% endwith %}
+                    </div>
+                </div>
+
+                <div class="flex-grow">
+                    <div class="mb-6">
+                        <div class="flex items-center gap-4 mb-2">
+                            <h3 class="text-4xl font-bold text-white tracking-tight">{{ product.name }}</h3>
+                            <span class="px-3 py-1 bg-white/5 border border-white/10 text-[9px] text-gold font-black uppercase tracking-widest rounded">
+                                {{ product.brand.name }}
+                            </span>
+                        </div>
+                        <p class="text-white/30 text-[10px] uppercase tracking-[4px]">Serial: <span class="text-gold/60">#SC-{{ product.id|stringformat:"04d" }}</span></p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-2">The Narrative</label>
+                            <p class="text-white/70 font-light leading-relaxed text-sm italic">"{{ product.description }}"</p>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-6 pt-6 border-t border-white/5">
+                            <div class="scent-node">
+                                <label class="block text-[8px] text-white/30 uppercase tracking-widest font-black">Top Notes</label>
+                                <p class="text-xs text-white mt-1">{{ product.top_notes }}</p>
+                            </div>
+                            <div class="scent-node">
+                                <label class="block text-[8px] text-white/30 uppercase tracking-widest font-black">Heart Notes</label>
+                                <p class="text-xs text-white mt-1">{{ product.heart_notes }}</p>
+                            </div>
+                            <div class="scent-node">
+                                <label class="block text-[8px] text-white/30 uppercase tracking-widest font-black">Base Notes</label>
+                                <p class="text-xs text-white mt-1">{{ product.base_notes }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-[32px] overflow-hidden">
+                <div class="px-10 py-8 border-b border-white/5 flex justify-between items-center">
+                    <h4 class="text-[11px] font-black text-white uppercase tracking-[4px]">Inventory & Pricing</h4>
+                </div>
+                <table class="w-full text-left">
+                    <thead class="bg-white/[0.01]">
+                        <tr>
+                            <th class="px-10 py-5 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Size</th>
+                            <th class="px-10 py-5 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Stock Status</th>
+                            <th class="px-10 py-5 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Unit Price</th>
+                            <th class="px-10 py-5 text-[9px] text-gold/40 uppercase tracking-[3px] font-black text-right">Offer Price</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/[0.03]">
+                        {% for variant in variants %}
+                        <tr class="group hover:bg-white/[0.02] transition-colors">
+                            <td class="px-10 py-6 text-sm font-bold text-white">{{ variant.size }}</td>
+                            <td class="px-10 py-6">
+                                {% if variant.stock > 10 %}
+                                    <span class="text-[10px] text-green-400 uppercase font-black">{{ variant.stock }} In Stock</span>
+                                {% elif variant.stock > 0 %}
+                                    <span class="text-[10px] text-orange-400 uppercase font-black">Low Stock ({{ variant.stock }})</span>
+                                {% else %}
+                                    <span class="text-[10px] text-red-500 uppercase font-black">Sold Out</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-10 py-6 text-sm text-white/60">₹{{ variant.price }}</td>
+                            <td class="px-10 py-6 text-right text-sm font-black text-gold">
+                                {% if variant.offer_price %}₹{{ variant.offer_price }}{% else %}—{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-span-4 space-y-8">
+            <div class="glass-card rounded-[32px] p-8">
+                <h4 class="text-[11px] font-black text-gold uppercase tracking-[4px] mb-6">Assigned Vaults</h4>
+                <div class="flex flex-wrap gap-3">
+                    {% for cat in product.categories.all %}
+                        <span class="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] text-white/60 uppercase font-bold tracking-widest hover:border-gold/30 transition-all cursor-default">
+                            {{ cat.name }}
+                        </span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="glass-card rounded-[32px] p-8">
+                <h4 class="text-[11px] font-black text-gold uppercase tracking-[4px] mb-6">Visual Gallery</h4>
+                <div class="grid grid-cols-2 gap-4">
+                    {% for img in gallery %}
+                    <div class="aspect-[3/4] rounded-2xl overflow-hidden border border-white/10 group">
+                        <img src="{{ img.image.url }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

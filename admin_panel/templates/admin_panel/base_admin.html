@@ -89,9 +89,13 @@
 </a>
             
             <div class="pt-8 pb-2 px-6 text-[9px] text-gold/40 font-black uppercase tracking-[4px]">Catalog</div>
-            <a href="#" class="nav-item group"><i class="bi bi-box-seam nav-icon"></i> Products</a>
+            <a href="{% url 'admin_product_list' %}"
+   class="nav-item group {% if request.resolver_match and 'product' in request.resolver_match.url_name %}active{% endif %}">
+   <i class="bi bi-collection nav-icon"></i> Products
+</a>
+
 <a href="{% url 'admin_category_list' %}"
-   class="nav-item group {% if 'category' in request.resolver_match.url_name or 'category' in request.path %}active{% endif %}">
+   class="nav-item group {% if request.resolver_match and 'category' in request.resolver_match.url_name %}active{% endif %}">
    <i class="bi bi-collection nav-icon"></i> Categories
 </a>
             <div class="pt-8 pb-2 px-6 text-[9px] text-gold/40 font-black uppercase tracking-[4px]">Operations</div>
