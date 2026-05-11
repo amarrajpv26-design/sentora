@@ -124,7 +124,9 @@
 
                     <div id="variant-container" class="space-y-4">
                         {% for variant in product.variants.all %}
-                        <div class="variant-row p-6 rounded-2xl grid grid-cols-12 gap-4 items-end relative group">
+                                                <div class="variant-row p-6 rounded-2xl grid grid-cols-12 gap-4 items-end relative group">
+
+                        <input type="hidden" name="variant_id[]" value="{{ variant.id }}">
                             <div class="col-span-3">
                                 <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Volume</label>
                                 <select name="v_size[]" required class="luxury-input py-3 px-4 rounded-lg text-xs w-full font-bold appearance-none">
@@ -239,7 +241,8 @@
                 return;
             }
 
-            const newRow = rows[0].cloneNode(true);
+            
+            newRow.querySelector('input[name="variant_id[]"]').value = "";
             newRow.querySelectorAll('input').forEach(i => i.value = '');
             newRow.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
             container.appendChild(newRow);

@@ -1,0 +1,201 @@
+
+<span id="cart-icon-count" hx-swap-oob="innerHTML" class="hidden">
+    {{ cart|length }}
+</span>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-20">
+
+    <div class="lg:col-span-2 space-y-6">
+
+    <!-- AVAILABLE + STOCK ISSUE ITEMS -->
+    {% for item in cart %}
+    {% if item.is_available %}
+        
+            {% with variant=item.variant %}
+            <div class="p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/5 flex items-center gap-8 group hover:bg-white/[0.04] transition-all duration-500 hover:scale-[1.01]">
+
+                <div class="w-24 aspect-[3/4] rounded-xl overflow-hidden bg-black">
+                    {% if variant.product.images.all %}
+                    <img src="{{ variant.product.images.first.image.url }}"
+                         class="w-full h-full object-cover transition-all duration-700 group-hover:scale-110">
+                    {% endif %}
+                </div>
+
+                <div class="flex-1">
+                    <span class="text-[8px] font-black uppercase tracking-widest text-primary/60">
+                        {{ variant.product.brand.name }}
+                    </span>
+
+                    <h3 class="text-lg font-light uppercase text-white group-hover:text-primary transition-colors">
+                        {{ variant.product.name }}
+                    </h3>
+
+                    <p class="text-[9px] text-slate-500 uppercase">
+                        {{ variant.size }}
+                    </p>
+
+                    {% if item.stock_issue %}
+                    <p class="text-[8px] text-amber-500 uppercase tracking-widest mt-2 font-black animate-pulse">
+                        Only {{ variant.stock }} available now
+                    </p>
+                    {% endif %}
+
+                    <button
+                        hx-post="{% url 'cart:cart_remove' variant.id %}"
+                        hx-target="#cart-wrapper"
+                        hx-refresh="true"
+                        class="text-[8px] font-black uppercase tracking-widest text-red-900 hover:text-red-500 mt-4 transition-colors">
+                        REMOVE
+                    </button>
+                </div>
+
+                <div class="flex flex-col items-end gap-4">
+
+                    <div class="flex items-center bg-black border border-white/10 rounded-xl h-10 px-3">
+
+                        <button
+                            hx-post="{% url 'cart:cart_update' variant.id %}"
+                            hx-vals='{"action": "minus"}'
+                            hx-target="#cart-wrapper"
+                            hx-refresh="true"
+                            class="px-2 text-slate-500 hover:text-white transition">
+                            -
+                        </button>
+
+                        <span class="px-4 text-[10px] font-black text-primary">
+                            {{ item.quantity }}
+                        </span>
+
+                        <button
+                            hx-post="{% url 'cart:cart_update' variant.id %}"
+                            hx-vals='{"action": "plus"}'
+                            hx-target="#cart-wrapper"
+                            hx-refresh="true"
+
+                            {% if variant.stock <= item.quantity %}
+                                disabled
+                                class="px-2 text-slate-700 cursor-not-allowed"
+                            {% else %}
+                                class="px-2 text-slate-500 hover:text-white transition"
+                            {% endif %}
+                        >
+                            +
+                        </button>
+
+                    </div>
+
+                    <p class="text-sm font-black text-white italic">
+                        ₹{{ item.total_price }}
+                    </p>
+
+                </div>
+            </div>
+            {% endwith %}
+        {% endif %}
+    {% endfor %}
+
+
+    <!-- UNAVAILABLE ITEMS -->
+    {% for item in cart %}
+        {% if not item.is_available %}
+            {% with variant=item.variant %}
+            <div class="p-8 rounded-[2.5rem] bg-red-500/[0.03] border border-red-500/10 flex items-center gap-8 opacity-70 hover:opacity-90 transition-all duration-500">
+
+                <div class="w-24 aspect-[3/4] rounded-xl overflow-hidden bg-black">
+                    {% if variant.product.images.all %}
+                    <img src="{{ variant.product.images.first.image.url }}"
+                         class="w-full h-full object-cover">
+                    {% endif %}
+                </div>
+
+                <div class="flex-1">
+
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-[8px] font-black uppercase tracking-widest text-red-400">
+                            Unavailable
+                        </span>
+
+                        <span class="text-[8px] uppercase tracking-widest text-slate-600">
+                            Hidden from checkout
+                        </span>
+                    </div>
+
+                    <h3 class="text-lg font-light uppercase text-slate-400">
+                        {{ variant.product.name }}
+                    </h3>
+
+                    <p class="text-[9px] text-slate-600 uppercase">
+                        {{ variant.size }}
+                    </p>
+
+                    <button
+                        hx-post="{% url 'cart:cart_remove' variant.id %}"
+                        hx-target="#cart-wrapper"
+                        hx-refresh="true"
+                        class="text-[8px] font-black uppercase tracking-widest text-red-500 mt-4 transition-colors">
+                        REMOVE
+                    </button>
+
+                </div>
+
+                <div class="flex flex-col items-end gap-4">
+
+                    <div class="flex items-center bg-black border border-red-500/10 rounded-xl h-10 px-3 opacity-40">
+
+                        <span class="px-4 text-[10px] font-black text-slate-500">
+                            {{ item.quantity }}
+                        </span>
+
+                    </div>
+
+                    <p class="text-sm font-black text-slate-500 italic">
+                        ₹{{ item.total_price }}
+                    </p>
+
+                </div>
+            </div>
+            {% endwith %}
+        {% endif %}
+    {% endfor %}
+
+
+    {% if not cart %}
+        <div class="py-20 text-center border border-dashed border-white/5 rounded-[3rem]">
+            <p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-700">
+                Collection Empty
+            </p>
+        </div>
+    {% endif %}
+
+</div>
+
+    <div class="lg:col-span-1">
+        <div class="p-10 rounded-[3rem] bg-white/[0.03] border border-white/10 space-y-8">
+            <h3 class="text-[10px] font-black uppercase tracking-[0.4em] text-white">Summary</h3>
+
+            <div class="flex justify-between border-t border-white/5 pt-6">
+                <span class="text-[10px] uppercase text-slate-500">Subtotal</span>
+                <span class="text-sm text-white">₹{{ cart.get_total_price }}</span>
+            </div>
+
+            <div class="flex justify-between items-baseline pt-4">
+                <span class="text-xs font-black uppercase tracking-widest text-white">Total</span>
+                <span class="text-3xl font-black italic text-primary">₹{{ cart.get_total_price }}</span>
+            </div>
+
+            {% if cart.has_valid_checkout_items %}
+            <button class="w-full py-5 bg-primary text-black font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl hover:brightness-110 transition-all">
+                CHECKOUT
+            </button>
+            {% else %}
+            <button disabled class="w-full py-5 bg-white/5 text-slate-600 font-black uppercase tracking-[0.3em] text-[10px] rounded-2xl cursor-not-allowed border border-white/5">
+                {% if not cart %}
+                    COLLECTION EMPTY
+                {% else %}
+                    CHECK AVAILABILITY
+                {% endif %}
+            </button>
+            {% endif %}
+
+        </div>
+    </div>
+</div>

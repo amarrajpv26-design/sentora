@@ -1,0 +1,268 @@
+{% extends 'users/index.html' %}
+{% load static %}
+
+{% block content %}
+<script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+<div class="bg-[#0f0f0f] min-h-screen selection:bg-primary selection:text-black">
+    
+    <header class="pt-24 pb-12 px-8 lg:px-12 max-w-[1440px] mx-auto overflow-hidden">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div class="space-y-4">
+                <nav class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500">
+                    <a href="{% url 'home' %}" class="hover:text-primary transition-colors duration-500">Home</a>
+                    <span class="text-white/10">/</span>
+                    <span class="text-primary tracking-[0.5em]">Shop</span>
+                </nav>
+                <h1 class="text-6xl lg:text-8xl font-extralight tracking-tighter text-slate-100 leading-[0.9]">
+                    The <span class="font-black text-primary drop-shadow-[0_0_15px_rgba(212,175,55,0.2)]">Scentora</span> <br/>Store.
+                </h1>
+            </div>
+            
+            <form method="GET" id="sort-form" class="relative group">
+                {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+                {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+                
+                <select name="sort" onchange="this.form.submit()" 
+                    class="appearance-none bg-[#1a1a1a] border border-white/5 text-white text-[10px] font-black uppercase tracking-[0.2em] px-10 py-5 pr-14 rounded-2xl focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer transition-all duration-700 hover:bg-[#222] hover:border-white/20">
+                    <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Latest Arrivals</option>
+                    <option value="price_low" {% if selected_sort == 'price_low' %}selected{% endif %}>Value: Low to High</option>
+                    <option value="price_high" {% if selected_sort == 'price_high' %}selected{% endif %}>Value: High to Low</option>
+                    <option value="name_az" {% if selected_sort == 'name_az' %}selected{% endif %}>Essence: A to Z</option>
+                    <option value="name_za" {% if selected_sort == 'name_za' %}selected{% endif %}>Essence: Z to A</option>
+                </select>
+                <span class="material-symbols-outlined absolute right-6 top-1/2 -translate-y-1/2 text-primary pointer-events-none text-sm group-hover:translate-y-[-40%] transition-transform duration-500">expand_more</span>
+            </form>
+        </div>
+    </header>
+
+    <div class="max-w-[1440px] mx-auto px-8 lg:px-12 pb-32">
+        <div class="flex flex-col lg:flex-row gap-12">
+            
+            <aside class="lg:w-72 flex-shrink-0 animate-in fade-in slide-in-from-left-8 duration-1000 delay-300">
+                <div class="sticky top-32 bg-[#141414] border border-white/5 p-8 rounded-[2rem] space-y-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                    
+                    <div class="space-y-4">
+                        <h4 class="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70">Refine Search</h4>
+                        <form method="GET" action="" class="relative group">
+                            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+                            {% if selected_sort %}<input type="hidden" name="sort" value="{{ selected_sort }}">{% endif %}
+                            
+                            <input type="text" name="q" value="{{ query|default:'' }}" id="search-input"
+                                placeholder="Search essence..." 
+                                class="w-full bg-[#1a1a1a] border border-white/5 rounded-xl py-3 px-4 pr-10 text-xs focus:outline-none focus:border-primary/50 transition-all duration-500 placeholder:text-slate-700 text-white hover:border-white/10">
+                            
+                            <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
+                                {% if query %}
+                                    <a href="?{% for key, value in request.GET.items %}{% if key != 'q' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" 
+                                       class="text-slate-500 hover:text-red-400 transition-colors duration-300">
+                                        <span class="material-symbols-outlined text-sm">close</span>
+                                    </a>
+                                {% else %}
+                                    <span class="material-symbols-outlined text-xs text-slate-600 group-hover:text-primary transition-colors duration-500">search</span>
+                                {% endif %}
+                            </div>
+                            <button type="submit" class="hidden"></button>
+                        </form>
+                    </div>
+
+                    <div class="space-y-6">
+                        <h4 class="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70">Collections</h4>
+                        <div class="flex flex-col gap-3">
+                            <a href="?{% for key, value in request.GET.items %}{% if key != 'category' and key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" 
+                               class="text-[11px] uppercase tracking-[0.2em] py-2 px-4 rounded-lg transition-all duration-500 
+                               {% if not selected_category %}bg-primary text-black font-black shadow-[0_0_20px_rgba(212,175,55,0.4)]{% else %}text-slate-400 hover:bg-white/5 hover:text-white{% endif %}">
+                                All Collections
+                            </a>
+
+                            {% for cat in categories %}
+                            <a href="?category={{ cat.id }}{% for key, value in request.GET.items %}{% if key != 'category' and key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                               class="text-[11px] uppercase tracking-[0.2em] py-2 px-4 rounded-lg transition-all duration-500 
+                               {% if selected_category == cat.id|slugify %}bg-primary text-black font-black shadow-[0_0_20px_rgba(212,175,55,0.4)]{% else %}text-slate-400 hover:bg-white/5 hover:text-white{% endif %}">
+                                {{ cat.name }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <h4 class="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70">Maison</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <a href="?{% for key, value in request.GET.items %}{% if key != 'brand' and key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" 
+                               class="text-[9px] font-bold uppercase tracking-widest py-2 px-3 border border-white/5 rounded-full transition-all duration-500
+                               {% if not selected_brand %}bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]{% else %}text-slate-500 hover:border-primary hover:text-primary{% endif %}">
+                                All
+                            </a>
+                            {% for brand in brands %}
+                            <a href="?brand={{ brand.id }}{% for key, value in request.GET.items %}{% if key != 'brand' and key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                               class="text-[9px] font-bold uppercase tracking-widest py-2 px-3 border border-white/5 rounded-full transition-all duration-500
+                               {% if selected_brand == brand.id|slugify %}bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]{% else %}text-slate-500 hover:border-primary hover:text-primary{% endif %}">
+                                {{ brand.name }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <h4 class="text-[10px] font-black uppercase tracking-[0.4em] text-primary/70">Price Bracket (₹)</h4>
+                        <form method="GET" action="" class="space-y-4">
+                            {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+                            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+                            {% if selected_brand %}<input type="hidden" name="brand" value="{{ selected_brand }}">{% endif %}
+                            {% if selected_sort %}<input type="hidden" name="sort" value="{{ selected_sort }}">{% endif %}
+
+                            <div class="flex gap-2">
+                                <input type="number" name="min_price" value="{{ selected_min_price }}" placeholder="Min" 
+                                    class="w-1/2 bg-[#1a1a1a] border-white/5 border rounded-xl text-[10px] p-3 text-white focus:outline-none focus:border-primary/50 transition-all duration-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                <input type="number" name="max_price" value="{{ selected_max_price }}" placeholder="Max" 
+                                    class="w-1/2 bg-[#1a1a1a] border-white/5 border rounded-xl text-[10px] p-3 text-white focus:outline-none focus:border-primary/50 transition-all duration-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button type="submit" class="flex-1 py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] hover:bg-primary hover:text-black transition-all duration-500">
+                                    Apply
+                                </button>
+                                
+                                {% if selected_min_price or selected_max_price %}
+                                <a href="?{% for key, value in request.GET.items %}{% if key != 'min_price' and key != 'max_price' and key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}" 
+                                   class="px-4 py-3 bg-red-500/5 border border-red-500/10 rounded-xl flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all duration-500">
+                                    <span class="material-symbols-outlined text-sm">filter_alt_off</span>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="pt-6 mt-6 border-t border-white/5">
+                        <a href="?" class="flex items-center justify-center gap-2 w-full py-4 bg-white/[0.02] hover:bg-white/[0.05] border border-white/10 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-white transition-all duration-700 group">
+                            <span class="material-symbols-outlined text-sm group-hover:rotate-180 transition-transform duration-700">close</span>
+                            Reset Registry
+                        </a>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="flex-1">
+                {% if products %}
+                <div id="product-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+                   {% for product in products %}
+                    <div class="product-card group bg-[#141414] border border-white/5 p-5 rounded-[3rem] transition-all duration-700 hover:bg-[#1a1a1a] hover:border-primary/30 hover:-translate-y-3 flex flex-col min-h-[650px] relative overflow-hidden"
+                         style="opacity: 0; transform: translateY(20px);">
+                        
+                        <div class="absolute inset-0 bg-gradient-to-tr from-primary/0 via-primary/[0.02] to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+
+                        <div class="relative aspect-[4/5] overflow-hidden rounded-[2.5rem] mb-6 flex-shrink-0">
+                            {% if product.images.all %}
+                            <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" 
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2s] ease-out">
+                            {% endif %}
+                            
+                            <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-700"></div>
+                        </div>
+
+                        <div class="flex mb-4 px-2">
+                            <div class="px-4 py-1.5 bg-primary/5 border border-primary/10 rounded-full group-hover:border-primary/40 transition-colors duration-700">
+                                <p class="text-[9px] font-black uppercase tracking-[0.3em] text-primary">
+                                    {{ product.brand.name }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="px-2 flex flex-col flex-grow relative z-10">
+                            <div class="space-y-3">
+                                <div class="space-y-1">
+                                    <h3 class="text-xl font-medium tracking-tight text-slate-200 leading-tight uppercase group-hover:text-white transition-colors duration-500">
+                                        {{ product.name }}
+                                    </h3>
+                                    <div class="flex items-baseline gap-2">
+                                        <p class="text-lg font-black text-primary tracking-tighter">₹{{ product.min_price|default:"0" }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="pt-2 border-t border-white/5 mt-2">
+                                    <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-medium leading-relaxed group-hover:text-slate-300 transition-colors duration-700">
+                                        {{ product.top_notes|default:"Signature Essence" }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="mt-auto pt-8">
+                                <a href="{% url 'shop:product_detail' product.id %}" class="block w-full text-center py-5 bg-white/[0.03] border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] group-hover:bg-primary group-hover:text-black group-hover:shadow-[0_10px_30px_rgba(212,175,55,0.3)] transition-all duration-700">
+                                    Discover Essence
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if products.has_other_pages %}
+                <div class="mt-24 flex justify-center items-center gap-12 animate-in fade-in slide-in-from-top-4 duration-1000">
+                    {% if products.has_previous %}
+                    <a href="?page={{ products.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                       class="w-16 h-16 rounded-full border border-white/5 flex items-center justify-center hover:bg-primary hover:text-black hover:scale-110 transition-all duration-500 group">
+                        <span class="material-symbols-outlined group-hover:-translate-x-1 transition-transform">west</span>
+                    </a>
+                    {% endif %}
+                    
+                    <div class="flex flex-col items-center gap-1">
+                        <span class="text-[9px] font-black uppercase tracking-[0.4em] text-primary">Volume</span>
+                        <span class="text-[11px] font-medium tracking-widest text-slate-400">
+                             {{ products.number }} — {{ products.paginator.num_pages }}
+                        </span>
+                    </div>
+
+                    {% if products.has_next %}
+                    <a href="?page={{ products.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
+                       class="w-16 h-16 rounded-full border border-white/5 flex items-center justify-center hover:bg-primary hover:text-black hover:scale-110 transition-all duration-500 group">
+                        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">east</span>
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                {% else %}
+                <div class="py-40 text-center border border-white/5 rounded-[4rem] bg-[#141414]/30 backdrop-blur-xl animate-in zoom-in-95 duration-1000">
+                    <div class="relative inline-block mb-8">
+                        <span class="material-symbols-outlined text-7xl text-primary/10 font-thin">fluid_meditation</span>
+                        <div class="absolute inset-0 animate-ping bg-primary/5 rounded-full"></div>
+                    </div>
+                    <h3 class="text-2xl text-white font-light tracking-widest uppercase">The library is empty</h3>
+                    <p class="text-[10px] uppercase tracking-[0.5em] text-slate-500 mt-4">No essences match your specific request</p>
+                    <a href="?" class="inline-block mt-12 px-10 py-4 text-[10px] font-black uppercase tracking-[0.3em] text-primary border border-primary/20 rounded-full hover:bg-primary hover:text-black hover:shadow-[0_0_20px_rgba(212,175,55,0.3)] transition-all duration-700">
+                        Reset Library
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const cards = document.querySelectorAll('.product-card');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 150 * index); // 150ms staggered delay
+        });
+    });
+</script>
+
+<style>
+    /* Custom Luxury Bezier Curves */
+    .product-card {
+        transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slide-in-from-bottom { from { transform: translateY(30px); } to { transform: translateY(0); } }
+    
+    .animate-in {
+        animation: fade-in 1.2s ease-out forwards, slide-in-from-bottom 1.2s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    }
+</style>
+
+{% endblock %}

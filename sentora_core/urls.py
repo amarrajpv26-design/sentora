@@ -24,5 +24,10 @@ urlpatterns = [
     path("admin-control/", include("admin_panel.urls")),
     path("", include("users.urls")),
     path('products/', include('products.urls')),
+    path('shop/', include('shop.urls')),
     path("accounts/", include("allauth.urls")),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path('cart/', include('cart.urls')),
+]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

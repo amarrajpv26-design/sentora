@@ -40,9 +40,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    #custom
     "users",
     "admin_panel",
     "products",
+    "shop",
+    "cart",
+    #apps
+
     # google
     "django.contrib.sites",
     "allauth",
@@ -58,6 +64,10 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
+
+
+CART_SESSION_ID = 'scentora_cart'
+
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_LOGOUT_ON_GET = False
@@ -104,6 +114,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                'cart.context_processors.cart',
             ],
         },
     },

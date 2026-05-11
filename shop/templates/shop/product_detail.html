@@ -1,0 +1,465 @@
+{% extends 'users/index.html' %}
+{% load static %}
+
+
+
+{% block content %}
+<div id="status-toast" class="fixed top-12 left-1/2 -translate-x-1/2 z-[100] pointer-events-none opacity-0 transition-all duration-700">
+    <div class="bg-black/90 backdrop-blur-2xl border border-primary/20 px-8 py-4 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex items-center gap-4">
+        <span id="toast-icon" class="material-symbols-outlined text-primary text-sm">info</span>
+        <span id="toast-message" class="text-[10px] font-black uppercase tracking-[0.2em] text-white"></span>
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // This passes Django messages into your JS toast function
+                showMessage("{{ message }}", "{% if message.tags == 'error' %}error{% else %}check_circle{% endif %}");
+            });
+        </script>
+    {% endfor %}
+{% endif %}
+<style>
+
+    #main-image-container {
+    cursor: crosshair;
+}
+
+#main-image {
+    transition: transform 0.2s ease-out, opacity 0.3s ease;
+    will-change: transform;
+}
+
+#zoom-lens {
+    /* This acts as a visual guide for the user */
+    box-shadow: 0 0 50px rgba(0,0,0,0.5), inset 0 0 20px rgba(212,175,55,0.2);
+    z-index: 10;
+}
+h1 {
+    animation: reveal 1.2s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+@keyframes reveal {
+    0% { transform: translateY(30px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+
+</style>
+<div class="bg-[#0f0f0f] min-h-screen text-slate-200 selection:bg-primary selection:text-black">
+    
+    <nav class="pt-32 px-8 lg:px-12 max-w-[1440px] mx-auto">
+        <div class="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.4em] text-slate-600">
+            <a href="{% url 'home' %}" class="hover:text-primary transition-all">Home</a>
+            <span class="text-white/5">/</span>
+            <a href="{% url 'shop:product_list' %}" class="hover:text-primary transition-all">
+                {% for cat in product.categories.all %}{{ cat.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            </a>
+            <span class="text-white/5">/</span>
+            <span class="text-primary">{{ product.name }}</span>
+        </div>
+    </nav>
+
+    <main class="max-w-[1440px] mx-auto px-8 lg:px-12 pt-12">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-24">
+            
+            <div class="space-y-8">
+    <div id="main-image-container" class="relative aspect-[4/5] overflow-hidden rounded-[3.5rem] bg-[#141414] border border-white/5 group cursor-crosshair shadow-2xl">
+        {% if product.images.all %}
+        <img id="main-image" src="{{ product.images.first.image.url }}" 
+             class="w-full h-full object-cover transition-transform duration-500 ease-out origin-center">
+        {% else %}
+        <div class="w-full h-full flex items-center justify-center text-slate-800 uppercase tracking-widest text-[10px]">No Imagery Available</div>
+        {% endif %}
+        
+        {% if total_stock <= 0 %}
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center space-y-4">
+            <span class="material-symbols-outlined text-5xl text-primary/30 font-thin">lock</span>
+            <span class="text-[10px] font-black uppercase tracking-[0.5em] text-white/60 border border-white/10 px-8 py-4 rounded-full">Vault Currently Closed</span>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="flex gap-4 justify-center">
+        {% for img in product.images.all %}
+        <button onmouseenter="updateMainImage('{{ img.image.url }}', this)" 
+                class="thumb-nav w-24 aspect-[4/5] rounded-2xl overflow-hidden border border-white/5 hover:border-primary/50 transition-all duration-500 opacity-60 hover:opacity-100 {% if forloop.first %}border-primary/80 opacity-100{% endif %}">
+            <img src="{{ img.image.url }}" class="w-full h-full object-cover">
+        </button>
+        {% endfor %}
+    </div>
+</div>
+
+            <div class="flex flex-col justify-start pt-4 space-y-12">
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between border-b border-white/5 pb-6">
+                        <span class="text-[10px] font-black uppercase tracking-[0.6em] text-primary/80">{{ product.brand.name }}</span>
+                        <div class="flex items-center gap-2">
+                            <div class="flex text-slate-800"> <span class="material-symbols-outlined text-sm">star</span>
+                                <span class="material-symbols-outlined text-sm">star</span>
+                                <span class="material-symbols-outlined text-sm">star</span>
+                                <span class="material-symbols-outlined text-sm">star</span>
+                                <span class="material-symbols-outlined text-sm">star</span>
+                            </div>
+                            <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest italic">No reviews yet</span>
+                        </div>
+                    </div>
+
+                    <h1 class="text-6xl lg:text-8xl font-extralight tracking-tighter leading-[0.85] text-white uppercase">
+                        {{ product.name }}
+                    </h1>
+<div class="space-y-4">
+    <div class="flex items-baseline gap-6">
+        <span id="display-price" class="text-5xl font-black text-primary tracking-tighter italic">
+            ₹{{ offer_price|default:min_price }}
+        </span>
+        
+        <span id="display-old-price" class="text-2xl text-slate-700 line-through decoration-primary/40 font-light {% if not offer_price or offer_price >= min_price %}hidden{% endif %}">
+            ₹{{ min_price }}
+        </span>
+        
+        <span id="exclusive-badge" class="bg-primary/10 text-primary text-[8px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.2em] self-center {% if not offer_price or offer_price >= min_price %}hidden{% endif %}">
+            Exclusive Reserve
+        </span>
+    </div>
+    <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-medium leading-relaxed max-w-sm">
+        {{ product.description }}
+    </p>
+</div>
+                </div>
+
+                <div class="p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/5 grid grid-cols-3 gap-8">
+                    <div class="text-center space-y-2">
+                        <span class="text-[8px] font-black uppercase tracking-widest text-primary/50 block">Top</span>
+                        <p class="text-[11px] text-slate-300 uppercase tracking-tighter">{{ product.top_notes }}</p>
+                    </div>
+                    <div class="text-center space-y-2 border-x border-white/5">
+                        <span class="text-[8px] font-black uppercase tracking-widest text-primary/50 block">Heart</span>
+                        <p class="text-[11px] text-slate-300 uppercase tracking-tighter">{{ product.heart_notes }}</p>
+                    </div>
+                    <div class="text-center space-y-2">
+                        <span class="text-[8px] font-black uppercase tracking-widest text-primary/50 block">Base</span>
+                        <p class="text-[11px] text-slate-300 uppercase tracking-tighter">{{ product.base_notes }}</p>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+    <div class="flex items-center gap-4">
+        <span id="stock-status" class="text-[9px] font-black uppercase tracking-[0.3em] {% if total_stock > 0 %}text-green-500{% else %}text-red-500{% endif %}">
+            {% if total_stock > 0 %}In Stock (<span id="stock-count">{{ total_stock }}</span> Available){% else %}Sold Out{% endif %}
+        </span>
+        <div class="h-px flex-1 bg-white/5"></div>
+    </div>
+
+    {% if total_stock > 0 %}
+<form id="add-to-cart-form" action="{% url 'cart:cart_add' variants.0.id %}" method="POST" class="space-y-6">
+            {% csrf_token %}
+        <input type="hidden" name="variant_id" id="hidden-variant-id" value="{{ variants.0.id }}">
+        <div class="grid grid-cols-1 gap-4">
+            <label class="text-[8px] font-black uppercase tracking-widest text-slate-500">Select Volume</label>
+            <select id="variant-selector" name="variant" onchange="updateVariantDetails()" class="bg-[#1a1a1a] border border-white/5 rounded-2xl p-4 text-[10px] font-black uppercase tracking-widest text-primary focus:outline-none focus:border-primary/50 transition-all">
+                {% for variant in variants %}
+                <option value="{{ variant.id }}" 
+                        data-price="{{ variant.price }}" 
+                        data-offer="{{ variant.offer_price }}" 
+                        data-stock="{{ variant.stock }}">
+                    {{ variant.size }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            <div class="flex gap-4">
+                
+               <div class="flex items-center bg-[#1a1a1a] border border-white/5 rounded-2xl h-[60px] px-4 hover:border-primary/30 transition-all duration-500 group">
+    <button type="button" 
+            class="w-10 h-full flex items-center justify-center text-slate-500 hover:text-primary transition-colors text-lg" 
+            onclick="changeQty(-1)">-</button>
+    
+    <input type="number" name="quantity" id="qty-input" value="1" min="1" max="10" readonly
+           class="bg-transparent w-12 text-center text-[11px] font-black tracking-widest text-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+    
+    <button type="button" 
+            class="w-10 h-full flex items-center justify-center text-slate-500 hover:text-primary transition-colors text-lg" 
+            onclick="changeQty(1)">+</button>
+</div>
+
+                <button type="submit" id="add-to-cart-btn" name="action" value="add_to_cart" class="flex-1 bg-white/[0.03] border border-white/10 text-white font-black uppercase tracking-[0.4em] text-[10px] rounded-2xl hover:bg-white/10 transition-all">
+                    Add to Cart
+                </button>
+            </div>
+
+            <div class="flex gap-4">
+                <button type="button" id="buy-now-btn" name="action" value="buy_now" class="flex-1 py-6 bg-primary text-black font-black uppercase tracking-[0.4em] text-[10px] rounded-2xl hover:shadow-[0_20px_40px_rgba(212,175,55,0.2)] transition-all duration-700 hover:-translate-y-1">
+                    Buy Now
+                </button>
+
+                <button type="button" class="px-8 rounded-2xl border border-white/5 bg-[#1a1a1a] text-slate-400 hover:text-primary transition-all group">
+                    <span class="material-symbols-outlined text-sm group-hover:fill-current">favorite</span>
+                </button>
+            </div>
+        </div>
+    </form>
+    {% else %}
+    <button disabled class="w-full py-6 bg-white/[0.03] border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] text-slate-700 cursor-not-allowed">
+        Notify upon restock
+    </button>
+    {% endif %}
+</div>
+
+            </div>
+        </div>
+<section class="mt-32 border-t border-white/5 pt-20">
+    <div class="flex items-baseline justify-between mb-12">
+        <h3 class="text-2xl font-extralight uppercase tracking-widest text-white">User <span class="text-primary italic font-black">Reviews</span></h3>
+        <button class="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-all">Write a Review</button>
+    </div>
+
+    {% if product.reviews.all %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {% for review in product.reviews.all %}
+            <div class="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5">
+                <div class="flex justify-between mb-4">
+                    <span class="text-[10px] font-black text-primary uppercase">{{ review.user.username }}</span>
+                    <span class="text-[9px] text-slate-600 uppercase">{{ review.created_at|date:"M d, Y" }}</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed italic">"{{ review.comment }}"</p>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="py-20 text-center border border-dashed border-white/5 rounded-[3rem]">
+            <span class="material-symbols-outlined text-4xl text-slate-800 mb-4">chat_bubble_outline</span>
+            <p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600">No Reviews Yet</p>
+            <p class="text-[9px] text-slate-700 mt-2">Be the first to share your olfactory journey.</p>
+        </div>
+    {% endif %}
+</section>
+        <section class="mt-40 pb-40">
+            <div class="flex items-end justify-between mb-16 px-4">
+                <div class="space-y-4">
+                    <h2 class="text-4xl lg:text-5xl font-extralight uppercase tracking-tight text-white">Related <span class="text-primary font-black italic">Essences</span>.</h2>
+                    <p class="text-[9px] uppercase tracking-[0.5em] text-slate-600">Curated specifically based on your profile</p>
+                </div>
+                <a href="{% url 'shop:product_list' %}" class="text-[10px] font-black uppercase tracking-[0.3em] text-primary border-b border-primary/20 pb-2 hover:text-white transition-all">Explore Entire Gallery</a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                {% for related in related_products %}
+                <a href="{% url 'shop:product_detail' related.id %}" class="group space-y-6">
+                    <div class="aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-[#141414] border border-white/5 relative">
+                        {% if related.images.all %}
+                        <img src="{{ related.images.first.image.url }}" class="w-full h-full object-cover grayscale-[50%] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-[2s]">
+                        {% endif %}
+                        <div class="absolute bottom-6 left-6 right-6 p-4 bg-black/60 backdrop-blur-md rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                            <p class="text-[9px] font-black text-primary uppercase tracking-widest text-center">View Essence</p>
+                        </div>
+                    </div>
+                    <div class="px-2 text-center">
+                        <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400 group-hover:text-primary transition-colors">{{ related.name }}</h4>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+</div>
+
+<script>
+// --- GLOBAL SELECTORS ---
+const mainImg = document.getElementById('main-image');
+const mainContainer = document.getElementById('main-image-container');
+const qtyInput = document.getElementById('qty-input');
+
+// 1. AMAZON-STYLE INSTANT SWAP (On Hover)
+function updateMainImage(url, element) {
+    if (!mainImg) return;
+    
+    // Quick fade for luxury feel
+    mainImg.style.opacity = '0.7';
+    setTimeout(() => {
+        mainImg.src = url;
+        mainImg.style.opacity = '1';
+    }, 50);
+
+    // Update active border state for thumbnails
+    document.querySelectorAll('.thumb-nav').forEach(btn => {
+        btn.classList.remove('border-primary/80', 'opacity-100');
+        btn.classList.add('border-white/5', 'opacity-60');
+    });
+    element.classList.add('border-primary/80', 'opacity-100');
+    element.classList.remove('border-white/5', 'opacity-60');
+}
+
+// 2. PRECISE ZOOM LOGIC (Follow Mouse)
+if (mainContainer && mainImg) {
+    mainContainer.addEventListener('mousemove', (e) => {
+        const { left, top, width, height } = mainContainer.getBoundingClientRect();
+        
+        // Calculate position in %
+        const x = ((e.clientX - left) / width) * 100;
+        const y = ((e.clientY - top) / height) * 100;
+
+        mainImg.style.transformOrigin = `${x}% ${y}%`;
+        mainImg.style.transform = "scale(1.5)";
+    });
+
+    mainContainer.addEventListener('mouseleave', () => {
+        mainImg.style.transform = "scale(1)";
+        mainImg.style.transformOrigin = "center";
+    });
+}
+
+// 3. VARIANT & PRICE LOGIC
+function updateVariantDetails() {
+    const selector = document.getElementById('variant-selector');
+    if (!selector) return;
+
+    const selectedOption = selector.options[selector.selectedIndex];
+    const price = selectedOption.getAttribute('data-price');
+    const offerPrice = selectedOption.getAttribute('data-offer');
+    const stock = parseInt(selectedOption.getAttribute('data-stock'));
+
+    // --- ADD THESE 3 LINES ---
+    const variantId = selectedOption.value; 
+    document.getElementById('hidden-variant-id').value = variantId;
+    document.getElementById('add-to-cart-form').action = `/cart/add/${variantId}/`;
+    // -------------------------
+    
+
+    const displayPrice = document.getElementById('display-price');
+    const displayOldPrice = document.getElementById('display-old-price');
+    const badge = document.getElementById('exclusive-badge');
+    
+    // UI Elements for Error/Status Handling
+    const stockStatus = document.getElementById('stock-status');
+    const addToCartBtn = document.getElementById('add-to-cart-btn');
+    const buyNowBtn = document.getElementById('buy-now-btn');
+
+    if (qtyInput) {
+        qtyInput.value = 1; // Resets to 1 every time volume changes
+    }
+    // 1. Update Pricing (Same as before)
+    if (offerPrice && offerPrice !== "None" && parseFloat(offerPrice) < parseFloat(price)) {
+        displayPrice.innerText = `₹${offerPrice}`;
+        displayOldPrice.innerText = `₹${price}`;
+        displayOldPrice.classList.remove('hidden');
+        if(badge) badge.classList.remove('hidden');
+    } else {
+        displayPrice.innerText = `₹${price}`;
+        displayOldPrice.classList.add('hidden');
+        if(badge) badge.classList.add('hidden');
+    }
+
+    // 2. USER-FRIENDLY ERROR HANDLING (Stock Logic)
+    if (stockStatus) {
+        if (stock > 0) {
+            // SUCCESS STATE: Item is available
+            stockStatus.className = "text-[9px] font-black uppercase tracking-[0.3em] text-green-500";
+            stockStatus.innerHTML = `In Stock (${stock} Available)`;
+            
+            // Re-enable buttons
+            if(addToCartBtn) {
+                addToCartBtn.disabled = false;
+                addToCartBtn.classList.remove('opacity-20', 'cursor-not-allowed');
+                addToCartBtn.innerText = "Add to Cart";
+            }
+            if(buyNowBtn) {
+                buyNowBtn.disabled = false;
+                buyNowBtn.classList.remove('opacity-20', 'cursor-not-allowed');
+                buyNowBtn.innerText = "Buy Now";
+            }
+            if(qtyInput) qtyInput.max = Math.min(stock, 10);
+
+        } else {
+            // ERROR/UNAVAILABLE STATE: User-Friendly handling
+            stockStatus.className = "text-[9px] font-black uppercase tracking-[0.3em] text-red-400";
+            stockStatus.innerHTML = `<span class="flex items-center gap-2"><span class="material-symbols-outlined text-[10px]">info</span> This selection is currently unavailable</span>`;
+            
+            // Disable buttons and update text to be helpful
+            if(addToCartBtn) {
+                addToCartBtn.disabled = true;
+                addToCartBtn.classList.add('opacity-20', 'cursor-not-allowed');
+                addToCartBtn.innerText = "Unavailable";
+            }
+            if(buyNowBtn) {
+                buyNowBtn.disabled = true;
+                buyNowBtn.classList.add('opacity-20', 'cursor-not-allowed');
+                buyNowBtn.innerText = "Out of Stock";
+            }
+            
+            // Set quantity to 0 since they can't buy it
+            if(qtyInput) qtyInput.value = 1; 
+        }
+    }
+}
+
+// 4. QUANTITY CHANGER
+function changeQty(delta) {
+    if (!qtyInput) return;
+    let val = parseInt(qtyInput.value) + delta;
+    const maxVal = parseInt(qtyInput.max) || 10;
+    if (val >= 1 && val <= maxVal) {
+        qtyInput.value = val;
+    }
+}
+
+// INITIALIZE ON LOAD
+document.addEventListener('DOMContentLoaded', () => {
+    updateVariantDetails();
+});
+// 1. Unified Message Function (Works for JS and Django)
+function showMessage(msg, icon = 'info') {
+    const toast = document.getElementById('status-toast');
+    const msgSpan = document.getElementById('toast-message');
+    const iconSpan = document.getElementById('toast-icon');
+
+    if (!toast || !msgSpan) return;
+
+    // Set content
+    msgSpan.innerText = msg;
+    iconSpan.innerText = icon;
+
+    // Change icon color based on type
+    if (icon === 'error' || icon === 'lock') {
+        iconSpan.classList.add('text-red-500');
+        iconSpan.classList.remove('text-primary');
+    } else {
+        iconSpan.classList.add('text-primary');
+        iconSpan.classList.remove('text-red-500');
+    }
+
+    // Animation: Slide down and fade in
+    toast.classList.remove('opacity-0', 'top-12', 'pointer-events-none');
+    toast.classList.add('opacity-100', 'top-20');
+
+    // Auto-hide after 4 seconds
+    setTimeout(() => {
+        toast.classList.add('opacity-0', 'top-12', 'pointer-events-none');
+        toast.classList.remove('opacity-100', 'top-20');
+    }, 4000);
+}
+
+// 2. Add this to your changeQty function to handle errors
+function changeQty(delta) {
+    if (!qtyInput) return;
+    let val = parseInt(qtyInput.value) + delta;
+    const maxVal = parseInt(qtyInput.max) || 10;
+
+    if (val > maxVal) {
+        showMessage(`Maximum allocation reached (${maxVal} units)`, "warning");
+        return;
+    }
+    
+    if (val >= 1) {
+        qtyInput.value = val;
+    }
+}
+document.getElementById("buy-now-btn")?.addEventListener("click", function () {
+    showMessage("BuyNow is coming soon. The checkout page havent start yet", "info");
+});
+</script>
+{% endblock %}
