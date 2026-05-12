@@ -152,12 +152,12 @@
                         <div class="absolute inset-0 bg-gradient-to-tr from-primary/0 via-primary/[0.02] to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
 
                         <div class="relative aspect-[4/5] overflow-hidden rounded-[2.5rem] mb-6 flex-shrink-0">
+                            
                             {% if product.images.all %}
                             <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" 
                                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2s] ease-out">
                             {% endif %}
-                            
-                            <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-700"></div>
+ <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-700"></div>
                         </div>
 
                         <div class="flex mb-4 px-2">
@@ -249,6 +249,28 @@
             }, 150 * index); // 150ms staggered delay
         });
     });
+</script>
+
+<script>
+document.body.addEventListener("htmx:afterSwap", function (e) {
+    if (e.detail.xhr.getResponseHeader("HX-Trigger")) {
+        const trigger = JSON.parse(e.detail.xhr.getResponseHeader("HX-Trigger"));
+
+        if (trigger.wishlistMessage) {
+            showToast(trigger.wishlistMessage);
+        }
+    }
+});
+
+// simple toast
+function showToast(msg) {
+    let div = document.createElement("div");
+    div.innerText = msg;
+    div.className = "fixed bottom-8 left-1/2 -translate-x-1/2 bg-black text-white px-6 py-3 rounded-xl z-[9999]";
+    document.body.appendChild(div);
+
+    setTimeout(() => div.remove(), 2000);
+}
 </script>
 
 <style>

@@ -138,15 +138,15 @@
                             </div>
                             <div class="col-span-3">
                                 <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Price (₹)</label>
-                                <input type="number" name="v_price[]" value="{{ variant.price }}" required class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
+                                <input type="number" name="v_price[]" value="{{ variant.price }}" required min="0" class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
                             </div>
                             <div class="col-span-2">
                                 <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Offer</label>
-                                <input type="number" name="v_offer[]" value="{{ variant.offer_price|default:'' }}" class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
+                                <input type="number" name="v_offer[]" value="{{ variant.offer_price|default:'' }}" min="0" class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
                             </div>
                             <div class="col-span-3">
                                 <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Stock</label>
-                                <input type="number" name="v_stock[]" value="{{ variant.stock }}" required class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
+                                <input type="number" name="v_stock[]" value="{{ variant.stock }}" required min="0" class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
                             </div>
                             <div class="col-span-1 flex justify-center pb-2">
                                 <button type="button" onclick="removeVariantRow(this)" class="text-white/10 hover:text-red-500 transition-colors">
@@ -241,11 +241,23 @@
                 return;
             }
 
-            
-            newRow.querySelector('input[name="variant_id[]"]').value = "";
-            newRow.querySelectorAll('input').forEach(i => i.value = '');
-            newRow.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
-            container.appendChild(newRow);
+            const newRow = rows[0].cloneNode(true);
+
+// reset ONLY values safely
+newRow.querySelector('input[name="variant_id[]"]').value = "";
+
+newRow.querySelectorAll('input').forEach(i => {
+    i.value = "";
+});
+
+newRow.querySelectorAll('select').forEach(s => {
+    s.selectedIndex = 0;
+});
+
+// attach safety AFTER reset
+newRow.querySelectorAll('input[type="number"]').forEach(preventNegative);
+
+container.appendChild(newRow);
         });
     }
 
@@ -487,5 +499,19 @@ document.getElementById("product-form").addEventListener("submit", function(e) {
         return false;
     }
 });
+function preventNegative(input) {
+    input.addEventListener("input", () => {
+        if (input.value !== "" && Number(input.value) < 0) {
+            input.value = 0;
+        }
+    });
+
+    input.addEventListener("blur", () => {
+        if (input.value === "" || Number(input.value) < 0) {
+            input.value = 0;
+        }
+    });
+}
+document.querySelectorAll('input[type="number"]').forEach(preventNegative);
 </script>
 {% endblock %}

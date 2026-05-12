@@ -150,15 +150,15 @@
                             </div>
                             <div class="col-span-3">
                                 <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Price (₹)</label>
-                                <input type="number" name="v_price[]" required class="luxury-input py-3 px-4 rounded-lg text-xs w-full" placeholder="0.00">
+                                <input type="number" name="v_price[]" required  min="0" class="luxury-input py-3 px-4 rounded-lg text-xs w-full" placeholder="0.00">
                             </div>
                             <div class="col-span-2">
                                 <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Offer</label>
-                                <input type="number" name="v_offer[]" class="luxury-input py-3 px-4 rounded-lg text-xs w-full" placeholder="Sale">
+                                <input type="number" name="v_offer[]" min="0" class="luxury-input py-3 px-4 rounded-lg text-xs w-full" placeholder="Sale">
                             </div>
                             <div class="col-span-3">
                                 <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Stock</label>
-                                <input type="number" name="v_stock[]" required class="luxury-input py-3 px-4 rounded-lg text-xs w-full" placeholder="0">
+                                <input type="number" name="v_stock[]" required min="0" class="luxury-input py-3 px-4 rounded-lg text-xs w-full" placeholder="0">
                             </div>
                             <div class="col-span-1 flex justify-center pb-2">
                                 <button type="button" onclick="removeVariantRow(this)" class="text-white/10 hover:text-red-500 transition-colors">
@@ -254,6 +254,7 @@
             }
 
             const newRow = rows[0].cloneNode(true);
+            newRow.querySelectorAll('input[type="number"]').forEach(preventNegative);
             newRow.querySelectorAll('input').forEach(i => i.value = '');
             newRow.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
             container.appendChild(newRow);
@@ -405,5 +406,20 @@
         return false;
     }
 });
+
+function preventNegative(input) {
+    input.addEventListener("input", () => {
+        if (input.value < 0) {
+            input.value = 0;
+        }
+    });
+
+    input.addEventListener("blur", () => {
+        if (input.value === "" || input.value < 0) {
+            input.value = 0;
+        }
+    });
+}
+document.querySelectorAll('input[type="number"]').forEach(preventNegative);
 </script>
 {% endblock %}

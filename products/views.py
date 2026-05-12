@@ -16,14 +16,12 @@ import uuid
 @staff_member_required
 @never_cache
 def admin_category_list(request):
-    # Requirement a.iv: Sort in descending order
     categories_list = Category.objects.all().order_by("-created_at")
 
     active_count = Category.objects.filter(is_active=True).count()
     featured_count = Category.objects.filter(is_featured=True).count()
     archived_count = Category.objects.filter(is_active=False).count()
 
-    # Requirement a.ii: Search Logic
     search_query = request.GET.get("search", "")
     status_filter = request.GET.get("status", "all")
 
@@ -34,7 +32,6 @@ def admin_category_list(request):
     elif status_filter == "archived":
         categories_list = categories_list.filter(is_active=False)
 
-    # Requirement a.iii: Pagination (Backend)
     paginator = Paginator(categories_list, 5)  # 10 categories per page
     page_number = request.GET.get("page")
     categories = paginator.get_page(page_number)
@@ -62,10 +59,8 @@ def add_category(request):
         if form.is_valid():
             category = form.save(commit=False)
 
-            # Normalize: 'men' or 'MEN' becomes 'Men'
             category.name = category.name.strip().capitalize()
 
-            # Manual check for immediate feedback
             if Category.objects.filter(name=category.name).exists():
                 form.add_error("name", f"The vault '{category.name}' already exists.")
                 return render(
@@ -87,14 +82,12 @@ def add_category(request):
                     )
 
             try:
-                # This triggers the model's full_clean() and iexact check
                 category.save()
                 messages.success(
                     request, f"Vault '{category.name}' established successfully."
                 )
                 return redirect("admin_category_list")
             except ValidationError as e:
-                # Catching model-level validation errors (like the name__iexact check)
                 messages.error(request, e.message)
                 return render(
                     request, "products/admin_add_category.html", {"form": form}
@@ -120,10 +113,8 @@ def edit_category(request, category_id):
         if form.is_valid():
             updated_category = form.save(commit=False)
 
-            # 1. Normalize for consistency
             updated_category.name = updated_category.name.strip().capitalize()
 
-            # 2. Duplicate Check: Ensure we aren't renaming to another existing category name
             if (
                 Category.objects.filter(name__iexact=updated_category.name)
                 .exclude(pk=category.pk)
@@ -138,7 +129,6 @@ def edit_category(request, category_id):
                     {"form": form, "category": category},
                 )
 
-            # 3. Handle Image
             if cropped_data:
                 try:
                     format, imgstr = cropped_data.split(";base64,")
@@ -155,7 +145,6 @@ def edit_category(request, category_id):
                         {"form": form, "category": category},
                     )
 
-            # 4. Final Save with Model-level validation catch
             try:
                 updated_category.save()
                 messages.success(
@@ -181,7 +170,6 @@ def edit_category(request, category_id):
 
 @staff_member_required
 def toggle_category_status(request, category_id):
-    # Requirement a.i: Soft Delete (Unlist)
     category = get_object_or_404(Category, id=category_id)
     category.is_active = not category.is_active
     category.save()
@@ -194,7 +182,6 @@ def toggle_category_status(request, category_id):
 @staff_member_required
 @never_cache
 def admin_product_list(request):
-    # Fetch products with related brand and categories to avoid multiple DB hits
     products_list = (
         Product.objects.all()
         .select_related("brand")
@@ -202,7 +189,6 @@ def admin_product_list(request):
         .order_by("-created_at")
     )
 
-    # Search and Filtering
     search_query = request.GET.get("search", "")
     brand_filter = request.GET.get("brand", "all")
     category_filter = request.GET.get("category", "all")
@@ -218,8 +204,6 @@ def admin_product_list(request):
         products_list = products_list.filter(categories__id=category_filter)
 
     products_list = products_list.distinct()
-
-    # Pagination
 
     paginator = Paginator(products_list, 6)
     page_number = request.GET.get("page")
@@ -244,7 +228,7 @@ def admin_product_list(request):
 @staff_member_required
 def product_detail(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
-    # Fetch variants and images related to this product
+
     variants = product.variants.all().order_by("price")
     gallery = product.images.all()
 
@@ -259,7 +243,7 @@ def product_detail(request, product_id):
 @staff_member_required
 def add_product(request):
     if request.method == "POST":
-        # 1. Handle Brand Consistency (Silent Creation)
+
         brand_input = request.POST.get("brand_name", "").strip()
         brand_obj = None
         if brand_input:
@@ -268,7 +252,6 @@ def add_product(request):
                 defaults={"name": brand_input.title(), "slug": slugify(brand_input)},
             )
 
-        # 2. Create Product
         product = Product.objects.create(
             name=request.POST.get("name"),
             brand=brand_obj,
@@ -283,7 +266,6 @@ def add_product(request):
         if category_ids:
             product.categories.set(category_ids)
 
-        # 3. Handle Variants (Updated to match v_ names)
         sizes = request.POST.getlist("v_size[]")
         prices = request.POST.getlist("v_price[]")
         offers = request.POST.getlist("v_offer[]")
@@ -299,7 +281,6 @@ def add_product(request):
                     stock=stocks[i] if stocks[i] else 0,
                 )
 
-        # 4. Images
         images_data = request.POST.getlist("cropped_images[]")
         for i, img_data in enumerate(images_data):
             if img_data and ";base64," in img_data:
@@ -346,20 +327,20 @@ def edit_product(request, product_id):
         product.base_notes = request.POST.get("base_notes", product.base_notes)
         product.is_featured = "is_featured" in request.POST
 
-        # Save attributes to the Product table
+        
         product.save()
 
-        # --- CATEGORY LOGIC (ManyToMany) ---
+        
         cat_id = request.POST.get("category")
         if cat_id and str(cat_id).isdigit():
             try:
                 selected_category = Category.objects.get(id=int(cat_id))
-                # .set() replaces all existing categories with this one
+                
                 product.categories.set([selected_category])
             except Category.DoesNotExist:
                 pass
 
-        # 2. Synchronize Variants
+        
 
         variant_ids = request.POST.getlist("variant_id[]")
         sizes = request.POST.getlist("v_size[]")
@@ -412,14 +393,13 @@ def edit_product(request, product_id):
 
                 existing_variant_ids.append(variant.id)
 
-        # DELETE REMOVED VARIANTS
+        
         product.variants.exclude(id__in=existing_variant_ids).delete()
 
-        # 3. Synchronize Images
         images_data = request.POST.getlist("cropped_images[]")
         existing_ids = request.POST.getlist("existing_image_ids[]")
 
-        # Handle Existing Images
+        
         for i, img_id in enumerate(existing_ids):
             if i < len(images_data):
                 img_status = images_data[i]
@@ -445,7 +425,7 @@ def edit_product(request, product_id):
                     except ProductImage.DoesNotExist:
                         continue
 
-        # Handle New Images
+        
         for i in range(len(existing_ids), len(images_data)):
             new_img_data = images_data[i]
             if new_img_data and new_img_data.startswith("data:image"):

@@ -3,11 +3,16 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+
     <title>Scentora | Luxury Fragrances</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+
+
+
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -25,6 +30,7 @@
             },
         }
     </script>
+    
     <style>
         body { font-family: 'Manrope', sans-serif; }
         .hero-gradient {
@@ -41,6 +47,7 @@
     filter: grayscale(0%) brightness(1.1);
     transform: scale(1.05);
 }
+
     </style>
 </head>
 <body class="bg-background-dark text-slate-100 antialiased">
@@ -128,28 +135,29 @@ setTimeout(() => {
    <div class="flex items-center gap-7 border-l border-neutral-border pl-8">
 
     <!-- Wishlist -->
-    <a href="#" class="relative group pt-2">
-        <span class="material-symbols-outlined text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
-            favorite
-        </span>
-
-        <span class="absolute -top-1 left-1/2 -translate-x-1/2
-                     min-w-[18px] h-[18px] px-1
-                     flex items-center justify-center
-                     rounded-full
-                     bg-primary text-black
-                     text-[9px] font-black leading-none">
-            0
-        </span>
-    </a>
-
+    <a href="{% url 'cart:wishlist_detail' %}" class="relative group pt-2">
+    <span class="material-symbols-outlined text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
+        favorite
+    </span>
+    <span id="wishlist-icon-count" 
+          hx-get="{% url 'cart:wishlist_count_only' %}" 
+          hx-trigger="wishlistUpdated from:body"
+          class="absolute -top-1 left-1/2 -translate-x-1/2
+                 min-w-[18px] h-[18px] px-1
+                 flex items-center justify-center
+                 rounded-full
+                 bg-primary text-black
+                 text-[9px] font-black leading-none">
+        {{ request.user.wishlist.items.count }}
+    </span>
+</a>
     <!-- Cart -->
    <a href="{% url 'cart:cart_detail' %}" class="relative group pt-2">
     <span class="material-symbols-outlined text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
         shopping_bag
     </span>
     
-    <span id="cart-icon-count" 
+    <span id="cart-icon-count" hx-get="{% url 'cart:cart_count_only' %}" hx-trigger="update-cart from:body"
           class="absolute -top-1 left-1/2 -translate-x-1/2
                  min-w-[18px] h-[18px] px-1
                  flex items-center justify-center
@@ -460,5 +468,15 @@ setTimeout(() => {
         </div>
     </div>
 </footer>
+<script>
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+
+        // Optional: Reset HTMX if the page content changes
+        document.addEventListener('htmx:afterOnLoad', function(evt) {
+            console.log("HTMX action complete");
+        });
+    </script>
 </body>
 </html>

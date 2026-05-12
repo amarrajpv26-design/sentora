@@ -21,8 +21,7 @@ class CategoryForm(forms.ModelForm):
         }
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Force these fields to be required in the Django logic
+        
         self.fields['name'].required = True
         self.fields['description'].required = True
-        # Note: BooleanFields (toggles) are handled as True/False, 
-        # so they technically always have a value.
+        

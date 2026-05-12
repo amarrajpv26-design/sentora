@@ -197,9 +197,9 @@ h1 {
                     Buy Now
                 </button>
 
-                <button type="button" class="px-8 rounded-2xl border border-white/5 bg-[#1a1a1a] text-slate-400 hover:text-primary transition-all group">
-                    <span class="material-symbols-outlined text-sm group-hover:fill-current">favorite</span>
-                </button>
+                <div id="heart-container-detail-{{ product.id }}">
+    {% include 'cart/partials/wishlist_button.html' with variant=variants.0 product=product is_in_wishlist=is_in_wishlist %}
+</div>
             </div>
         </div>
     </form>

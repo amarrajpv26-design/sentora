@@ -1,0 +1,109 @@
+{% extends 'users/index.html' %}
+{% load static %}
+
+{% block content %}
+<div class="bg-[#050505] min-h-screen text-slate-200 pt-32 pb-40 selection:bg-primary selection:text-black">
+    <main class="max-w-[1440px] mx-auto px-8 lg:px-12">
+        
+        <div class="flex flex-col md:flex-row md:items-end justify-between border-b border-white/5 
+                    {% if wishlist_items %}mb-24 pb-16{% else %}mb-12 pb-12{% endif %} transition-all duration-1000">
+            
+            <div class="space-y-4">
+                <div class="overflow-hidden">
+                    <h1 class="text-5xl lg:text-7xl font-extralight uppercase tracking-[0.1em] text-white leading-none animate-reveal">
+                        The <span class="text-primary font-medium italic tracking-normal">Vault</span>
+                    </h1>
+                </div>
+                
+                <div class="flex items-center gap-4 animate-reveal" style="animation-delay: 200ms;">
+                    <div class="h-px w-8 bg-primary/30"></div>
+                    <p class="text-[9px] uppercase tracking-[0.5em] text-slate-500 font-light">
+                        Personal <span class="text-slate-300">Curations</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-8 md:mt-0 overflow-hidden">
+                <a href="{% url 'shop:product_list' %}" 
+                   class="group flex items-center gap-3 text-[10px] font-medium uppercase tracking-[0.3em] text-slate-400 hover:text-primary transition-all duration-500 animate-reveal"
+                   style="animation-delay: 400ms;">
+                    <span class="w-6 h-px bg-slate-800 group-hover:w-10 group-hover:bg-primary transition-all duration-500"></span>
+                    Explore Collection
+                </a>
+            </div>
+        </div>
+        <div id="wishlist-grid" class="{% if wishlist_items %}grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-8 gap-y-16{% else %}flex flex-col items-center justify-center min-h-[40vh] text-center{% endif %}">
+    {% for item in wishlist_items %}
+        {% with variant=item.variant %}
+        <div class="flex flex-col bg-[#0A0A0A] border border-white/5 rounded-[2.5rem] p-5 transition-all duration-700 hover:bg-white/[0.04] hover:border-primary/30 hover:shadow-[0_30px_80px_-20px_rgba(193,156,73,0.2)] group animate-stagger" 
+             style="animation-delay: {{ forloop.counter0|add:1 }}00ms;"
+             id="wishlist-item-{{ variant.id }}">
+            
+            <div class="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-black shadow-2xl">
+                <img src="{{ variant.product.images.first.image.url }}" 
+                     class="w-full h-full object-cover transition-all duration-[1.5s] group-hover:scale-110 group-hover:brightness-110">
+                
+            </div>
+            <div class="mt-8 flex-1 flex flex-col px-1">
+                <div class="mb-6">
+                    <span class="text-[8px] font-black uppercase tracking-[0.4em] text-primary/60 block mb-2">{{ variant.product.brand.name }}</span>
+                    <div class="flex flex-col gap-1">
+                        <h3 class="text-lg font-light uppercase tracking-tight text-white leading-tight">{{ variant.product.name }}</h3>
+                        <p class="text-xl font-black italic text-white tracking-tighter mt-1">₹{{ variant.price }}</p>
+                    </div>
+                </div>
+                <div class="mt-auto space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <a href="{% url 'shop:product_detail' variant.product.id %}" class="flex items-center justify-center py-3.5 bg-white/[0.03] border border-white/10 text-white text-[8px] font-black uppercase tracking-[0.2em] rounded-xl text-center hover:bg-white hover:text-black transition-all duration-500">Details</a>
+                        <button hx-post="{% url 'cart:cart_add' variant.id %}" hx-target="#wishlist-item-{{ variant.id }}" hx-swap="outerHTML swap:0.6s" class="flex items-center justify-center py-3.5 bg-primary text-black text-[8px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-white hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all duration-500">Add To Cart</button>
+                    </div>
+                    <button hx-post="{% url 'cart:wishlist_remove' variant.id %}" hx-target="#wishlist-item-{{ variant.id }}" hx-swap="outerHTML swap:0.6s" class="w-full py-2 text-[7px] font-black uppercase tracking-[0.4em] text-slate-600 hover:text-red-500 transition-all duration-500">Remove From Vault</button>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+    {% empty %}
+        <div class="py-20 animate-reveal">
+            <span class="material-symbols-outlined text-6xl text-white/10 mb-6">drafts</span>
+            <h2 class="text-2xl font-light uppercase tracking-[0.3em] text-white/40">Your Vault is Empty</h2>
+            <p class="text-[10px] uppercase tracking-[0.5em] text-slate-600 mt-4 mb-12">Discover your next masterpiece</p>
+            <a href="{% url 'shop:product_list' %}" class="px-12 py-4 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.4em] rounded-full hover:bg-primary hover:text-black transition-all duration-700">
+                Browse Collection
+            </a>
+        </div>
+    {% endfor %}
+</div>
+    </main>
+</div>
+
+<style>
+    @keyframes reveal {
+        from { transform: translateY(100%); }
+        to { transform: translate(0); }
+    }
+    .animate-reveal {
+        animation: reveal 1.5s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    }
+
+    @keyframes staggerIn {
+        from { opacity: 0; transform: translateY(40px); filter: blur(10px); }
+        to { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+    .animate-stagger {
+        opacity: 0;
+        animation: staggerIn 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    }
+
+    .htmx-swapping {
+        opacity: 0;
+        transform: scale(0.9) rotate(-2deg);
+        filter: blur(20px);
+        transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+
+    body {
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+</style>
+{% endblock %}
