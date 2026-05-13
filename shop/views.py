@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from products.models import Product, Category, Brand
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from cart.models import Wishlist
+from cart.models import Wishlist, WishlistItem
 
 
 @login_required(login_url="user_login")
@@ -47,6 +47,7 @@ def product_list(request):
     products = products.distinct()
 
     sort = request.GET.get("sort", "newest")
+    wishlist_variant_ids = []
 
     sort_options = {
         "price_low": "min_price",
@@ -64,14 +65,14 @@ def product_list(request):
 
     from cart.models import Wishlist
 
-    wishlist_variant_ids = Wishlist.objects.filter(user=request.user).values_list(
-        "items__variant__id", flat=True
-    )
+    wishlist_variant_ids = WishlistItem.objects.filter(
+        wishlist__user=request.user
+    ).values_list('variant_id', flat=True)
 
     wishlist_product_ids = Product.objects.filter(
         variants__id__in=wishlist_variant_ids
     ).values_list("id", flat=True)
-
+    wishlist_variant_ids = set(wishlist_variant_ids)
     context = {
         "products": page_obj,
         "categories": Category.objects.filter(is_active=True),

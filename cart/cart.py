@@ -11,22 +11,20 @@ class Cart:
         self.user = request.user
 
         if self.user.is_authenticated:
-            # DB CART
+            
             self.cart_obj, _ = CartModel.objects.get_or_create(user=self.user)
         else:
-            # SESSION CART
+            
             self.cart = self.session.get(settings.CART_SESSION_ID, {})
             self.session[settings.CART_SESSION_ID] = self.cart
 
-    # ----------------------------
-    # ADD TO CART
-    # ----------------------------
+
     def add(self, variant, quantity=1, override_quantity=False):
+    
         if not variant.product.is_active or not variant.is_active:
             return False, "This product is unavailable."
 
         if self.user.is_authenticated:
-            # ---------------- DB LOGIC ----------------
 
             existing_item = CartItem.objects.filter(
                 cart=self.cart_obj, variant=variant
@@ -34,33 +32,33 @@ class Cart:
 
             is_new_item = existing_item is None
 
-            # 1. LIMIT CHECK FIRST (NO DB CHANGE)
             if is_new_item and self.cart_obj.items.count() >= 10:
                 return False, "You can only add 10 different items to the cart."
 
-            # 2. CREATE OR USE EXISTING ITEM (AFTER VALIDATION)
             if is_new_item:
                 item = CartItem(cart=self.cart_obj, variant=variant, quantity=0)
             else:
                 item = existing_item
 
-            # 3. QUANTITY LOGIC
             if override_quantity or is_new_item:
                 new_qty = quantity
             else:
                 new_qty = item.quantity + quantity
+            
+            MAX_PER_ITEM = 5
 
-            # 4. STOCK CHECK
+            if new_qty > MAX_PER_ITEM:
+                return False, f"You can only add {MAX_PER_ITEM} of this item."
+
+
             if not override_quantity and new_qty > variant.stock:
                 return False, "Not enough stock available."
 
-            # 5. SAVE
             item.quantity = new_qty
             item.save()
 
             return True, "Added to collection."
 
-        # ---------------- SESSION LOGIC ----------------
         variant_id = str(variant.id)
 
         is_new_item = variant_id not in self.cart
@@ -77,12 +75,15 @@ class Cart:
             new_qty = quantity
         else:
             new_qty = current_qty + quantity
+        
+            MAX_PER_ITEM = 5
 
-        # STOCK CHECK
-        if not override_quantity and new_qty > variant.stock:
+            if new_qty > MAX_PER_ITEM:
+                return False, f"You can only add {MAX_PER_ITEM} of this item."
+
+        if new_qty > variant.stock:
             return False, "Not enough stock available."
 
-        # CART LIMIT
         MAX_LIMIT = 10
         total_qty = sum(item["quantity"] for item in self.cart.values())
         total_qty = total_qty - current_qty + new_qty
@@ -94,9 +95,6 @@ class Cart:
         self.save()
         return True, "Added to collection."
 
-    # ----------------------------
-    # REMOVE
-    # ----------------------------
     def remove(self, variant):
         if self.user.is_authenticated:
             CartItem.objects.filter(cart=self.cart_obj, variant=variant).delete()
@@ -106,14 +104,11 @@ class Cart:
                 del self.cart[variant_id]
                 self.save()
 
-    # ----------------------------
-    # ITERATION (UNIFIED VIEW)
-    # ----------------------------
+ 
     def __iter__(self):
 
         items_list = []
 
-        # ---------------- DB CART ----------------
         if self.user.is_authenticated:
 
             items = self.cart_obj.items.select_related(
@@ -126,18 +121,13 @@ class Cart:
                 variant = item.variant
                 price = variant.get_price()
 
-                # ---------------- LIVE STOCK CHECK ----------------
                 stock_issue = item.quantity > variant.stock
 
-                # ---------------- AVAILABILITY ----------------
                 is_available = (
                     variant.is_active
                     and variant.product.is_active
                     and variant.product.brand.is_active
                 )
-
-                # IMPORTANT:
-                # DO NOT YIELD HERE
 
                 items_list.append(
                     {
@@ -150,7 +140,6 @@ class Cart:
                     }
                 )
 
-        # ---------------- SESSION CART ----------------
         else:
 
             variant_ids = self.cart.keys()
@@ -166,18 +155,14 @@ class Cart:
                 quantity = cart_item["quantity"]
                 price = Decimal(cart_item["price"])
 
-                # ---------------- LIVE STOCK CHECK ----------------
                 stock_issue = quantity > variant.stock
 
-                # ---------------- AVAILABILITY ----------------
                 is_available = (
                     variant.is_active
                     and variant.product.is_active
                     and variant.product.brand.is_active
                 )
 
-                # IMPORTANT:
-                # DO NOT YIELD HERE
                 items_list.append(
                     {
                         "variant": variant,
@@ -189,10 +174,7 @@ class Cart:
                     }
                 )
 
-        # ---------------- SORTING ----------------
-        # AVAILABLE NORMAL PRODUCTS
-        # AVAILABLE WITH STOCK ISSUES
-        # UNAVAILABLE PRODUCTS LAST
+       
 
         items_list.sort(
             key=lambda x: (
@@ -201,13 +183,10 @@ class Cart:
             )
         )
 
-        # ONLY YIELD HERE
         for item in items_list:
             yield item
 
-    # ----------------------------
-    # TOTAL PRICE
-    # ----------------------------
+
     def get_total_price(self):
         total = 0
 
@@ -230,8 +209,7 @@ class Cart:
 
             return total
 
-        # SESSION CART
-        # SESSION CART
+        
         total = 0
 
         for variant_id, item in self.cart.items():
@@ -259,9 +237,7 @@ class Cart:
         else:
             return self.cart.get(str(variant.id), {}).get("quantity", 0)
 
-    # ----------------------------
-    # SAVE SESSION
-    # ----------------------------
+   
     def save(self):
         self.session.modified = True
 
@@ -270,9 +246,6 @@ class Cart:
 
         return any(item["is_available"] and not item["stock_issue"] for item in self)
 
-    # ----------------------------
-    # CLEAR CART
-    # ----------------------------
     def clear(self):
         if self.user.is_authenticated:
             self.cart_obj.items.all().delete()
@@ -280,9 +253,7 @@ class Cart:
             self.session[settings.CART_SESSION_ID] = {}
             self.save()
 
-    # ----------------------------
-    # VALIDATION FOR CHECKOUT
-    # ----------------------------
+
 
     @property
     def is_valid_for_checkout(self):

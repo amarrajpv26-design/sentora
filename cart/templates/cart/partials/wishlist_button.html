@@ -1,31 +1,38 @@
 <div id="heart-container-detail-{{ product.id }}">
-        <button
-        type="button"
-        hx-post="{% url 'cart:wishlist_toggle' variant.id %}"
-hx-target="#heart-container-detail-{{ product.id }}"
-        hx-swap="outerHTML"
-        class="premium-wishlist-btn relative w-[170px] h-[60px] rounded-2xl border transition-all duration-700 overflow-hidden group
-        {% if is_in_wishlist %}border-primary/40 bg-[#222]{% else %}border-white/5 bg-[#1a1a1a]{% endif %}"
-    >
+<button
+    type="button"
+    hx-post="{% url 'cart:wishlist_toggle' variant.id %}"
+    hx-target="#heart-container-detail-{{ product.id }}"
+    hx-swap="outerHTML"
+    class="group"
+>
 
-        <div class="relative w-full h-full flex items-center justify-center gap-2">
+    <div class="w-11 h-11 rounded-full flex items-center justify-center
+        backdrop-blur-xl border transition-all duration-500
 
-            {% if is_in_wishlist %}
-                <span class="material-symbols-outlined text-primary text-[20px]">
-                    favorite
-                </span>
-                <span class="text-[9px] font-black uppercase tracking-[0.2em] text-primary">
-                    In Vault
-                </span>
-            {% else %}
-                <span class="material-symbols-outlined text-slate-600 text-[20px]">
-                    favorite_border
-                </span>
-                <span class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600">
-                    Wishlist
-                </span>
-            {% endif %}
+        {% if is_in_wishlist %}
+            bg-primary border-primary
+            shadow-[0_0_20px_rgba(212,175,55,0.35)]
+            hover:scale-110
+        {% else %}
+            bg-black/30 border-white/10
+            hover:border-primary/40
+            hover:bg-black/50
+            hover:scale-110
+        {% endif %}
+    ">
 
-        </div>
-    </button>
+        {% if is_in_wishlist %}
+            <span class="material-symbols-outlined text-black text-[20px]">
+                favorite
+            </span>
+        {% else %}
+            <span class="material-symbols-outlined text-white group-hover:text-primary text-[20px] transition-colors duration-500">
+                favorite
+            </span>
+        {% endif %}
+
+    </div>
+
+</button>
 </div>

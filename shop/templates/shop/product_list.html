@@ -152,6 +152,22 @@
                         <div class="absolute inset-0 bg-gradient-to-tr from-primary/0 via-primary/[0.02] to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
 
                         <div class="relative aspect-[4/5] overflow-hidden rounded-[2.5rem] mb-6 flex-shrink-0">
+                            {% with first_variant=product.variants.first %}
+{% if first_variant %}
+
+<div id="wishlist-btn-{{ first_variant.id }}"
+     class="absolute top-5 right-5 z-20">
+
+   {% if first_variant.id in wishlist_variant_ids %}
+    {% include "cart/partials/wishlist_button.html" with variant=first_variant is_in_wishlist=True %}
+{% else %}
+    {% include "cart/partials/wishlist_button.html" with variant=first_variant is_in_wishlist=False %}
+{% endif %}
+
+</div>
+
+{% endif %}
+{% endwith %}
                             
                             {% if product.images.all %}
                             <img src="{{ product.images.first.image.url }}" alt="{{ product.name }}" 

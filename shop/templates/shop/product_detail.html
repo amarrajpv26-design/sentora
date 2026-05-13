@@ -197,7 +197,7 @@ h1 {
                     Buy Now
                 </button>
 
-                <div id="heart-container-detail-{{ product.id }}">
+<div id="heart-container-detail-{{ product.id }}">
     {% include 'cart/partials/wishlist_button.html' with variant=variants.0 product=product is_in_wishlist=is_in_wishlist %}
 </div>
             </div>
@@ -327,6 +327,15 @@ function updateVariantDetails() {
     const variantId = selectedOption.value; 
     document.getElementById('hidden-variant-id').value = variantId;
     document.getElementById('add-to-cart-form').action = `/cart/add/${variantId}/`;
+    // UPDATE WISHLIST BUTTON STATE
+htmx.ajax(
+    'GET',
+    `/cart/wishlist/button/${variantId}/`,
+    {
+        target: `#heart-container-detail-{{ product.id }}`,
+        swap: 'outerHTML'
+    }
+);
     // -------------------------
     
 
@@ -395,6 +404,7 @@ function updateVariantDetails() {
             if(qtyInput) qtyInput.value = 1; 
         }
     }
+    
 }
 
 // 4. QUANTITY CHANGER

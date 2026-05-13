@@ -176,18 +176,27 @@ def wishlist_toggle(request, variant_id):
     variant = get_object_or_404(ProductVariant, id=variant_id)
     wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
 
-    item = WishlistItem.objects.filter(wishlist=wishlist, variant=variant).first()
+    existing_item = WishlistItem.objects.filter(
+        wishlist=wishlist, variant__product=variant.product
+    ).first()
 
-    if item:
-        item.delete()
+    if existing_item and existing_item.variant == variant:
+
+        existing_item.delete()
         is_in_wishlist = False
+
     else:
+        WishlistItem.objects.filter(
+            wishlist=wishlist, variant__product=variant.product
+        ).delete()
+
         WishlistItem.objects.create(wishlist=wishlist, variant=variant)
+
         is_in_wishlist = True
 
     response = render(
         request,
-        "cart/partials/wishlist_button.html",
+        "cart/partials/wishlist_button_wrapper.html",
         {
             "is_in_wishlist": is_in_wishlist,
             "product": variant.product,
@@ -235,4 +244,26 @@ def wishlist_detail(request):
 
     return render(
         request, "cart/wishlist_detail.html", {"wishlist_items": wishlist_items}
+    )
+
+
+def wishlist_button_partial(request, variant_id):
+    variant = get_object_or_404(ProductVariant, id=variant_id)
+
+    is_in_wishlist = False
+
+    if request.user.is_authenticated:
+        is_in_wishlist = WishlistItem.objects.filter(
+            wishlist__user=request.user,
+            variant=variant
+        ).exists()
+
+    return render(
+        request,
+        "cart/partials/wishlist_button_wrapper.html",
+        {
+            "variant": variant,
+            "product": variant.product,
+            "is_in_wishlist": is_in_wishlist,
+        },
     )
