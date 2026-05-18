@@ -21,9 +21,12 @@ from datetime import date,timedelta
 def welcome_view(request):
     return render(request, "users/welcome.html")
 
-
+@login_required(login_url='welcome')
 @never_cache
 def home(request):
+    if not request.user.is_authenticated:
+        return redirect("welcome")
+    
     return render(request, "users/index.html")
 
 
@@ -160,7 +163,8 @@ def user_login(request):
 @never_cache
 def user_logout(request):
     logout(request)
-    return redirect("home")
+    messages.success(request, "You have been logged out successfully.")
+    return redirect("welcome")
 
 
 @never_cache

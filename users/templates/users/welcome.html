@@ -64,10 +64,111 @@
                 <span class="material-symbols-outlined text-slate-500 text-xl">search</span>
                 <input class="bg-transparent border-none focus:ring-0 text-xs w-48 placeholder:text-slate-600" placeholder="Search fragrances..." type="text"/>
             </div>
-            <div class="flex items-center gap-4 border-l border-neutral-border pl-6">
-                <a href="/login/" class="text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors">Login</a>
-                <a href="{% url 'user_signup' %}" class="bg-primary text-background-dark text-xs font-black uppercase tracking-widest px-6 py-3 rounded-sm hover:brightness-110 transition-all">Signup</a>
+            <div class="flex items-center gap-7 border-l border-neutral-border pl-8">
+
+    <!-- Wishlist -->
+    <a href="{% url 'cart:wishlist_detail' %}" class="relative group pt-2">
+        <span class="material-symbols-outlined text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
+            favorite
+        </span>
+
+        <span class="absolute -top-1 left-1/2 -translate-x-1/2
+                     min-w-[18px] h-[18px] px-1
+                     flex items-center justify-center
+                     rounded-full
+                     bg-primary text-black
+                     text-[9px] font-black leading-none">
+            {{ guest_wishlist_count|default:0 }}
+        </span>
+    </a>
+
+    <!-- Cart -->
+    <a href="{% url 'cart:cart_detail' %}" class="relative group pt-2">
+        <span class="material-symbols-outlined text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
+            shopping_bag
+        </span>
+
+        <span class="absolute -top-1 left-1/2 -translate-x-1/2
+                     min-w-[18px] h-[18px] px-1
+                     flex items-center justify-center
+                     rounded-full
+                     bg-primary text-black
+                     text-[9px] font-black leading-none">
+            {{ guest_cart_count|default:0 }}
+        </span>
+    </a>
+
+    <!-- Guest Profile -->
+    <div class="relative group">
+
+        <button class="flex items-center gap-3 border-l border-neutral-border pl-7">
+
+            <div class="flex flex-col items-end hidden sm:flex">
+                <span class="text-[8px] uppercase tracking-[0.35em] text-slate-500">
+                    Guest Access
+                </span>
+
+                <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-white">
+                    Guest
+                </span>
             </div>
+
+            <div class="w-11 h-11 rounded-full border border-neutral-border overflow-hidden
+                        flex items-center justify-center
+                        group-hover:border-primary transition-all">
+
+                <span class="material-symbols-outlined text-slate-400 group-hover:text-primary">
+                    person
+                </span>
+            </div>
+        </button>
+
+        <!-- Dropdown -->
+        <div class="absolute right-0 top-16 w-56 bg-neutral-dark border border-neutral-border
+                    rounded-2xl overflow-hidden opacity-0 invisible
+                    translate-y-4 group-hover:translate-y-0
+                    group-hover:opacity-100 group-hover:visible
+                    transition-all duration-300 z-50">
+
+            <div class="p-4 border-b border-neutral-border">
+                <p class="text-[10px] uppercase tracking-[0.3em] text-slate-500">
+                    Welcome to Scentora
+                </p>
+            </div>
+
+            <div class="p-2">
+
+                <a href="{% url 'user_login' %}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-xl
+                          hover:bg-white/5 transition-all">
+
+                    <span class="material-symbols-outlined text-[20px]">
+                        login
+                    </span>
+
+                    <span class="text-xs font-semibold uppercase tracking-widest">
+                        Login
+                    </span>
+                </a>
+
+                <a href="{% url 'user_signup' %}"
+                   class="flex items-center gap-3 px-4 py-3 rounded-xl
+                          hover:bg-white/5 transition-all">
+
+                    <span class="material-symbols-outlined text-[20px]">
+                        person_add
+                    </span>
+
+                    <span class="text-xs font-semibold uppercase tracking-widest">
+                        Signup
+                    </span>
+                </a>
+
+            </div>
+        </div>
+    </div>
+
+</div>
         </div>
     </div>
 </header>

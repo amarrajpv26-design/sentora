@@ -51,31 +51,18 @@
     </style>
 </head>
 <body class="bg-background-dark text-slate-100 antialiased">
-{% if messages %}
-<div class="fixed top-8 left-1/2 -translate-x-1/2 z-[999] space-y-3 w-full max-w-md px-4">
-    {% for message in messages %}
-    <div class="bg-black/90 backdrop-blur-xl border border-primary/20 rounded-2xl px-6 py-4 shadow-2xl animate__animated animate__fadeInDown">
-        <p class="text-[10px] font-black uppercase tracking-[0.25em] text-primary mb-1">
-            System Notice
-        </p>
-        <p class="text-xs text-white font-medium">
-            {{ message }}
-        </p>
-    </div>
-    {% endfor %}
+
+
+    <!-- PREMIUM TOAST CONTAINER -->
+<div id="global-toast-container"
+     class="fixed top-8 left-1/2 -translate-x-1/2
+            z-[9999]
+            flex flex-col gap-4
+            items-center
+            pointer-events-none">
 </div>
 
-<script>
-setTimeout(() => {
-    document.querySelectorAll('.animate__fadeInDown').forEach(el => {
-        el.style.transition = "all .5s ease";
-        el.style.opacity = "0";
-        el.style.transform = "translateY(-20px)";
-        setTimeout(() => el.remove(), 500);
-    });
-}, 3000);
-</script>
-{% endif %}
+
 <header class="sticky top-0 z-50 w-full border-b border-neutral-border bg-background-dark/90 backdrop-blur-md">
 <div class="w-full px-10 lg:px-16 py-5 flex items-center justify-between">        <div class="flex items-center gap-16">
             <a class="flex items-center gap-2 group" href="{% url 'home' %}">
@@ -111,14 +98,33 @@ setTimeout(() => {
             {% endif %}
         </a>
 
-        <a href="#" class="px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-300 hover:text-white transition-all duration-300">
-            Collections
+        <a href="{% url 'shop:brand_list' %}"
+           class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300
+           {% if request.resolver_match.url_name == 'brand_list' %}
+                text-primary
+           {% else %}
+                text-slate-300 hover:text-white
+           {% endif %}">
+            Brands
+            {% if request.resolver_match.url_name == 'brand_list' %}
+            <span class="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
+            {% endif %}
         </a>
 
-        <a href="#" class="px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] text-slate-300 hover:text-white transition-all duration-300">
-            Categories
-        </a>
+       
 
+       <a href="{% url 'shop:category_list' %}"
+           class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300
+           {% if request.resolver_match.url_name == 'category_list' %}
+                text-primary
+           {% else %}
+                text-slate-300 hover:text-white
+           {% endif %}">
+            Category
+            {% if request.resolver_match.url_name == 'category_list' %}
+            <span class="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
+            {% endif %}
+        </a>
     </div>
 </nav>
         </div>
@@ -147,7 +153,8 @@ setTimeout(() => {
                  flex items-center justify-center
                  rounded-full
                  bg-primary text-black
-                 text-[9px] font-black leading-none">
+                 text-[9px] font-black leading-none
+                 ">
         {{ request.user.wishlist.items.count }}
     </span>
 </a>
@@ -164,7 +171,7 @@ setTimeout(() => {
                  rounded-full
                  bg-primary text-black
                  text-[9px] font-black leading-none
-                 {% if cart|length == 0 %}hidden{% endif %}">
+                ">
         {{ cart|length }}
     </span>
 </a>
@@ -199,9 +206,7 @@ setTimeout(() => {
     </a>
 
 </div>
-{% else %}
-    <a href="{% url 'user_login' %}" class="text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors">Login</a>
-    <a href="{% url 'user_signup' %}" class="bg-primary text-background-dark text-xs font-black uppercase tracking-widest px-6 py-3 rounded-sm hover:brightness-110 transition-all">Signup</a>
+
 {% endif %}
             </div>
         </div>
@@ -469,15 +474,147 @@ setTimeout(() => {
     </div>
 </footer>
 <script>
-        document.body.addEventListener('htmx:configRequest', (event) => {
-            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+    // CSRF for HTMX
+    document.body.addEventListener('htmx:configRequest', (event) => {
+        event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+    });
+
+    // Optional log
+    document.addEventListener('htmx:afterOnLoad', function(evt) {
+        console.log("HTMX action complete");
+    });
+
+    // Create toast container automatically
+    const toastContainer = document.createElement("div");
+
+    toastContainer.id = "global-toast-container";
+
+    toastContainer.className = `
+        fixed top-8 left-1/2 -translate-x-1/2
+        z-[9999]
+        flex flex-col gap-3
+        w-full max-w-md px-4
+        pointer-events-none
+    `;
+
+    document.body.appendChild(toastContainer);
+
+    // Show toast function
+    function showToast(message) {
+
+        const container = document.getElementById("global-toast-container");
+
+        // REMOVE FIRST TOAST IMMEDIATELY IF ALREADY 2 EXISTS
+        const existingToasts = container.querySelectorAll(".toast-item");
+
+        if (existingToasts.length >= 2) {
+
+            existingToasts[0].remove();
+        }
+
+        // CREATE TOAST
+        const toast = document.createElement("div");
+
+        toast.className = `
+            toast-item
+            bg-black/90
+            backdrop-blur-xl
+            border border-primary/20
+            rounded-2xl
+            px-6 py-4
+            shadow-2xl
+
+            opacity-0
+            -translate-y-5
+            scale-95
+
+            transition-all duration-300
+            pointer-events-auto
+        `;
+
+        toast.innerHTML = `
+            <p class="text-[10px] font-black uppercase tracking-[0.25em] text-primary mb-1">
+                System Notice
+            </p>
+
+            <p class="text-xs text-white font-medium">
+                ${message}
+            </p>
+        `;
+
+        // ADD TO DOM
+        container.appendChild(toast);
+
+        // SHOW ANIMATION
+        requestAnimationFrame(() => {
+
+            toast.classList.remove(
+                "opacity-0",
+                "-translate-y-5",
+                "scale-95"
+            );
+
+            toast.classList.add(
+                "opacity-100",
+                "translate-y-0",
+                "scale-100"
+            );
         });
 
-        // Optional: Reset HTMX if the page content changes
-        document.addEventListener('htmx:afterOnLoad', function(evt) {
-            console.log("HTMX action complete");
-        });
-    </script>
+        // AUTO REMOVE AFTER 3 SECONDS
+        setTimeout(() => {
+
+            toast.classList.remove(
+                "opacity-100",
+                "translate-y-0",
+                "scale-100"
+            );
+
+            toast.classList.add(
+                "opacity-0",
+                "-translate-y-5",
+                "scale-95"
+            );
+
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+
+        }, 3000);
+    }
+
+    // DJANGO MESSAGES
+    document.addEventListener("DOMContentLoaded", () => {
+
+        {% for message in messages %}
+            showToast(`{{ message|escapejs }}`);
+        {% endfor %}
+
+    });
+
+    // HTMX TOAST SUPPORT
+    document.body.addEventListener("htmx:afterRequest", function (evt) {
+
+        const triggerHeader = evt.detail.xhr.getResponseHeader("HX-Trigger");
+
+        if (!triggerHeader) return;
+
+        try {
+
+            const triggers = JSON.parse(triggerHeader);
+
+            for (const key in triggers) {
+                showToast(triggers[key]);
+            }
+
+        } catch {
+
+            showToast(triggerHeader);
+        }
+    });
+
+</script>
+    
     
 </body>
 </html>

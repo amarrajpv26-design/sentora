@@ -140,6 +140,7 @@ class ProductImage(models.Model):
     is_main = models.BooleanField(
         default=False, help_text="The first image the user sees."
     )
+    
 
     def __str__(self):
         return f"Image for {self.product.name}"

@@ -1,9 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Min, Sum, Q
+from django.db.models import Min, Sum, Q, Prefetch
 from django.core.paginator import Paginator
 from products.models import Product, Category, Brand
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from products.models import Brand
 from cart.models import Wishlist, WishlistItem
 
 
@@ -67,7 +68,7 @@ def product_list(request):
 
     wishlist_variant_ids = WishlistItem.objects.filter(
         wishlist__user=request.user
-    ).values_list('variant_id', flat=True)
+    ).values_list("variant_id", flat=True)
 
     wishlist_product_ids = Product.objects.filter(
         variants__id__in=wishlist_variant_ids
@@ -143,8 +144,60 @@ def product_detail(request, product_id):
         "offer_price": offer_price,
         "total_stock": total_stock,
         "is_low_stock": is_low_stock,
-        'is_in_wishlist': is_in_wishlist,
+        "is_in_wishlist": is_in_wishlist,
         "all_categories": Category.objects.filter(is_active=True),
     }
 
     return render(request, "shop/product_detail.html", context)
+
+
+def brand_list(request):
+
+    first_image_qs = Product.objects.prefetch_related(
+        "images"
+    ).order_by("id")
+
+    brands = (
+        Brand.objects.filter(is_active=True)
+        .order_by("id")   # oldest added first
+        .prefetch_related(
+            Prefetch(
+                "products",
+                queryset=first_image_qs
+            )
+        )
+    )
+
+    return render(
+        request,
+        "shop/brand_list.html",
+        {
+            "brands": brands
+        }
+    )
+
+
+def category_list(request):
+
+    first_product_qs = Product.objects.prefetch_related(
+        "images"
+    ).order_by("id")
+
+    categories = (
+        Category.objects.filter(is_active=True)
+        .order_by("id")   # oldest created first
+        .prefetch_related(
+            Prefetch(
+                "products",
+                queryset=first_product_qs
+            )
+        )
+    )
+
+    return render(
+        request,
+        "shop/category_list.html",
+        {
+            "categories": categories
+        }
+    )
