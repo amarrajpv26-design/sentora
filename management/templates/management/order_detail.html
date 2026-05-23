@@ -118,12 +118,33 @@
                                         <td class="px-10 py-6 text-xs font-light text-white/60">₹{{ item.price }} / unit</td>
                                         <td class="px-10 py-6 text-sm font-black text-white">₹{{ item.subtotal }}</td>
                                         <td class="px-10 py-6 text-right">
-                                            {% if item.item_status == 'ACTIVE' %}
-                                                <span class="px-3 py-1 bg-green-500/10 text-green-400 text-[8px] font-black uppercase tracking-widest rounded-full">Active</span>
-                                            {% else %}
-                                                <span class="px-3 py-1 bg-red-500/10 text-red-400 text-[8px] font-black uppercase tracking-widest rounded-full">{{ item.get_item_status_display }}</span>
-                                            {% endif %}
-                                        </td>
+    <form method="POST"
+          action="{% url 'management:handle_item_status_change' item.id %}"
+          class="flex justify-end">
+        {% csrf_token %}
+
+        <select name="item_status"
+                onchange="this.form.submit()"
+                class="bg-black border border-white/10 text-white text-[10px] px-3 py-2 rounded-xl uppercase tracking-wider font-bold">
+
+            <option value="ACTIVE"
+                {% if item.item_status == 'ACTIVE' %}selected{% endif %}>
+                Active
+            </option>
+
+            <option value="CANCELLED"
+                {% if item.item_status == 'CANCELLED' %}selected{% endif %}>
+                Cancelled
+            </option>
+
+            <option value="RETURNED"
+                {% if item.item_status == 'RETURNED' %}selected{% endif %}>
+                Returned
+            </option>
+
+        </select>
+    </form>
+</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>

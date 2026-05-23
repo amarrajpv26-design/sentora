@@ -63,56 +63,101 @@ def admin_order_detail(request, order_id):
 @staff_member_required(login_url="user_login")
 @transaction.atomic
 def change_order_status(request, order_id):
-    """iii. Change order status cleanly via POST parameters"""
+
     if request.method == "POST":
+
         order = get_object_or_404(Order, order_id=order_id)
+
         new_status = request.POST.get("order_status")
+        old_status = order.order_status
 
-        if new_status in dict(Order.ORDER_STATUS):
-            old_status = order.order_status
-            order.order_status = new_status
-            order.save()
+        valid_statuses = dict(Order.ORDER_STATUS)
 
-            # IF ADMIN RESETS AN ORDER BACK TO PENDING FROM CANCELLED
-            if new_status == "PENDING" and old_status in ["CANCELLED", "RETURNED"]:
-                for item in order.items.all():
-                    if item.item_status == "CANCELLED":
-                        variant = item.product_variant
-                        if variant and variant.stock >= item.quantity:
-                            # Re-deduct the stock since order is moving back to pending
-                            ProductVariant.objects.filter(id=variant.id).update(
-                                stock=F("stock") - item.quantity
-                            )
-                            item.item_status = "ACTIVE"
-                            item.save()
-                        else:
-                            messages.warning(
-                                request,
-                                f"Could not re-activate {item.product_name} due to low inventory stock.",
-                            )
+        if new_status not in valid_statuses:
+            messages.error(request, "Invalid order status.")
+            return redirect("management:admin_orders_list")
 
-                # Inline recalculation engine to avoid NameError
-                active_items = order.items.filter(item_status="ACTIVE")
+        # ==============================
+        # CANCEL / RETURN ORDER
+        # ==============================
 
-                subtotal = sum(item.subtotal for item in active_items)
-                discount = sum(
-                    ((item.price * item.quantity) - item.subtotal)
-                    for item in active_items
+        if (
+            new_status in ["CANCELLED", "RETURNED"]
+            and old_status not in ["CANCELLED", "RETURNED"]
+        ):
+
+            for item in order.items.all():
+
+                # avoid double restock
+                if item.item_status == "ACTIVE":
+
+                    if item.product_variant:
+
+                        ProductVariant.objects.filter(
+                            id=item.product_variant.id
+                        ).update(
+                            stock=F("stock") + item.quantity
+                        )
+
+                    item.item_status = new_status
+                    item.save()
+
+        # ==============================
+        # REACTIVATE ORDER
+        # ==============================
+
+        elif (
+            old_status in ["CANCELLED", "RETURNED"]
+            and new_status in ["PENDING", "PROCESSING", "SHIPPED"]
+        ):
+
+            for item in order.items.all():
+
+                if item.product_variant:
+
+                    variant = item.product_variant
+
+                    # check inventory before deducting
+                    if variant.stock < item.quantity:
+
+                        messages.error(
+                            request,
+                            f"Not enough stock for {item.product_name}"
+                        )
+
+                        return redirect(
+                            "management:admin_order_detail",
+                            order_id=order.order_id
+                        )
+
+            # deduct after validation
+            for item in order.items.all():
+
+                ProductVariant.objects.filter(
+                    id=item.product_variant.id
+                ).update(
+                    stock=F("stock") - item.quantity
                 )
 
-                order.subtotal = subtotal
-                order.discount = discount
-                order.total_amount = subtotal + getattr(order, "shipping_charge", 0)
-                order.save()
+                item.item_status = "ACTIVE"
+                item.save()
 
-            messages.success(
-                request,
-                f"Order #{order.order_id} status updated to {order.get_order_status_display()}.",
-            )
-        else:
-            messages.error(request, "Invalid status choice value transition.")
+        # ==============================
+        # SAVE ORDER STATUS
+        # ==============================
 
-    return redirect("management:admin_orders_list")
+        order.order_status = new_status
+        order.save()
+
+        messages.success(
+            request,
+            f"Order status updated to {order.get_order_status_display()}."
+        )
+
+    return redirect(
+        "management:admin_order_detail",
+        order_id=order.order_id
+    )
 
 
 # ==========================================
