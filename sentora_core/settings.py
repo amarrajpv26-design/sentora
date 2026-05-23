@@ -29,7 +29,8 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = []
-
+TIME_ZONE = 'Asia/Kolkata'
+USE_TZ = True
 
 # Application definition
 
@@ -47,6 +48,9 @@ INSTALLED_APPS = [
     "products",
     "shop",
     "cart",
+    'checkout',
+    'orders',
+    'management',
     #apps
 
     # google
@@ -167,11 +171,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+
 
 USE_I18N = True
 
-USE_TZ = True
+
 
 
 # Static files (CSS, JavaScript, Images)

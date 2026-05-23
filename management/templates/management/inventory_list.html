@@ -1,0 +1,160 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <style>
+    .luxury-shimmer {
+        background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 4s linear infinite;
+    }
+    @keyframes shimmer { to { background-position: 200% center; } }
+    .glass-panel { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    .luxury-input { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); color: white; transition: all 0.3s ease; }
+    .luxury-input:focus { border-color: #f4b41a; box-shadow: 0 0 15px rgba(244, 180, 26, 0.1); outline: none; }
+    .luxury-table tr { transition: all 0.3s ease; border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
+    .luxury-table tr:hover { background: rgba(255, 255, 255, 0.01); }
+    </style>
+{% endblock %}
+
+{% block breadcrumb %}
+    <span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">Stock Ledger</span>
+{% endblock %}
+
+{% block content %}
+    <div class="animate__animated animate__fadeIn">
+        <div class="mb-10">
+            <h2 class="text-4xl font-extralight text-white tracking-tighter">
+                Inventory <span class="font-black luxury-shimmer">Vault</span>
+            </h2>
+            <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">
+                Live monitoring and direct inline stock overrides.
+            </p>
+        </div>
+
+        <form method="GET" action="{% url 'management:admin_inventory_list' %}" class="glass-panel rounded-2xl p-8 grid grid-cols-12 gap-8 items-end mb-8">
+            <div class="col-span-5">
+                <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Search Products</label>
+                <div class="relative flex items-center gap-3">
+                    <input type="text" name="search" value="{{ search_query|default:'' }}" placeholder="Variant Name, Fragrance title..." class="luxury-input py-3 px-5 rounded-xl text-sm w-full placeholder:text-white/20">
+                    <button type="submit" class="px-6 py-3 text-[10px] font-black uppercase tracking-[2px] text-black bg-gold rounded-xl transition-all">Search</button>
+                </div>
+            </div>
+
+            <div class="col-span-3">
+                <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Stock State Alert</label>
+                <select name="stock_status" onchange="this.form.submit()" class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none bg-black">
+                   <option value="" {% if not stock_filter %}selected{% endif %}>All Volumes</option>
+
+<option value="abundant"
+    {% if stock_filter == 'abundant' %}selected{% endif %}>
+    Abundant Stock (> 5)
+</option>
+
+<option value="low"
+    {% if stock_filter == 'low' %}selected{% endif %}>
+    Low Stock Threshold (≤ 5)
+</option>
+
+<option value="out"
+    {% if stock_filter == 'out' %}selected{% endif %}>
+    Depleted (0 units)
+</option>
+                </select>
+            </div>
+
+            <div class="col-span-4">
+                <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Sort Metrics</label>
+                <select name="sort" onchange="this.form.submit()" class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none bg-black">
+                    <option value="product_name" {% if sort == 'product_name' %}selected{% endif %}>Product Classification (A-Z)</option>
+                    <option value="stock_low" {% if sort == 'stock_low' %}selected{% endif %}>Availability Level (Ascending)</option>
+                    <option value="stock_high" {% if sort == 'stock_high' %}selected{% endif %}>Availability Level (Descending)</option>
+                </select>
+            </div>
+        </form>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-[2px] rounded-xl flex items-center gap-3">
+                    <i class="bi bi-info-circle"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="glass-panel rounded-[32px] overflow-hidden">
+            <table class="w-full text-left luxury-table">
+                <thead>
+                    <tr class="bg-white/[0.01]">
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Variant ID</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Brand Collection</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Product / Presentation Metric</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Valuation Price</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Dynamic Metric Status</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black text-center w-[180px]">Change Inventory</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/[0.03]">
+                    {% for variant in variants %}
+                        <tr>
+                            <td class="px-8 py-6 text-xs font-mono text-white/30">#VAR-{{ variant.id }}</td>
+                            <td class="px-8 py-6 text-xs text-gold/80 font-black uppercase tracking-wider">{{ variant.product.brand.name }}</td>
+                            <td class="px-8 py-6">
+                                <div class="text-sm font-bold text-white tracking-tight">{{ variant.product.name }}</div>
+                                <div class="text-[10px] text-white/40 mt-0.5 uppercase tracking-widest font-medium">Size Spec: {{ variant.size }}</div>
+                            </td>
+                            <td class="px-8 py-6 text-xs text-white/80 font-bold">₹{{ variant.price }}</td>
+                            <td class="px-8 py-6">
+                                {% if variant.stock == 0 %}
+                                    <span class="px-3 py-1 bg-red-500/10 text-red-400 text-[8px] font-black uppercase tracking-widest rounded-full">Depleted</span>
+                                {% elif variant.stock <= 5 %}
+                                    <span class="px-3 py-1 bg-amber-500/10 text-amber-400 text-[8px] font-black uppercase tracking-widest rounded-full animate-pulse">Critical Threshold ({{ variant.stock }})</span>
+                                {% else %}
+                                    <span class="px-3 py-1 bg-green-500/10 text-green-400 text-[8px] font-black uppercase tracking-widest rounded-full">Abundant ({{ variant.stock }})</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-8 py-6 text-center">
+                                <form method="POST" action="{% url 'management:update_variant_stock' variant.id %}" class="flex items-center justify-center gap-2">
+                                    {% csrf_token %}
+                                    <input type="number" name="stock" value="{{ variant.stock }}" min="0" class="luxury-input w-20 py-1.5 px-3 rounded-lg text-center font-bold text-xs">
+                                    <button type="submit" class="p-2 border border-gold/20 text-gold hover:bg-gold hover:text-black rounded-lg transition-all" title="Save Inventory Change">
+                                        <i class="bi bi-check-lg text-xs"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-8 py-20 text-center">
+                                <p class="text-[10px] text-white/20 uppercase tracking-[5px] italic">No active collection parameters map current matrix criteria</p>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if variants.has_other_pages %}
+            <div class="mt-10 flex items-center justify-between px-4">
+                <div class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
+                    Showing variants <span class="text-gold">{{ variants.start_index }}-{{ variants.end_index }}</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    {% if variants.has_previous %}
+                        <a href="?page={{ variants.previous_page_number }}&search={{ search_query|default:'' }}&stock_status={{ stock_filter|default:'' }}&sort={{ sort|default:'product_name' }}"
+                           class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
+                            Prev
+                        </a>
+                    {% endif %}
+                    <div class="text-[11px] font-black text-gold tracking-[2px]">{{ variants.number }} / {{ variants.paginator.num_pages }}</div>
+                    {% if variants.has_next %}
+                        <a href="?page={{ variants.next_page_number }}&search={{ search_query|default:'' }}&stock_status={{ stock_filter|default:'' }}&sort={{ sort|default:'product_name' }}"
+                           class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
+                            Next
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

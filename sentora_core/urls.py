@@ -23,10 +23,13 @@ from django.conf.urls.static import static
 urlpatterns = [
     path("admin-control/", include("admin_panel.urls")),
     path("", include("users.urls")),
-    path('products/', include('products.urls')),
-    path('shop/', include('shop.urls')),
+    path("products/", include("products.urls")),
+    path("shop/", include("shop.urls")),
     path("accounts/", include("allauth.urls")),
-    path('cart/', include('cart.urls')),
+    path("cart/", include("cart.urls")),
+    path("checkout/", include("checkout.urls")),
+    path("orders/", include("orders.urls")),
+    path('management/', include('management.urls', namespace='management')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

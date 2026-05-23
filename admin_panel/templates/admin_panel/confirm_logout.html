@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scentora | Executive Logout</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
-
-    <script>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Scentora | Executive Logout</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet"
+              href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+        <link rel="stylesheet"
+              href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap"
+              rel="stylesheet" />
+        <script>
         tailwind.config = {
             theme: {
                 extend: {
@@ -21,9 +23,8 @@
                 }
             }
         }
-    </script>
-
-    <style>
+        </script>
+        <style>
         .luxury-shimmer {
             background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
             background-size: 200% auto;
@@ -47,57 +48,48 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 25px -5px rgba(244, 180, 26, 0.3);
         }
-    </style>
-</head>
-<body class="bg-[#020202] font-sans flex items-center justify-center min-h-screen p-6 overflow-hidden">
-
-    <div class="fixed inset-0 pointer-events-none">
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gold/5 blur-[120px] rounded-full"></div>
-    </div>
-
-    <div class="relative z-10 w-full max-w-[400px] animate__animated animate__fadeIn">
-        <div class="text-center mb-8">
-            <h1 class="text-white/40 text-[10px] font-black tracking-[0.8em] uppercase mb-2">Scentora</h1>
-            <div class="h-[1px] w-6 bg-gradient-to-r from-transparent via-gold/50 to-transparent mx-auto"></div>
-        </div>
-
-        <div class="glass-card rounded-[40px] p-10 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent"></div>
-            
-            <div class="text-center">
-                <div class="w-16 h-16 bg-gold/5 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-gold/10 shadow-[inset_0_0_15px_rgba(244,180,26,0.1)]">
-                    <i class="bi bi-door-open text-gold text-3xl"></i>
-                </div>
-
-                <h2 class="text-white text-2xl font-extralight tracking-tighter mb-3">
-                    Terminate <span class="font-black luxury-shimmer">Session?</span>
-                </h2>
-                <p class="text-white/30 text-[10px] uppercase tracking-[2px] leading-relaxed mb-10 font-bold">
-                    Administrative access will be restricted until re-authorization.
-                </p>
-
-                <form method="POST" action="{% url 'admin_logout' %}" class="space-y-3">
-                    {% csrf_token %}
-                    
-                    <button type="submit" 
-                            class="btn-luxury w-full py-4 bg-gold text-black font-black text-[10px] uppercase tracking-[3px] rounded-2xl">
-                        Execute Sign Out
-                    </button>
-
-                    <a href="{% url 'admin_dashboard' %}" 
-                       class="block w-full py-4 bg-white/[0.02] border border-white/5 text-white/40 font-bold text-[10px] uppercase tracking-[3px] rounded-2xl hover:bg-white/5 hover:text-white transition-all">
-                        Back to Dashboard
-                    </a>
-                </form>
+        </style>
+    </head>
+    <body class="bg-[#020202] font-sans flex items-center justify-center min-h-screen p-6 overflow-hidden">
+        <div class="fixed inset-0 pointer-events-none">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gold/5 blur-[120px] rounded-full">
             </div>
         </div>
-
-        <div class="mt-8 flex items-center justify-center gap-4 text-white/20">
-            <div class="h-[1px] w-6 bg-white/5"></div>
-            <p class="text-[8px] uppercase tracking-[4px] font-black">Secure Terminal &copy; 2026</p>
-            <div class="h-[1px] w-6 bg-white/5"></div>
+        <div class="relative z-10 w-full max-w-[400px] animate__animated animate__fadeIn">
+            <div class="text-center mb-8">
+                <h1 class="text-white/40 text-[10px] font-black tracking-[0.8em] uppercase mb-2">Scentora</h1>
+                <div class="h-[1px] w-6 bg-gradient-to-r from-transparent via-gold/50 to-transparent mx-auto"></div>
+            </div>
+            <div class="glass-card rounded-[40px] p-10 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent"></div>
+                <div class="text-center">
+                    <div class="w-16 h-16 bg-gold/5 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-gold/10 shadow-[inset_0_0_15px_rgba(244,180,26,0.1)]">
+                        <i class="bi bi-door-open text-gold text-3xl"></i>
+                    </div>
+                    <h2 class="text-white text-2xl font-extralight tracking-tighter mb-3">
+                        Terminate <span class="font-black luxury-shimmer">Session?</span>
+                    </h2>
+                    <p class="text-white/30 text-[10px] uppercase tracking-[2px] leading-relaxed mb-10 font-bold">
+                        Administrative access will be restricted until re-authorization.
+                    </p>
+                    <form method="POST" action="{% url 'admin_logout' %}" class="space-y-3">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn-luxury w-full py-4 bg-gold text-black font-black text-[10px] uppercase tracking-[3px] rounded-2xl">
+                            Execute Sign Out
+                        </button>
+                        <a href="{% url 'admin_dashboard' %}"
+                           class="block w-full py-4 bg-white/[0.02] border border-white/5 text-white/40 font-bold text-[10px] uppercase tracking-[3px] rounded-2xl hover:bg-white/5 hover:text-white transition-all">
+                            Back to Dashboard
+                        </a>
+                    </form>
+                </div>
+            </div>
+            <div class="mt-8 flex items-center justify-center gap-4 text-white/20">
+                <div class="h-[1px] w-6 bg-white/5"></div>
+                <p class="text-[8px] uppercase tracking-[4px] font-black">Secure Terminal &copy; 2026</p>
+                <div class="h-[1px] w-6 bg-white/5"></div>
+            </div>
         </div>
-    </div>
-
-</body>
+    </body>
 </html>

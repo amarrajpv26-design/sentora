@@ -1,8 +1,8 @@
 {% extends 'admin_panel/base_admin.html' %}
-
 {% block extra_css %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-<style>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <style>
     /* Glass Effect Panel */
     .glass-panel { 
         background: rgba(255, 255, 255, 0.02); 
@@ -74,152 +74,162 @@
     padding: 10px;
     margin-bottom: 20px;
 }
-</style>
+    </style>
 {% endblock %}
-
 {% block content %}
-
-<!-- Add this to catch and show messages -->
-
-
-<div class="max-w-5xl mx-auto animate__animated animate__fadeIn">
-   {% if messages %}
-        <div class="mb-6 space-y-2">
-            {% for message in messages %}
-                <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest animate__animated animate__headShake">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
-    <!-- Header -->
-    <div class="mb-10">
-        <a href="{% url 'admin_category_list' %}" class="group flex items-center gap-3 text-white/50 text-[10px] uppercase tracking-[3px] font-bold mb-4 hover:text-gold transition-all">
-                <i class="bi bi-arrow-left transition-transform group-hover:-translate-x-2"></i> 
+    <!-- Add this to catch and show messages -->
+    <div class="max-w-5xl mx-auto animate__animated animate__fadeIn">
+        {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                    <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest animate__animated animate__headShake">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <!-- Header -->
+        <div class="mb-10">
+            <a href="{% url 'admin_category_list' %}"
+               class="group flex items-center gap-3 text-white/50 text-[10px] uppercase tracking-[3px] font-bold mb-4 hover:text-gold transition-all">
+                <i class="bi bi-arrow-left transition-transform group-hover:-translate-x-2"></i>
                 Back to Category Vault
             </a>
-        <h2 class="text-4xl font-extralight text-white tracking-tighter">
-            Initialize <span class="font-black luxury-shimmer">New Vault</span>
-        </h2>
-        <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">Establish a new olfactory classification.</p>
-    </div>
- {% if form.non_field_errors %}
-    <div class="mb-4">
-        {% for error in form.non_field_errors %}
-            <p class="text-red-500 text-[10px] font-bold uppercase tracking-widest">{{ error }}</p>
-        {% endfor %}
-    </div>
-{% endif %}
-    <form method="POST" enctype="multipart/form-data" class="space-y-8" id="add-category-form">
-        {% csrf_token %}
-        
-        <div class="grid grid-cols-12 gap-8">
-            <!-- Left Side: Identity -->
-            <div class="col-span-7 space-y-6">
-                <div class="glass-panel rounded-[24px] p-8 space-y-6">
-                   <!-- Vault Name Section -->
-<div>
-    <label class="block text-[9px] text-gold/50 uppercase tracking-[4px] font-black mb-3">
-        Vault Name <span class="text-red-500">*</span>
-    </label>
-    
-    <!-- Added value="{{ form.name.value|default:'' }}" to keep the text after reload -->
-    <input type="text" 
-       name="name" 
-       value="{{ form.name.value|default:'' }}" 
-       required 
-       class="luxury-input py-4 px-6 rounded-2xl text-sm w-full font-bold tracking-tight" 
-       placeholder="e.g., Men">
-    
-    {% if form.name.errors %}
-        <div class="animate__animated animate__shakeX">
-            {% for error in form.name.errors %}
-                <p class="text-red-500 text-[10px] mt-2 font-bold uppercase tracking-[2px]">
-                    {{ error }}
-                </p>
-            {% endfor %}
+            <h2 class="text-4xl font-extralight text-white tracking-tighter">
+                Initialize <span class="font-black luxury-shimmer">New Vault</span>
+            </h2>
+            <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">
+                Establish a new olfactory classification.
+            </p>
         </div>
-    {% endif %}
-</div>
-
-                    <!-- Olfactory Notes & Description (Mandatory) -->
-                    <div>
-                        <label class="block text-[9px] text-gold/50 uppercase tracking-[4px] font-black mb-3">
-                            Olfactory Notes & Description <span class="text-red-500">*</span>
+        {% if form.non_field_errors %}
+            <div class="mb-4">
+                {% for error in form.non_field_errors %}
+                    <p class="text-red-500 text-[10px] font-bold uppercase tracking-widest">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <form method="POST"
+              enctype="multipart/form-data"
+              class="space-y-8"
+              id="add-category-form">
+            {% csrf_token %}
+            <div class="grid grid-cols-12 gap-8">
+                <!-- Left Side: Identity -->
+                <div class="col-span-7 space-y-6">
+                    <div class="glass-panel rounded-[24px] p-8 space-y-6">
+                        <!-- Vault Name Section -->
+                        <div>
+                            <label class="block text-[9px] text-gold/50 uppercase tracking-[4px] font-black mb-3">
+                                Vault Name <span class="text-red-500">*</span>
+                            </label>
+                            <!-- Added value="{{ form.name.value|default:'' }}" to keep the text after reload -->
+                            <input type="text"
+                                   name="name"
+                                   value="{{ form.name.value|default:'' }}"
+                                   required
+                                   class="luxury-input py-4 px-6 rounded-2xl text-sm w-full font-bold tracking-tight"
+                                   placeholder="e.g., Men">
+                            {% if form.name.errors %}
+                                <div class="animate__animated animate__shakeX">
+                                    {% for error in form.name.errors %}
+                                        <p class="text-red-500 text-[10px] mt-2 font-bold uppercase tracking-[2px]">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <!-- Olfactory Notes & Description (Mandatory) -->
+                        <div>
+                            <label class="block text-[9px] text-gold/50 uppercase tracking-[4px] font-black mb-3">
+                                Olfactory Notes & Description <span class="text-red-500">*</span>
+                            </label>
+                            <textarea name="description"
+                                      required
+                                      class="luxury-input py-4 px-6 rounded-2xl text-sm w-full font-medium"
+                                      rows="5"
+                                      placeholder="Describe the essence, notes, and character...">{{ form.description.value|default:'' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                <!-- Right Side: Visual & Configuration -->
+                <div class="col-span-5 space-y-6">
+                    <!-- Collection Visual (Mandatory) -->
+                    <div class="glass-panel rounded-[24px] p-8">
+                        <label class="block text-[9px] text-gold/50 uppercase tracking-[4px] font-black mb-4">
+                            Collection Visual <span class="text-red-500">*</span>
                         </label>
-                      
-
-<textarea name="description" required class="luxury-input py-4 px-6 rounded-2xl text-sm w-full font-medium" rows="5" placeholder="Describe the essence, notes, and character...">{{ form.description.value|default:'' }}</textarea>
- </div>
-                </div>
-            </div>
-
-            <!-- Right Side: Visual & Configuration -->
-            <div class="col-span-5 space-y-6">
-                <!-- Collection Visual (Mandatory) -->
-                <div class="glass-panel rounded-[24px] p-8">
-                    <label class="block text-[9px] text-gold/50 uppercase tracking-[4px] font-black mb-4">Collection Visual <span class="text-red-500">*</span></label>
-
-<!-- CHANGE THIS LINE -->
-<div id="result-preview" class="w-full rounded-2xl bg-black/40 border border-white/5 overflow-hidden flex flex-col items-center justify-center relative mb-4">                        <i class="bi bi-image text-3xl text-white/10"></i>
-                        <p class="text-[9px] text-white/20 uppercase tracking-[2px] mt-3 font-bold">Preview Area</p>
+                        <!-- CHANGE THIS LINE -->
+                        <div id="result-preview"
+                             class="w-full rounded-2xl bg-black/40 border border-white/5 overflow-hidden flex flex-col items-center justify-center relative mb-4">
+                            <i class="bi bi-image text-3xl text-white/10"></i>
+                            <p class="text-[9px] text-white/20 uppercase tracking-[2px] mt-3 font-bold">Preview Area</p>
+                        </div>
+                        <!-- Input is required to ensure an image is chosen -->
+                        <input type="file"
+                               id="id_category_image_input"
+                               required
+                               accept="image/*"
+                               class="text-[10px] text-white/20">
+                        <!-- Hidden field stores the crop; also required -->
+                        <input type="hidden" name="cropped_image" id="id_cropped_image">
                     </div>
-
-                    <!-- Input is required to ensure an image is chosen -->
-                    <input type="file" id="id_category_image_input" required accept="image/*" class="text-[10px] text-white/20">
-                    <!-- Hidden field stores the crop; also required -->
-                    <input type="hidden" name="cropped_image" id="id_cropped_image" >
-                </div>
-
-                <!-- Display Configuration (Toggles) -->
-                <div class="glass-panel rounded-[24px] p-8 space-y-5">
-                    <label class="block text-[9px] text-gold/50 uppercase tracking-[4px] font-black mb-2">Display Configuration</label>
-                    
-                    <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.02] transition-colors">
-                        <span class="text-[10px] text-white/60 uppercase font-black tracking-widest">Active Listing</span>
-                        <label class="switch">{{ form.is_active }}<span class="slider"></span></label>
-                    </div>
-
-                    <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.02] transition-colors">
-                        <span class="text-[10px] text-white/60 uppercase font-black tracking-widest">Global Navigation</span>
-                        <label class="switch">{{ form.show_in_nav }}<span class="slider"></span></label>
-                    </div>
-
-                    <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.02] transition-colors">
-                        <span class="text-[10px] text-white/60 uppercase font-black tracking-widest">Feature on Home</span>
-                        <label class="switch">{{ form.is_featured }}<span class="slider"></span></label>
+                    <!-- Display Configuration (Toggles) -->
+                    <div class="glass-panel rounded-[24px] p-8 space-y-5">
+                        <label class="block text-[9px] text-gold/50 uppercase tracking-[4px] font-black mb-2">Display Configuration</label>
+                        <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.02] transition-colors">
+                            <span class="text-[10px] text-white/60 uppercase font-black tracking-widest">Active Listing</span>
+                            <label class="switch">
+                                {{ form.is_active }}<span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.02] transition-colors">
+                            <span class="text-[10px] text-white/60 uppercase font-black tracking-widest">Global Navigation</span>
+                            <label class="switch">
+                                {{ form.show_in_nav }}<span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between p-3 rounded-xl hover:bg-white/[0.02] transition-colors">
+                            <span class="text-[10px] text-white/60 uppercase font-black tracking-widest">Feature on Home</span>
+                            <label class="switch">
+                                {{ form.is_featured }}<span class="slider"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Action Bar -->
-        <div class="flex items-center justify-end gap-6 pt-4">
-            <a href="{% url 'admin_category_list' %}" class="text-[10px] font-black uppercase tracking-[2px] text-white/30 hover:text-white transition-all">Discard Vault</a>
-           
-            <button type="submit" class="px-12 py-4 bg-gold text-black rounded-xl font-black text-[10px] uppercase tracking-[2px] hover:shadow-[0_0_30px_rgba(244,180,26,0.3)] transition-all transform hover:-translate-y-1">
-                Establish Classification
-            </button>
-        </div>
-    </form>
-</div>
-
-<!-- Cropping Modal -->
-<div id="cropper-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
-    <div class="glass-panel rounded-[32px] p-8 max-w-2xl w-full border-gold/20">
-        <h3 class="text-white font-black text-[11px] uppercase tracking-[3px] mb-6">Refine Composition</h3>
-        <div class="crop-container rounded-xl overflow-hidden">
-            <img id="image-to-crop">
-        </div>
-        <div class="flex justify-end gap-4 mt-8">
-            <button type="button" id="cancel-crop" class="text-[10px] text-white/30 uppercase font-black tracking-widest">Cancel</button>
-            <button type="button" id="apply-crop" class="px-8 py-3 bg-gold text-black rounded-lg font-black text-[10px] uppercase tracking-widest">Apply Crop</button>
+            <!-- Action Bar -->
+            <div class="flex items-center justify-end gap-6 pt-4">
+                <a href="{% url 'admin_category_list' %}"
+                   class="text-[10px] font-black uppercase tracking-[2px] text-white/30 hover:text-white transition-all">Discard Vault</a>
+                <button type="submit"
+                        class="px-12 py-4 bg-gold text-black rounded-xl font-black text-[10px] uppercase tracking-[2px] hover:shadow-[0_0_30px_rgba(244,180,26,0.3)] transition-all transform hover:-translate-y-1">
+                    Establish Classification
+                </button>
+            </div>
+        </form>
+    </div>
+    <!-- Cropping Modal -->
+    <div id="cropper-modal"
+         class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+        <div class="glass-panel rounded-[32px] p-8 max-w-2xl w-full border-gold/20">
+            <h3 class="text-white font-black text-[11px] uppercase tracking-[3px] mb-6">Refine Composition</h3>
+            <div class="crop-container rounded-xl overflow-hidden">
+                <img id="image-to-crop">
+            </div>
+            <div class="flex justify-end gap-4 mt-8">
+                <button type="button"
+                        id="cancel-crop"
+                        class="text-[10px] text-white/30 uppercase font-black tracking-widest">Cancel</button>
+                <button type="button"
+                        id="apply-crop"
+                        class="px-8 py-3 bg-gold text-black rounded-lg font-black text-[10px] uppercase tracking-widest">
+                    Apply Crop
+                </button>
+            </div>
         </div>
     </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-<script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script>
 let cropper;
 const input = document.getElementById('id_category_image_input');
 const imageToCrop = document.getElementById('image-to-crop');
@@ -266,5 +276,5 @@ document.getElementById('cancel-crop').addEventListener('click', () => {
         `;
     }
 });
-</script>
+    </script>
 {% endblock %}

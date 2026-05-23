@@ -1,9 +1,9 @@
 {% extends 'admin_panel/base_admin.html' %}
-
 {% block extra_css %}
-<!-- Same Cropper CSS and Glass Styles as Add Page -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-<style>
+    <!-- Same Cropper CSS and Glass Styles as Add Page -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <style>
     /* Glass Effect Panel */
     .glass-panel { 
         background: rgba(255, 255, 255, 0.02); 
@@ -55,159 +55,165 @@
     align-items: center; 
     justify-content: center;
 }.
-</style>
+    </style>
 {% endblock %}
-
 {% block content %}
-<!-- Add this to catch and show messages -->
-{% if messages %}
-    <div class="mb-6 space-y-2">
-        {% for message in messages %}
-            <div class="p-4 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center justify-between
-                {% if message.tags == 'error' %} bg-red-500/10 text-red-500 border border-red-500/20 
-                {% else %} bg-gold/10 text-gold border border-gold/20 {% endif %}">
-                <span>{{ message }}</span>
-                <button type="button" onclick="this.parentElement.remove()" class="text-lg">&times;</button>
-            </div>
-        {% endfor %}
-    </div>
-{% endif %}
-<div class="max-w-5xl mx-auto animate__animated animate__fadeIn">
-    <div class="flex justify-between items-end mb-10">
-        <div>
-            <a href="{% url 'admin_category_list' %}" class="group flex items-center gap-3 text-white/50 text-[10px] uppercase tracking-[3px] font-bold mb-4 hover:text-gold transition-all">
-                <i class="bi bi-arrow-left transition-transform group-hover:-translate-x-2"></i> 
-                Back to Category Vault
-            </a>
-            <h2 class="text-4xl font-extralight text-white tracking-tighter">
-                Refine <span class="font-black luxury-shimmer">{{ category.name }}</span>
-            </h2>
-            <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">Updating Vault ID: SC-{{ category.id|stringformat:"03d" }}</p>
-        </div>
-        
-    </div>
-    {% if form.non_field_errors %}
-    <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 animate__animated animate__headShake">
-        {% for error in form.non_field_errors %}
-            <p class="text-red-500 text-[10px] font-black uppercase tracking-widest">
-                {{ error }}
-            </p>
-        {% endfor %}
-    </div>
-{% endif %}
-
-    <form method="POST" enctype="multipart/form-data" class="space-y-8">
-        {% csrf_token %}
-        <div class="grid grid-cols-12 gap-8">
-            <!-- Left: Identity -->
-            <div class="col-span-7 space-y-6">
-                <div class="glass-panel rounded-[24px] p-8 space-y-6">
-                    <!-- Inside the Vault Name Section -->
-<div>
-    <label class="block text-[9px] text-gold/50 uppercase tracking-[4px] font-black mb-3">
-        Vault Name <span class="text-red-500">*</span>
-    </label>
-    
-    <input type="text" 
-       name="name" 
-       value="{{ form.name.value|default:category.name }}" 
-       required 
-       class="luxury-input py-4 px-6 rounded-2xl text-sm w-full font-bold tracking-tight" 
-       placeholder="e.g., Men  ">
-    
-    {% if form.name.errors %}
-        <div class="animate__animated animate__shakeX">
-            {% for error in form.name.errors %}
-                <p class="text-red-500 text-[10px] mt-2 font-bold uppercase tracking-[2px]">
-                    {{ error }}
-                </p>
+    <!-- Add this to catch and show messages -->
+    {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+                <div class="p-4 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center justify-between {% if message.tags == 'error' %} bg-red-500/10 text-red-500 border border-red-500/20 {% else %} bg-gold/10 text-gold border border-gold/20 {% endif %}">
+                    <span>{{ message }}</span>
+                    <button type="button" onclick="this.parentElement.remove()" class="text-lg">&times;</button>
+                </div>
             {% endfor %}
         </div>
     {% endif %}
-</div>
-                    <div>
-                        <label class="block text-[9px] text-gold/50 uppercase tracking-[4px] font-black mb-3">
-    Olfactory Notes <span class="text-red-500">*</span>
-</label>
-<textarea name="description" 
-          required 
-          class="luxury-input py-4 px-6 rounded-2xl text-sm w-full font-medium" 
-          rows="5">{{ form.description.value|default:category.description }}</textarea>
-
-{% if form.description.errors %}
-    <div class="animate__animated animate__shakeX">
-        {% for error in form.description.errors %}
-            <p class="text-red-500 text-[10px] mt-2 font-bold uppercase tracking-[2px]">{{ error }}</p>
-        {% endfor %}
-    </div>
-{% endif %}
+    <div class="max-w-5xl mx-auto animate__animated animate__fadeIn">
+        <div class="flex justify-between items-end mb-10">
+            <div>
+                <a href="{% url 'admin_category_list' %}"
+                   class="group flex items-center gap-3 text-white/50 text-[10px] uppercase tracking-[3px] font-bold mb-4 hover:text-gold transition-all">
+                    <i class="bi bi-arrow-left transition-transform group-hover:-translate-x-2"></i>
+                    Back to Category Vault
+                </a>
+                <h2 class="text-4xl font-extralight text-white tracking-tighter">
+                    Refine <span class="font-black luxury-shimmer">{{ category.name }}</span>
+                </h2>
+                <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">
+                    Updating Vault ID: SC-{{ category.id|stringformat:"03d" }}
+                </p>
+            </div>
+        </div>
+        {% if form.non_field_errors %}
+            <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 animate__animated animate__headShake">
+                {% for error in form.non_field_errors %}
+                    <p class="text-red-500 text-[10px] font-black uppercase tracking-widest">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <form method="POST" enctype="multipart/form-data" class="space-y-8">
+            {% csrf_token %}
+            <div class="grid grid-cols-12 gap-8">
+                <!-- Left: Identity -->
+                <div class="col-span-7 space-y-6">
+                    <div class="glass-panel rounded-[24px] p-8 space-y-6">
+                        <!-- Inside the Vault Name Section -->
+                        <div>
+                            <label class="block text-[9px] text-gold/50 uppercase tracking-[4px] font-black mb-3">
+                                Vault Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text"
+                                   name="name"
+                                   value="{{ form.name.value|default:category.name }}"
+                                   required
+                                   class="luxury-input py-4 px-6 rounded-2xl text-sm w-full font-bold tracking-tight"
+                                   placeholder="e.g., Men  ">
+                            {% if form.name.errors %}
+                                <div class="animate__animated animate__shakeX">
+                                    {% for error in form.name.errors %}
+                                        <p class="text-red-500 text-[10px] mt-2 font-bold uppercase tracking-[2px]">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label class="block text-[9px] text-gold/50 uppercase tracking-[4px] font-black mb-3">
+                                Olfactory Notes <span class="text-red-500">*</span>
+                            </label>
+                            <textarea name="description"
+                                      required
+                                      class="luxury-input py-4 px-6 rounded-2xl text-sm w-full font-medium"
+                                      rows="5">{{ form.description.value|default:category.description }}</textarea>
+                            {% if form.description.errors %}
+                                <div class="animate__animated animate__shakeX">
+                                    {% for error in form.description.errors %}
+                                        <p class="text-red-500 text-[10px] mt-2 font-bold uppercase tracking-[2px]">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <!-- Right: Visual & Config -->
+                <div class="col-span-5 space-y-6">
+                    <div class="glass-panel rounded-[24px] p-8">
+                        <label class="block text-[9px] text-gold/50 uppercase tracking-[4px] font-black mb-4">Current Manifestation</label>
+                        <!-- This shows the CURRENT image immediately -->
+                        <div id="result-preview"
+                             class="w-full h-48 rounded-2xl bg-black/40 border border-gold/20 overflow-hidden relative mb-4 shadow-[0_0_20px_rgba(244,180,26,0.1)]">
+                            {% if category.category_image %}
+                                <img src="{{ category.category_image.url }}"
+                                     class="w-full h-full object-cover">
+                            {% else %}
+                                <div class="flex flex-col items-center justify-center h-full text-white/10">
+                                    <i class="bi bi-image text-3xl"></i>
+                                    <p class="text-[8px] uppercase tracking-widest mt-2">No Image Set</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <label class="block text-[8px] text-white/40 uppercase tracking-[2px] mb-2 font-bold">Replace Visual (Optional)</label>
+                        <input type="file"
+                               id="id_category_image_input"
+                               accept="image/*"
+                               class="text-[10px] text-white/20">
+                        <input type="hidden" name="cropped_image" id="id_cropped_image">
+                    </div>
+                    <!-- Status Toggles -->
+                    <div class="glass-panel rounded-[24px] p-8 space-y-4">
+                        <div class="flex items-center justify-between p-2">
+                            <span class="text-[10px] text-white/60 font-black uppercase">Active Listing</span>
+                            <label class="switch">
+                                {{ form.is_active }}<span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between p-2">
+                            <span class="text-[10px] text-white/60 font-black uppercase">Global Nav</span>
+                            <label class="switch">
+                                {{ form.show_in_nav }}<span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="flex items-center justify-between p-2">
+                            <span class="text-[10px] text-white/60 font-black uppercase">Featured</span>
+                            <label class="switch">
+                                {{ form.is_featured }}<span class="slider"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Right: Visual & Config -->
-            <div class="col-span-5 space-y-6">
-                <div class="glass-panel rounded-[24px] p-8">
-                    <label class="block text-[9px] text-gold/50 uppercase tracking-[4px] font-black mb-4">Current Manifestation</label>
-                    
-                    <!-- This shows the CURRENT image immediately -->
-                    <div id="result-preview" class="w-full h-48 rounded-2xl bg-black/40 border border-gold/20 overflow-hidden relative mb-4 shadow-[0_0_20px_rgba(244,180,26,0.1)]">
-                        {% if category.category_image %}
-                            <img src="{{ category.category_image.url }}" class="w-full h-full object-cover">
-                        {% else %}
-                            <div class="flex flex-col items-center justify-center h-full text-white/10">
-                                <i class="bi bi-image text-3xl"></i>
-                                <p class="text-[8px] uppercase tracking-widest mt-2">No Image Set</p>
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    <label class="block text-[8px] text-white/40 uppercase tracking-[2px] mb-2 font-bold">Replace Visual (Optional)</label>
-                    <input type="file" id="id_category_image_input" accept="image/*" class="text-[10px] text-white/20">
-                    <input type="hidden" name="cropped_image" id="id_cropped_image">
-                </div>
-
-                <!-- Status Toggles -->
-                <div class="glass-panel rounded-[24px] p-8 space-y-4">
-                    <div class="flex items-center justify-between p-2">
-                        <span class="text-[10px] text-white/60 font-black uppercase">Active Listing</span>
-                        <label class="switch">{{ form.is_active }}<span class="slider"></span></label>
-                    </div>
-                    <div class="flex items-center justify-between p-2">
-                        <span class="text-[10px] text-white/60 font-black uppercase">Global Nav</span> 
-                        <label class="switch">{{ form.show_in_nav }}<span class="slider"></span></label>
-                    </div>
-                    <div class="flex items-center justify-between p-2">
-                        <span class="text-[10px] text-white/60 font-black uppercase">Featured</span>
-                        <label class="switch">{{ form.is_featured }}<span class="slider"></span></label>
-                    </div>
-                </div>
+            <div class="flex justify-end gap-6">
+                <a href="{% url 'admin_category_list' %}"
+                   class="text-[10px] font-black text-white/30 uppercase tracking-[2px] mt-4">Discard Changes</a>
+                <button type="submit"
+                        class="px-12 py-4 bg-gold text-black rounded-xl font-black text-[10px] uppercase tracking-[2px]">
+                    Apply Refinements
+                </button>
+            </div>
+        </form>
+    </div>
+    <!-- Cropping Modal -->
+    <div id="cropper-modal"
+         class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+        <div class="glass-panel rounded-[32px] p-8 max-w-2xl w-full border-gold/20">
+            <h3 class="text-white font-black text-[11px] uppercase tracking-[3px] mb-6">Refine Composition</h3>
+            <div class="crop-container rounded-xl overflow-hidden">
+                <img id="image-to-crop">
+            </div>
+            <div class="flex justify-end gap-4 mt-8">
+                <button type="button"
+                        id="cancel-crop"
+                        class="text-[10px] text-white/30 uppercase font-black tracking-widest">Cancel</button>
+                <button type="button"
+                        id="apply-crop"
+                        class="px-8 py-3 bg-gold text-black rounded-lg font-black text-[10px] uppercase tracking-widest">
+                    Apply Crop
+                </button>
             </div>
         </div>
-
-        <div class="flex justify-end gap-6">
-            <a href="{% url 'admin_category_list' %}" class="text-[10px] font-black text-white/30 uppercase tracking-[2px] mt-4">Discard Changes</a>
-            <button type="submit" class="px-12 py-4 bg-gold text-black rounded-xl font-black text-[10px] uppercase tracking-[2px]">Apply Refinements</button>
-        </div>
-    </form>
-</div>
-
-<!-- Cropping Modal -->
-<div id="cropper-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
-    <div class="glass-panel rounded-[32px] p-8 max-w-2xl w-full border-gold/20">
-        <h3 class="text-white font-black text-[11px] uppercase tracking-[3px] mb-6">Refine Composition</h3>
-        <div class="crop-container rounded-xl overflow-hidden">
-            <img id="image-to-crop">
-        </div>
-        <div class="flex justify-end gap-4 mt-8">
-            <button type="button" id="cancel-crop" class="text-[10px] text-white/30 uppercase font-black tracking-widest">Cancel</button>
-            <button type="button" id="apply-crop" class="px-8 py-3 bg-gold text-black rounded-lg font-black text-[10px] uppercase tracking-widest">Apply Crop</button>
-        </div>
     </div>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-<script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script>
 let cropper;
 const input = document.getElementById('id_category_image_input');
 const imageToCrop = document.getElementById('image-to-crop');
@@ -246,5 +252,5 @@ document.getElementById('cancel-crop').addEventListener('click', () => {
     modal.classList.add('hidden');
     input.value = "";
 });
-</script>
+    </script>
 {% endblock %}

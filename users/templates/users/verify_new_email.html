@@ -1,62 +1,59 @@
 {% extends 'users/index.html' %}
 {% load static %}
-
 {% block content %}
-<main class="flex-grow flex items-center justify-center py-16 px-6 relative">
-    <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full"></div>
-    </div>
-
-    <div class="luxury-vault z-10 w-full max-w-[500px] p-10 lg:p-16 rounded-sm">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl font-serif italic text-white uppercase tracking-widest mb-4">Confirm Identity</h2>
-            <div class="h-[1px] w-12 bg-primary/40 mx-auto mb-4"></div>
-            <p class="text-[9px] uppercase tracking-[0.4em] text-slate-500">
-                A verification code was sent to: <br>
-                <span class="text-primary mt-2 block">{{ email }}</span>
-            </p>
-        </div>
-
-        {% if messages %}
-        <div class="mb-8 space-y-3">
-            {% for message in messages %}
-                {% if message.tags == 'error' %}
-                    <div class="flex items-center gap-3 p-4 bg-red-500/5 border border-red-500/20 rounded-sm">
-                        <span class="material-symbols-outlined text-red-500 text-sm">error</span>
-                        <p class="text-[10px] uppercase tracking-[0.2em] text-red-500 font-bold">{{ message }}</p>
-                    </div>
-                {% endif %}
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <form method="POST" class="space-y-10">
-            {% csrf_token %}
-            
-            <div class="relative group">
-                <label class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mb-2 block group-focus-within:text-primary transition-colors">
-                    6-Digit Verification Code
-                </label>
-                <input type="text" 
-                       name="otp" 
-                       maxlength="6"
-                       placeholder="000000" 
-                       class="w-full bg-transparent border-b border-white/10 border-t-0 border-x-0 rounded-none px-0 py-3 text-white focus:ring-0 outline-none tracking-[1em] text-center text-2xl transition-all placeholder:text-white/5 font-light"
-                       required>
+    <main class="flex-grow flex items-center justify-center py-16 px-6 relative">
+        <div class="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full">
             </div>
-
-            <div class="pt-4">
-                <button type="submit" class="w-full bg-primary hover:bg-white text-black font-bold py-5 transition-all duration-700 uppercase tracking-[0.4em] text-[11px] shadow-xl">
-                    Verify & Update Vault
-                </button>
-            </div>
-        </form>
-
-        <div class="mt-12 text-center border-t border-white/5 pt-8">
-            <a href="{% url 'profile' %}" class="text-[9px] uppercase tracking-[0.3em] text-slate-600 hover:text-primary transition-all">
-                Cancel Update
-            </a>
         </div>
-    </div>
-</main>
+        <div class="luxury-vault z-10 w-full max-w-[500px] p-10 lg:p-16 rounded-sm">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-serif italic text-white uppercase tracking-widest mb-4">Confirm Identity</h2>
+                <div class="h-[1px] w-12 bg-primary/40 mx-auto mb-4"></div>
+                <p class="text-[9px] uppercase tracking-[0.4em] text-slate-500">
+                    A verification code was sent to:
+                    <br>
+                    <span class="text-primary mt-2 block">{{ email }}</span>
+                </p>
+            </div>
+            {% if messages %}
+                <div class="mb-8 space-y-3">
+                    {% for message in messages %}
+                        {% if message.tags == 'error' %}
+                            <div class="flex items-center gap-3 p-4 bg-red-500/5 border border-red-500/20 rounded-sm">
+                                <span class="material-symbols-outlined text-red-500 text-sm">error</span>
+                                <p class="text-[10px] uppercase tracking-[0.2em] text-red-500 font-bold">{{ message }}</p>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            <form method="POST" class="space-y-10">
+                {% csrf_token %}
+                <div class="relative group">
+                    <label class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mb-2 block group-focus-within:text-primary transition-colors">
+                        6-Digit Verification Code
+                    </label>
+                    <input type="text"
+                           name="otp"
+                           maxlength="6"
+                           placeholder="000000"
+                           class="w-full bg-transparent border-b border-white/10 border-t-0 border-x-0 rounded-none px-0 py-3 text-white focus:ring-0 outline-none tracking-[1em] text-center text-2xl transition-all placeholder:text-white/5 font-light"
+                           required>
+                </div>
+                <div class="pt-4">
+                    <button type="submit"
+                            class="w-full bg-primary hover:bg-white text-black font-bold py-5 transition-all duration-700 uppercase tracking-[0.4em] text-[11px] shadow-xl">
+                        Verify & Update Vault
+                    </button>
+                </div>
+            </form>
+            <div class="mt-12 text-center border-t border-white/5 pt-8">
+                <a href="{% url 'profile' %}"
+                   class="text-[9px] uppercase tracking-[0.3em] text-slate-600 hover:text-primary transition-all">
+                    Cancel Update
+                </a>
+            </div>
+        </div>
+    </main>
 {% endblock %}

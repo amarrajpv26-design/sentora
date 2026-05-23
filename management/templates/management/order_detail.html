@@ -1,0 +1,172 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <style>
+    .luxury-shimmer {
+        background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 4s linear infinite;
+    }
+    @keyframes shimmer { to { background-position: 200% center; } }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        transition: all 0.4s ease-in-out;
+    }
+    .glass-card:hover { border-color: rgba(244, 180, 26, 0.3); }
+    </style>
+{% endblock %}
+
+{% block breadcrumb %}
+    <span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">Order Specifications</span>
+{% endblock %}
+
+{% block content %}
+    <div class="animate__animated animate__fadeIn">
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <a href="{% url 'management:admin_orders_list' %}" class="group flex items-center gap-3 text-white/50 text-[10px] uppercase tracking-[3px] font-bold mb-4 hover:text-gold transition-all">
+                    <i class="bi bi-arrow-left transition-transform group-hover:-translate-x-2"></i> Back to Manifest Deck
+                </a>
+                <h2 class="text-4xl font-extralight text-white tracking-tighter">
+                    Manifest <span class="font-mono font-bold luxury-shimmer">#{{ order.order_id }}</span>
+                </h2>
+            </div>
+            
+            <div class="flex gap-4">
+                <span class="px-6 py-3 glass-card rounded-full text-[10px] font-black uppercase tracking-[2px] text-white">
+                    Fulfillment: <span class="text-gold">{{ order.get_order_status_display }}</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-12 gap-8">
+            <div class="col-span-8 space-y-8">
+                <div class="glass-card rounded-[32px] p-10 flex gap-12 relative overflow-hidden animate__animated animate__fadeInUp">
+                    <div class="absolute -top-40 -right-40 w-80 h-80 bg-gold/10 blur-[120px] rounded-full"></div>
+                    
+                    <div class="flex-grow grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+                        <div class="col-span-2">
+                            <div class="flex flex-wrap items-center gap-6 mb-2">
+                                <h3 class="text-3xl font-bold text-white tracking-tight">{{ order.full_name }}</h3>
+                                <span class="px-4 py-1.5 bg-gold text-black text-[9px] font-black uppercase tracking-[2px] rounded-full shadow-lg">
+                                    {{ order.payment_method }}
+                                </span>
+                            </div>
+                            <p class="text-white/30 text-[10px] uppercase tracking-[4px]">
+                                Client Account ID: <span class="text-gold/60">#USR-{{ order.user.id }}</span>
+                            </p>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black">Registered Email</label>
+                            <p class="text-white text-base font-light truncate">{{ order.user.email }}</p>
+                        </div>
+                        
+                        <div class="space-y-1">
+                            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black">Contact Line</label>
+                            <p class="text-white text-base font-light font-mono">{{ order.phone_number }}</p>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black">Financial Status State</label>
+                            <p class="text-sm font-bold uppercase tracking-wider {% if order.payment_status == 'PAID' %}text-green-400{% else %}text-amber-500{% endif %}">
+                                {{ order.get_payment_status_display }}
+                            </p>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black">Timestamp Registry</label>
+                            <p class="text-white/60 text-sm italic">{{ order.created_at|date:"d F, Y — H:i" }}</p>
+                        </div>
+
+                        {% if order.cancellation_reason %}
+                            <div class="col-span-2 p-6 bg-red-500/5 border border-red-500/20 rounded-2xl">
+                                <label class="block text-[9px] text-red-400 uppercase tracking-[3px] font-black mb-2">Cancellation Declaration</label>
+                                <p class="text-white/80 text-xs italic font-light">"{{ order.cancellation_reason }}"</p>
+                            </div>
+                        {% endif %}
+
+                        {% if order.return_reason %}
+                            <div class="col-span-2 p-6 bg-amber-500/5 border border-amber-500/20 rounded-2xl">
+                                <label class="block text-[9px] text-amber-400 uppercase tracking-[3px] font-black mb-2">Return Manifesto Reason</label>
+                                <p class="text-white/80 text-xs italic font-light">"{{ order.return_reason }}"</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-[32px] overflow-hidden animate__animated animate__fadeInUp animate__delay-1s">
+                    <div class="px-10 py-8 border-b border-white/5">
+                        <h4 class="text-[11px] font-black text-white uppercase tracking-[4px]">Curation Compositions</h4>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <tbody class="divide-y divide-white/[0.03]">
+                                {% for item in items %}
+                                    <tr class="group hover:bg-white/[0.01] transition-colors">
+                                        <td class="px-10 py-6">
+                                            <div class="text-sm font-bold text-white tracking-tight">{{ item.product_name }}</div>
+                                            <div class="text-[9px] text-gold/40 font-mono tracking-widest mt-1">VARIANT ID: #{{ item.product_variant.id|default:"N/A" }}</div>
+                                        </td>
+                                        <td class="px-10 py-6 text-xs text-white/40">Qty: <span class="text-white font-bold">{{ item.quantity }}</span></td>
+                                        <td class="px-10 py-6 text-xs font-light text-white/60">₹{{ item.price }} / unit</td>
+                                        <td class="px-10 py-6 text-sm font-black text-white">₹{{ item.subtotal }}</td>
+                                        <td class="px-10 py-6 text-right">
+                                            {% if item.item_status == 'ACTIVE' %}
+                                                <span class="px-3 py-1 bg-green-500/10 text-green-400 text-[8px] font-black uppercase tracking-widest rounded-full">Active</span>
+                                            {% else %}
+                                                <span class="px-3 py-1 bg-red-500/10 text-red-400 text-[8px] font-black uppercase tracking-widest rounded-full">{{ item.get_item_status_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-span-4 animate__animated animate__fadeInRight animate__delay-1s">
+                <div class="glass-card rounded-[32px] p-8 space-y-8">
+                    <div>
+                        <h4 class="text-[11px] font-black text-gold uppercase tracking-[4px] flex items-center gap-3 mb-6">
+                            <i class="bi bi-geo-alt"></i> Delivery Destination
+                        </h4>
+                        <div class="p-6 rounded-2xl bg-white/[0.01] border border-white/5">
+                            <p class="text-xs text-white/60 leading-[1.8] font-light">
+                                <span class="text-white font-medium text-sm block mb-1">{{ order.full_name }}</span>
+                                {{ order.address_line_1 }}
+                                <br>
+                                {% if order.address_line_2 %}
+                                    {{ order.address_line_2 }}
+                                    <br>
+                                {% endif %}
+                                {{ order.city }}, {{ order.state }}
+                                <br>
+                                <span class="text-gold/60 font-bold tracking-[2px] font-mono">{{ order.pincode }}</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-white/5 pt-6">
+                        <h4 class="text-[11px] font-black text-gold uppercase tracking-[4px] mb-6">Ledger Summary</h4>
+                        <div class="space-y-4 text-xs font-light">
+                            <div class="flex justify-between"><span class="text-white/40">Subtotal Matrix:</span><span class="text-white">₹{{ order.subtotal }}</span></div>
+                            <div class="flex justify-between"><span class="text-white/40">Discount Deduction:</span><span class="text-red-400">-₹{{ order.discount }}</span></div>
+                            <div class="flex justify-between"><span class="text-white/40">Logistic Allocation:</span><span class="text-white">₹{{ order.shipping_charge }}</span></div>
+                            <div class="flex justify-between border-t border-white/5 pt-4 text-sm font-black text-white">
+                                <span>Total Value:</span><span class="text-gold text-lg">₹{{ order.total_amount }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

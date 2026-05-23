@@ -89,6 +89,7 @@ class AddressForm(forms.ModelForm):
             "state",
             "pincode",
             "address_type",
+            "is_default"
         ]
 
     def __init__(self, *args, **kwargs):

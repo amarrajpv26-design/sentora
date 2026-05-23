@@ -1,8 +1,7 @@
-{% extends 'users/index.html' %} 
-{% load static %} 
-
+{% extends 'users/index.html' %}
+{% load static %}
 {% block content %}
-<style>
+    <style>
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@100;200;300;400;600&display=swap');
     
     :root {
@@ -90,193 +89,225 @@
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--luxury-gold); border-radius: 10px; }
-</style>
-
-<main class="flex-grow max-w-[1440px] mx-auto w-full px-10 py-20 luxury-sans text-white/90">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-20">
-        
-        <aside class="lg:col-span-3 space-y-16 reveal-animation" style="animation-delay: 0.1s;">
-            <div class="space-y-8">
-                <h2 class="text-[10px] font-bold uppercase tracking-[0.5em] text-white/20 px-4">Navigation</h2>
-                <nav class="flex flex-col space-y-2">
-                    <a class="flex items-center gap-5 px-5 py-4 transition-all duration-500 hover:bg-white/[0.03] group" href="#">
-                        <span class="material-symbols-outlined text-white/30 group-hover:text-primary transition-colors font-light">package_2</span>
-                        <span class="text-xs uppercase tracking-[0.2em] font-light">My Orders</span>
-                    </a>
-                    <a class="flex items-center gap-5 px-5 py-4 border-l border-primary bg-primary/5 transition-all duration-500" href="{% url 'profile' %}">
-                        <span class="material-symbols-outlined text-primary font-light">person</span>
-                        <span class="text-xs uppercase tracking-[0.2em] font-semibold text-white">Personal Info</span>
-                    </a>
-                    
-                </nav>
-            </div>
-
-            <div class="pt-10 border-t border-white/5">
-                <a href="{% url 'logout_confirmation' %}" class="flex items-center gap-5 px-5 py-2 text-red-500/40 hover:text-red-500 transition-all duration-700 group">
-                    <span class="material-symbols-outlined scale-90 group-hover:-translate-x-2 transition-transform font-light">logout</span>
-                    <span class="text-[10px] uppercase tracking-[0.3em] font-bold">Logout</span>
-                </a>
-            </div>
-        </aside>
-
-        <section class="lg:col-span-9 space-y-16 reveal-animation" style="animation-delay: 0.3s;">
-            
-            {% if messages %}
-            <div class="space-y-4">
-                {% for message in messages %}
-                <div class="flex items-center gap-5 py-5 px-10 glass-panel border-primary/20 bg-primary/5">
-                    <span class="material-symbols-outlined text-primary text-sm">verified</span>
-                    <p class="text-[10px] font-bold text-primary uppercase tracking-[0.3em]">{{ message }}</p>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <div class="relative pb-10 border-b border-white/10">
-                <h1 class="luxury-serif text-7xl font-extralight tracking-tight mb-4 text-white">My Profile</h1>
-                <p class="text-white/40 text-sm font-light italic tracking-widest">Manage your personal information and security settings</p>
-                <div class="absolute -bottom-[1px] left-0 w-32 h-[1px] bg-primary"></div>
-            </div>
-
-            <!-- Profile Overview -->
-            <div class="glass-panel overflow-hidden bg-black/40">
-                <div class="p-12 flex flex-col md:flex-row items-center gap-16">
-                    <div class="relative group">
-                        <div class="size-48 rounded-full border border-primary/10 p-2 ring-1 ring-primary/5 ring-offset-8 ring-offset-transparent transition-all duration-1000 group-hover:ring-offset-[14px] group-hover:ring-primary/20">
-                            {% if user.profile_image %}
-                                <!-- Grayscale removed for full color -->
-                                <div class="size-full rounded-full bg-cover bg-center shadow-2xl transition-all" style='background-image: url("{{ user.profile_image.url }}");'></div>
-                            {% else %}
-                                <div class="size-full rounded-full bg-neutral-900 flex items-center justify-center border border-white/5">
-                                    <span class="material-symbols-outlined text-7xl text-neutral-800 font-thin">person</span>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <a href="{% url 'edit_profile' %}" class="absolute bottom-2 right-2 bg-primary text-black size-12 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-500">
-                            <span class="material-symbols-outlined text-xl">photo_camera</span>
+    </style>
+    <main class="flex-grow max-w-[1440px] mx-auto w-full px-10 py-20 luxury-sans text-white/90">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-20">
+            <aside class="lg:col-span-3 space-y-16 reveal-animation"
+                   style="animation-delay: 0.1s">
+                <div class="space-y-8">
+                    <h2 class="text-[10px] font-bold uppercase tracking-[0.5em] text-white/20 px-4">Navigation</h2>
+                    <nav class="flex flex-col space-y-2">
+                        <a class="flex items-center gap-5 px-5 py-4 transition-all duration-500 hover:bg-white/[0.03] group"
+                           href="{% url 'order_list' %}">
+                            <span class="material-symbols-outlined text-white/30 group-hover:text-primary transition-colors font-light">package_2</span>
+                            <span class="text-xs uppercase tracking-[0.2em] font-light">My Orders</span>
                         </a>
-                    </div>
-
-                    <div class="text-center md:text-left flex-grow">
-                        <p class="text-primary text-[9px] font-black uppercase tracking-[0.6em] mb-4">
-                            {% if user.is_verified %}Verified Access{% else %}Standard Member{% endif %}
-                        </p>
-                        <h3 class="luxury-serif text-6xl font-light mb-10 tracking-wide text-white">{{ user.first_name|default:user.username }} {{ user.last_name }}</h3>
-                        
-                        <div class="flex flex-wrap justify-center md:justify-start gap-6">
-                            <a href="{% url 'edit_profile' %}" class="px-12 py-4 bg-primary text-black hover:bg-white transition-all duration-500 text-[10px] font-black uppercase tracking-[0.3em]">Modify Identity</a>
-                            <a href="{% url 'password_change' %}" class="px-12 py-4 border border-white/10 text-white/50 hover:text-white hover:border-white transition-all duration-500 text-[10px] font-black uppercase tracking-[0.3em]">Change Password</a>
-                        </div>
-                    </div>
+                        <a class="flex items-center gap-5 px-5 py-4 border-l border-primary bg-primary/5 transition-all duration-500"
+                           href="{% url 'profile' %}">
+                            <span class="material-symbols-outlined text-primary font-light">person</span>
+                            <span class="text-xs uppercase tracking-[0.2em] font-semibold text-white">Personal Info</span>
+                        </a>
+                    </nav>
                 </div>
-
-                <!-- Balanced Data Grid with staggered field animations -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/5 border-t border-white/10">
-                    <div class="profile-grid-item field-animate p-12 space-y-4" style="animation-delay: 0.4s;">
-                        <label class="text-[9px] font-bold text-white/20 uppercase tracking-[0.5em]">Username</label>
-                        <div class="flex items-center gap-4 text-white/80">
-                            <p class="text-2xl font-light italic">{{ user.username }}</p>
+                <div class="pt-10 border-t border-white/5">
+                    <a href="{% url 'logout_confirmation' %}"
+                       class="flex items-center gap-5 px-5 py-2 text-red-500/40 hover:text-red-500 transition-all duration-700 group">
+                        <span class="material-symbols-outlined scale-90 group-hover:-translate-x-2 transition-transform font-light">logout</span>
+                        <span class="text-[10px] uppercase tracking-[0.3em] font-bold">Logout</span>
+                    </a>
+                </div>
+            </aside>
+            <section class="lg:col-span-9 space-y-16 reveal-animation"
+                     style="animation-delay: 0.3s">
+                {% if messages %}
+                    <div class="space-y-4">
+                        {% for message in messages %}
+                            <div class="flex items-center gap-5 py-5 px-10 glass-panel border-primary/20 bg-primary/5">
+                                <span class="material-symbols-outlined text-primary text-sm">verified</span>
+                                <p class="text-[10px] font-bold text-primary uppercase tracking-[0.3em]">{{ message }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="relative pb-10 border-b border-white/10">
+                    <h1 class="luxury-serif text-7xl font-extralight tracking-tight mb-4 text-white">My Profile</h1>
+                    <p class="text-white/40 text-sm font-light italic tracking-widest">
+                        Manage your personal information and security settings
+                    </p>
+                    <div class="absolute -bottom-[1px] left-0 w-32 h-[1px] bg-primary"></div>
+                </div>
+                <!-- Profile Overview -->
+                <div class="glass-panel overflow-hidden bg-black/40">
+                    <div class="p-12 flex flex-col md:flex-row items-center gap-16">
+                        <div class="relative group">
+                            <div class="size-48 rounded-full border border-primary/10 p-2 ring-1 ring-primary/5 ring-offset-8 ring-offset-transparent transition-all duration-1000 group-hover:ring-offset-[14px] group-hover:ring-primary/20">
+                                {% if user.profile_image %}
+                                    <!-- Grayscale removed for full color -->
+                                    <div class="size-full rounded-full bg-cover bg-center shadow-2xl transition-all"
+                                         style='background-image: url("{{ user.profile_image.url }}")'></div>
+                                {% else %}
+                                    <div class="size-full rounded-full bg-neutral-900 flex items-center justify-center border border-white/5">
+                                        <span class="material-symbols-outlined text-7xl text-neutral-800 font-thin">person</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <a href="{% url 'edit_profile' %}"
+                               class="absolute bottom-2 right-2 bg-primary text-black size-12 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-500">
+                                <span class="material-symbols-outlined text-xl">photo_camera</span>
+                            </a>
+                        </div>
+                        <div class="text-center md:text-left flex-grow">
+                            <p class="text-primary text-[9px] font-black uppercase tracking-[0.6em] mb-4">
+                                {% if user.is_verified %}
+                                    Verified Access
+                                {% else %}
+                                    Standard Member
+                                {% endif %}
+                            </p>
+                            <h3 class="luxury-serif text-6xl font-light mb-10 tracking-wide text-white">
+                                {{ user.first_name|default:user.username }} {{ user.last_name }}
+                            </h3>
+                            <div class="flex flex-wrap justify-center md:justify-start gap-6">
+                                <a href="{% url 'edit_profile' %}"
+                                   class="px-12 py-4 bg-primary text-black hover:bg-white transition-all duration-500 text-[10px] font-black uppercase tracking-[0.3em]">Modify Identity</a>
+                                <a href="{% url 'password_change' %}"
+                                   class="px-12 py-4 border border-white/10 text-white/50 hover:text-white hover:border-white transition-all duration-500 text-[10px] font-black uppercase tracking-[0.3em]">Change Password</a>
+                            </div>
                         </div>
                     </div>
-                    <div class="profile-grid-item field-animate p-12 space-y-4" style="animation-delay: 0.5s;">
-                        <label class="text-[9px] font-bold text-white/20 uppercase tracking-[0.5em]">Primary Email</label>
-                        <div class="flex items-center gap-4 text-white/80">
-                            <p class="text-xl font-light italic break-all">{{ user.email }}</p>
+                    <!-- Balanced Data Grid with staggered field animations -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/5 border-t border-white/10">
+                        <div class="profile-grid-item field-animate p-12 space-y-4"
+                             style="animation-delay: 0.4s">
+                            <label class="text-[9px] font-bold text-white/20 uppercase tracking-[0.5em]">Username</label>
+                            <div class="flex items-center gap-4 text-white/80">
+                                <p class="text-2xl font-light italic">{{ user.username }}</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="profile-grid-item field-animate p-12 space-y-4" style="animation-delay: 0.6s;">
-                        <label class="text-[9px] font-bold text-white/20 uppercase tracking-[0.5em]">Phone Number</label>
-                        <div class="flex items-center gap-4 text-white/80">
-                            <p class="text-2xl font-light italic">{{ user.phone_number|default:"No Data" }}</p>
+                        <div class="profile-grid-item field-animate p-12 space-y-4"
+                             style="animation-delay: 0.5s">
+                            <label class="text-[9px] font-bold text-white/20 uppercase tracking-[0.5em]">Primary Email</label>
+                            <div class="flex items-center gap-4 text-white/80">
+                                <p class="text-xl font-light italic break-all">{{ user.email }}</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="profile-grid-item field-animate p-12 space-y-4" style="animation-delay: 0.7s;">
-                        <label class="text-[9px] font-bold text-white/20 uppercase tracking-[0.5em]">Birth Record</label>
-                        <div class="flex items-center gap-4 text-white/80">
-                            <p class="text-2xl font-light italic">{% if user.dob %}{{ user.dob|date:"d . m . Y" }}{% else %}Not Set{% endif %}</p>
+                        <div class="profile-grid-item field-animate p-12 space-y-4"
+                             style="animation-delay: 0.6s">
+                            <label class="text-[9px] font-bold text-white/20 uppercase tracking-[0.5em]">Phone Number</label>
+                            <div class="flex items-center gap-4 text-white/80">
+                                <p class="text-2xl font-light italic">{{ user.phone_number|default:"No Data" }}</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="md:col-span-2 profile-grid-item field-animate p-12 bg-primary/[0.02] border-t border-white/5" style="animation-delay: 0.8s;">
-                        <div class="flex justify-between items-center">
-                            <label class="text-[9px] font-bold text-primary uppercase tracking-[0.5em]">Wallet Balance</label>
-                            <div class="flex items-baseline gap-4">
-                                <span class="text-sm text-primary/40 font-light">INR</span>
-                                <p class="text-5xl luxury-serif text-primary">₹{{ user.wallet_balance }}</p>
+                        <div class="profile-grid-item field-animate p-12 space-y-4"
+                             style="animation-delay: 0.7s">
+                            <label class="text-[9px] font-bold text-white/20 uppercase tracking-[0.5em]">Birth Record</label>
+                            <div class="flex items-center gap-4 text-white/80">
+                                <p class="text-2xl font-light italic">
+                                    {% if user.dob %}
+                                        {{ user.dob|date:"d . m . Y" }}
+                                    {% else %}
+                                        Not Set
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="md:col-span-2 profile-grid-item field-animate p-12 bg-primary/[0.02] border-t border-white/5"
+                             style="animation-delay: 0.8s">
+                            <div class="flex justify-between items-center">
+                                <label class="text-[9px] font-bold text-primary uppercase tracking-[0.5em]">Wallet Balance</label>
+                                <div class="flex items-baseline gap-4">
+                                    <span class="text-sm text-primary/40 font-light">INR</span>
+                                    <p class="text-5xl luxury-serif text-primary">₹{{ user.wallet_balance }}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Address Section -->
-            <div class="space-y-12">
-                <div class="flex items-end justify-between border-b border-white/5 pb-10">
-                    <div>
-                        <h3 class="luxury-serif text-5xl font-light text-white">Address Book</h3>
-                        <p class="text-[9px] text-white/20 uppercase tracking-[0.4em] mt-3">Verified delivery destinations</p>
-                    </div>
-                    <a href="{% url 'add_address' %}" class="px-10 py-3 border border-white/10 text-white/40 hover:text-white hover:border-primary transition-all text-[10px] font-bold uppercase tracking-[0.3em]">Add New Address</a>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    {% for address in user.addresses.all %}
-                    <div class="glass-panel address-card p-12 relative">
-                        {% if address.is_default %}
-                            <span class="absolute top-0 right-12 -translate-y-1/2 bg-primary text-black text-[8px] px-6 py-2 font-black tracking-[0.4em]">PRIMARY</span>
-                        {% endif %}
-                        
-                        <div class="mb-10 flex justify-between items-start">
-                            <p class="text-xl font-light text-white tracking-wide">{{ address.full_name }}</p>
-                            <!-- Lighter border/text on the badge -->
-                            <span class="text-[8px] text-white/60 uppercase tracking-[0.3em] border border-white/20 px-3 py-1">{{ address.get_address_type_display }}</span>
+                <!-- Address Section -->
+                <div class="space-y-12">
+                    <div class="flex items-end justify-between border-b border-white/5 pb-10">
+                        <div>
+                            <h3 class="luxury-serif text-5xl font-light text-white">Address Book</h3>
+                            <p class="text-[9px] text-white/20 uppercase tracking-[0.4em] mt-3">Verified delivery destinations</p>
                         </div>
-                        
-                        <!-- Lighter text for better contrast -->
-                        <div class="space-y-2 text-white/60 font-light text-sm leading-relaxed mb-12">
-                            <p>{{ address.address_line_1 }}</p>
-                            {% if address.address_line_2 %}<p>{{ address.address_line_2 }}</p>{% endif %}
-                            <p>{{ address.city }}, {{ address.state }} - {{ address.pincode }}</p>
-                            <p class="pt-6 text-primary/60 text-xs font-mono font-bold">{{ address.phone_number }}</p>
-                        </div>
-                        
-                        <div class="flex gap-12 pt-10 border-t border-white/10">
-                            <a href="{% url 'edit_address' address.pk %}" class="text-[9px] text-white/40 uppercase font-black tracking-[0.4em] hover:text-white transition-all">Modify</a>
-                            <button type="button" onclick="openDeleteModal('{{ address.pk }}', '{{ address.full_name }}')" class="text-[9px] text-red-500/40 uppercase font-black tracking-[0.4em] hover:text-red-500 transition-all">Remove</button>
-                        </div>
+                        <a href="{% url 'add_address' %}"
+                           class="px-10 py-3 border border-white/10 text-white/40 hover:text-white hover:border-primary transition-all text-[10px] font-bold uppercase tracking-[0.3em]">Add New Address</a>
                     </div>
-                    {% empty %}
-                    <div class="col-span-2 py-24 border border-dashed border-white/5 text-center bg-white/[0.01]">
-                        <p class="text-[10px] text-white/20 uppercase tracking-[0.6em] font-light">No records found in archive</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </section>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        {% for address in user.addresses.all %}
+                            <div class="glass-panel address-card p-12 relative">
+                                {% if address.is_default %}
+    <div class="absolute top-5 right-5 z-20">
+        <span class="bg-primary text-black
+                     text-[9px] px-5 py-2
+                     rounded-full
+                     shadow-[0_0_20px_rgba(212,175,55,0.35)]
+                     font-black tracking-[0.35em]
+                     uppercase">
+            Primary
+        </span>
     </div>
-</main>
+{% endif %}
 
-<!-- Delete Modal -->
-<div id="deleteModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md transition-all duration-700">
-    <div class="glass-panel p-20 max-w-lg w-full text-center shadow-2xl border-white/5">
-        <div class="size-20 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-10 bg-red-500/5">
-            <span class="material-symbols-outlined text-red-500 text-4xl font-thin">close</span>
+                                <div class="mb-10 flex justify-between items-start">
+                                    <p class="text-xl font-light text-white tracking-wide">{{ address.full_name }}</p>
+                                    <!-- Lighter border/text on the badge -->
+                                    <span class="text-[8px] text-white/60 uppercase tracking-[0.3em] border border-white/20 px-3 py-1">{{ address.get_address_type_display }}</span>
+                                </div>
+                                <!-- Lighter text for better contrast -->
+                                <div class="space-y-2 text-white/60 font-light text-sm leading-relaxed mb-12">
+                                    <p>{{ address.address_line_1 }}</p>
+                                    {% if address.address_line_2 %}<p>{{ address.address_line_2 }}</p>{% endif %}
+                                    <p>{{ address.city }}, {{ address.state }} - {{ address.pincode }}</p>
+                                    <p class="pt-6 text-primary/60 text-xs font-mono font-bold">{{ address.phone_number }}</p>
+                                </div>
+                                <div class="flex gap-12 pt-10 border-t border-white/10">
+                                    <a href="{% url 'edit_address' address.pk %}"
+                                       class="text-[9px] text-white/40 uppercase font-black tracking-[0.4em] hover:text-white transition-all">Modify</a>
+                                    <button type="button"
+                                            onclick="openDeleteModal('{{ address.pk }}', '{{ address.full_name }}')"
+                                            class="text-[9px] text-red-500/40 uppercase font-black tracking-[0.4em] hover:text-red-500 transition-all">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="col-span-2 py-24 border border-dashed border-white/5 text-center bg-white/[0.01]">
+                                <p class="text-[10px] text-white/20 uppercase tracking-[0.6em] font-light">No records found in archive</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
         </div>
-        <h3 class="luxury-serif text-5xl font-light text-white mb-6">Confirm Removal</h3>
-        <p class="text-white/30 text-sm mb-16 font-light italic">Discard address for <span id="addressName" class="text-white font-semibold"></span>?</p>
-        
-        <div class="flex flex-col gap-6">
-            <form id="deleteForm" method="POST">
-                {% csrf_token %}
-                <button type="submit" class="w-full bg-red-900/60 text-white py-5 text-[10px] font-black uppercase tracking-[0.4em] hover:bg-red-700 transition-all duration-500">
-                    Permanently Delete
+    </main>
+    <!-- Delete Modal -->
+    <div id="deleteModal"
+         class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md transition-all duration-700">
+        <div class="glass-panel p-20 max-w-lg w-full text-center shadow-2xl border-white/5">
+            <div class="size-20 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-10 bg-red-500/5">
+                <span class="material-symbols-outlined text-red-500 text-4xl font-thin">close</span>
+            </div>
+            <h3 class="luxury-serif text-5xl font-light text-white mb-6">Confirm Removal</h3>
+            <p class="text-white/30 text-sm mb-16 font-light italic">
+                Discard address for <span id="addressName" class="text-white font-semibold"></span>?
+            </p>
+            <div class="flex flex-col gap-6">
+                <form id="deleteForm" method="POST">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="w-full bg-red-900/60 text-white py-5 text-[10px] font-black uppercase tracking-[0.4em] hover:bg-red-700 transition-all duration-500">
+                        Permanently Delete
+                    </button>
+                </form>
+                <button onclick="closeDeleteModal()"
+                        class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20 hover:text-white transition-colors">
+                    Cancel
                 </button>
-            </form>
-            <button onclick="closeDeleteModal()" class="text-[10px] font-bold uppercase tracking-[0.3em] text-white/20 hover:text-white transition-colors">Cancel</button>
+            </div>
         </div>
     </div>
-</div>
-
-<script>
+    <script>
 function openDeleteModal(pk, name) {
     const modal = document.getElementById('deleteModal');
     const form = document.getElementById('deleteForm');
@@ -295,5 +326,5 @@ function closeDeleteModal() {
     modal.classList.add('hidden');
     document.body.style.overflow = 'auto'; 
 }
-</script>
+    </script>
 {% endblock %}

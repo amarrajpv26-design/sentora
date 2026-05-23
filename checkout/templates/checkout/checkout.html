@@ -1,0 +1,813 @@
+{% extends 'users/index.html' %}
+{% load static %}
+{% block content %}
+<div class="min-h-screen bg-[#050505] text-white relative overflow-hidden">
+
+    <!-- BACKGROUND EFFECTS -->
+    <div class="fixed inset-0 pointer-events-none">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[900px] bg-white/[0.03] blur-[180px] rounded-full"></div>
+        <div class="absolute bottom-[-20%] right-[-10%] w-[700px] h-[700px] bg-primary/10 blur-[160px] rounded-full"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_35%)]"></div>
+    </div>
+
+    <form action="{% url 'place_order' %}" method="POST" class="relative z-10">
+        {% csrf_token %}
+        <input type="hidden" name="checkout_type" value="{{ checkout_type }}" />
+
+        {% if checkout_type == 'buy_now' %}
+        <input type="hidden"
+               name="variant_id"
+               value="{{ checkout_items.0.variant.id }}" />
+        <input type="hidden" name="quantity" value="{{ checkout_items.0.quantity }}" />
+        {% endif %}
+
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 py-8 lg:py-12">
+
+            <!-- TOP HEADER -->
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 mb-12">
+
+                <div>
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-2xl mb-5">
+                        <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                        <span class="text-[10px] tracking-[0.35em] uppercase text-white/60 font-semibold">
+                            Secure Checkout
+                        </span>
+                    </div>
+
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none">
+                        Complete Your
+                        <span class="text-white/60">Order</span>
+                    </h1>
+
+                    <p class="mt-5 text-white/40 text-base sm:text-lg max-w-2xl leading-relaxed">
+                        Experience seamless luxury checkout with secure delivery and premium order processing.
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-4 flex-wrap">
+
+                    <div class="px-5 py-3 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-2xl">
+                        <p class="text-[10px] uppercase tracking-[0.25em] text-white/40 mb-1">Items</p>
+                        <h3 class="text-2xl font-black">{{ checkout_items|length }}</h3>
+                    </div>
+
+                    <div class="px-5 py-3 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-2xl">
+                        <p class="text-[10px] uppercase tracking-[0.25em] text-white/40 mb-1">Payable</p>
+                        <h3 class="text-2xl font-black">₹{{ final_total }}</h3>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- MESSAGES -->
+            {% if messages %}
+            <div class="space-y-4 mb-10">
+                {% for message in messages %}
+                <div class="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] backdrop-blur-3xl px-7 py-5 shadow-[0_20px_80px_rgba(0,0,0,0.45)]">
+                    <div class="absolute inset-0 bg-gradient-to-r from-white/[0.03] via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-700"></div>
+
+                    <div class="relative flex items-center gap-4">
+                        <div class="w-11 h-11 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center text-lg">
+                            ✦
+                        </div>
+
+                        <p class="text-sm sm:text-base text-white/80 leading-relaxed">
+                            {{ message }}
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 xl:grid-cols-[1.2fr_0.65fr] gap-8 lg:gap-10">
+
+                <!-- LEFT -->
+                <div class="space-y-8">
+
+                    <!-- ADDRESS -->
+                    <div class="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.03] backdrop-blur-3xl shadow-[0_30px_120px_rgba(0,0,0,0.45)]">
+
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/[0.03] via-transparent to-transparent"></div>
+
+                        <div class="relative p-6 sm:p-8 lg:p-10">
+
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-10">
+
+                                <div>
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/[0.04] mb-5">
+                                        <div class="w-2 h-2 rounded-full bg-primary"></div>
+                                        <span class="text-[10px] uppercase tracking-[0.35em] text-white/50 font-bold">
+                                            Shipping Details
+                                        </span>
+                                    </div>
+
+                                    <h2 class="text-3xl sm:text-4xl font-black tracking-tight">
+                                        Delivery Address
+                                    </h2>
+
+                                    <p class="text-white/40 mt-3 text-sm sm:text-base">
+                                        Select your preferred destination for secure delivery.
+                                    </p>
+                                </div>
+
+                                <button type="button"
+                                        onclick="openAddressModal()"
+                                        class="group relative overflow-hidden px-6 py-3.5 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] backdrop-blur-xl text-sm font-semibold transition-all duration-500 hover:scale-[1.03] hover:border-white/20 shadow-[0_10px_40px_rgba(0,0,0,0.3)]">
+                                    <span class="absolute inset-0 bg-gradient-to-r from-white/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></span>
+
+                                    <span class="relative flex items-center gap-2">
+                                        <span class="text-lg">+</span>
+                                        Add Address
+                                    </span>
+                                </button>
+                            </div>
+
+                            <div class="space-y-5">
+                                {% for address in addresses %}
+                                <label class="block cursor-pointer group">
+                                    <input
+                                        type="radio"
+                                        name="selected_address"
+                                        value="{{ address.id }}"
+                                        class="hidden peer"
+                                        {% if address.is_default %}
+                                        checked
+                                        {% elif forloop.first %}
+                                        checked
+                                        {% endif %}
+                                    />
+
+                                    <div class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.03] backdrop-blur-2xl p-6 sm:p-7 transition-all duration-500 peer-checked:border-primary peer-checked:bg-white/[0.06] hover:bg-white/[0.05] hover:border-white/20 hover:-translate-y-1 shadow-[0_15px_60px_rgba(0,0,0,0.35)]">
+
+                                        <div class="absolute inset-0 opacity-0 peer-checked:opacity-100 transition duration-500 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_45%)]"></div>
+
+                                        <div class="relative flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8">
+
+                                            <div class="flex-1 min-w-0">
+
+                                                <div class="flex flex-wrap items-center gap-3">
+
+                                                    <div class="w-12 h-12 rounded-2xl border border-white/10 bg-white/[0.05] flex items-center justify-center text-lg shadow-inner">
+                                                        📍
+                                                    </div>
+
+                                                    <div>
+                                                        <h3 class="text-xl font-bold text-white tracking-tight">
+                                                            {{ address.full_name }}
+                                                        </h3>
+
+                                                        <div class="flex flex-wrap items-center gap-2 mt-2">
+
+                                                            <span class="px-3 py-1.5 rounded-full text-[10px] uppercase tracking-[0.25em] bg-white/10 border border-white/10 text-white/70 font-bold">
+                                                                {{ address.get_address_type_display }}
+                                                            </span>
+
+                                                            {% if address.is_default %}
+                                                            <span class="px-3 py-1.5 rounded-full text-[10px] uppercase tracking-[0.25em] bg-green-500/15 border border-green-500/20 text-green-400 font-bold shadow-[0_0_25px_rgba(34,197,94,0.2)]">
+                                                                Default
+                                                            </span>
+                                                            {% endif %}
+
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+
+                                                <div class="mt-6 space-y-2 text-white/60 text-sm leading-relaxed pl-0 sm:pl-16">
+
+                                                    <p class="text-white/75">
+                                                        {{ address.address_line_1 }}
+                                                    </p>
+
+                                                    {% if address.address_line_2 %}
+                                                    <p>{{ address.address_line_2 }}</p>
+                                                    {% endif %}
+
+                                                    <p>
+                                                        {{ address.city }}, {{ address.state }} - {{ address.pincode }}
+                                                    </p>
+
+                                                    <div class="pt-4 flex items-center gap-2 text-white/40">
+                                                        <span>☎</span>
+                                                        <span>{{ address.phone_number }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex lg:flex-col items-start lg:items-end gap-4 shrink-0">
+
+                                                <button type="button"
+                                                        onclick="openEditAddressModal('{{ address.id }}', '{{ address.full_name }}', '{{ address.phone_number }}', '{{ address.address_line_1 }}', '{{ address.address_line_2 }}', '{{ address.city }}', '{{ address.state }}', '{{ address.pincode }}', '{{ address.address_type }}', '{{ address.is_default|yesno:'true,false' }}')"
+                                                        class="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/20 transition-all duration-300 text-xs uppercase tracking-[0.25em] text-white/60 hover:text-white">
+                                                    <span>✎</span>
+                                                    Edit
+                                                </button>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                                {% empty %}
+                                <div class="relative overflow-hidden rounded-[2.5rem] border border-dashed border-white/10 bg-white/[0.03] p-14 text-center backdrop-blur-2xl">
+
+                                    <div class="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent"></div>
+
+                                    <div class="relative">
+                                        <div class="w-24 h-24 mx-auto rounded-[2rem] border border-white/10 bg-white/[0.04] flex items-center justify-center text-4xl mb-8 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+                                            📦
+                                        </div>
+
+                                        <h3 class="text-2xl font-black tracking-tight">
+                                            No Saved Addresses
+                                        </h3>
+
+                                        <p class="mt-4 text-white/45 max-w-md mx-auto leading-relaxed">
+                                            Add your first delivery address to continue with a seamless checkout experience.
+                                        </p>
+
+                                        <button type="button"
+                                                onclick="openAddressModal()"
+                                                class="group relative overflow-hidden inline-flex items-center gap-3 mt-8 px-7 py-4 rounded-2xl bg-white text-black font-bold hover:scale-[1.03] transition-all duration-500 shadow-[0_20px_60px_rgba(255,255,255,0.12)]">
+
+                                            <span class="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent translate-x-[-120%] group-hover:translate-x-[120%] transition duration-1000"></span>
+
+                                            <span class="relative text-lg">+</span>
+                                            <span class="relative">Add First Address</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PAYMENT -->
+                    <div class="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.03] backdrop-blur-3xl shadow-[0_30px_120px_rgba(0,0,0,0.45)]">
+
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/[0.03] via-transparent to-transparent"></div>
+
+                        <div class="relative p-6 sm:p-8 lg:p-10">
+
+                            <div class="mb-10">
+                                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/[0.04] mb-5">
+                                    <div class="w-2 h-2 rounded-full bg-primary"></div>
+
+                                    <span class="text-[10px] uppercase tracking-[0.35em] text-white/50 font-bold">
+                                        Payment
+                                    </span>
+                                </div>
+
+                                <h2 class="text-3xl sm:text-4xl font-black tracking-tight">
+                                    Payment Method
+                                </h2>
+
+                                <p class="mt-3 text-white/40">
+                                    Secure encrypted payment processing for your order.
+                                </p>
+                            </div>
+
+                            <div class="space-y-5">
+
+                                <label class="block cursor-pointer group">
+                                    <input type="radio" name="payment_method" value="COD" checked class="hidden peer" />
+
+                                    <div class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] backdrop-blur-2xl p-6 sm:p-7 peer-checked:border-white peer-checked:bg-white/[0.08] transition-all duration-500 hover:bg-white/[0.06] hover:border-white/20 hover:-translate-y-1 shadow-[0_15px_60px_rgba(0,0,0,0.35)]">
+
+                                        <div class="absolute inset-0 opacity-0 peer-checked:opacity-100 transition duration-500 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_45%)]"></div>
+
+                                        <div class="relative flex items-center justify-between gap-6">
+
+                                            <div class="flex items-center gap-5">
+
+                                                <div class="w-14 h-14 rounded-2xl border border-white/10 bg-white/[0.06] flex items-center justify-center text-2xl shadow-inner">
+                                                    💵
+                                                </div>
+
+                                                <div>
+                                                    <h3 class="font-black text-xl tracking-tight">
+                                                        Cash on Delivery
+                                                    </h3>
+
+                                                    <p class="text-sm text-white/45 mt-2 leading-relaxed">
+                                                        Pay securely after your order arrives at your doorstep.
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div class="w-7 h-7 rounded-full border border-white flex items-center justify-center bg-white/5">
+                                                <div class="w-3 h-3 rounded-full bg-white shadow-[0_0_20px_rgba(255,255,255,0.7)]"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT -->
+                <div class="relative">
+
+                    <div class="mb-6">
+                        <a href="{{ request.GET.next|default:'javascript:history.back()' }}"
+                           class="group relative overflow-hidden inline-flex items-center gap-3 px-6 py-3.5 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-2xl text-sm font-semibold text-white/60 hover:text-white hover:bg-white/[0.08] hover:border-white/20 transition-all duration-500 ease-out hover:scale-[1.03] active:scale-95 shadow-[0_15px_60px_rgba(0,0,0,0.35)]">
+
+                            <span class="absolute inset-0 bg-gradient-to-r from-white/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></span>
+
+                            <span class="relative text-lg leading-none group-hover:-translate-x-1 transition duration-300">
+                                ←
+                            </span>
+
+                            <span class="relative tracking-wide">
+                                Back to Product
+                            </span>
+                        </a>
+                    </div>
+
+                    <div class="sticky top-8 space-y-8">
+
+                        <!-- ORDER SUMMARY -->
+                        <div class="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.03] backdrop-blur-3xl shadow-[0_30px_120px_rgba(0,0,0,0.45)]">
+
+                            <div class="absolute inset-0 bg-gradient-to-br from-white/[0.03] via-transparent to-transparent"></div>
+
+                            <div class="relative p-6 sm:p-8">
+
+                                <div class="mb-8">
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/[0.04] mb-5">
+                                        <div class="w-2 h-2 rounded-full bg-primary"></div>
+
+                                        <span class="text-[10px] uppercase tracking-[0.35em] text-white/50 font-bold">
+                                            Summary
+                                        </span>
+                                    </div>
+
+                                    <h2 class="text-3xl font-black tracking-tight">
+                                        Order Summary
+                                    </h2>
+                                </div>
+
+                                <div class="space-y-6">
+
+                                    {% for item in checkout_items %}
+                                    <div class="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.03] p-5 transition-all duration-500 hover:bg-white/[0.05] hover:border-white/20 hover:-translate-y-1 shadow-[0_10px_50px_rgba(0,0,0,0.3)]">
+
+                                        <div class="absolute inset-0 bg-gradient-to-r from-white/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition duration-500"></div>
+
+                                        <div class="relative flex gap-5">
+
+                                            <div class="relative w-24 h-24 rounded-[1.5rem] overflow-hidden border border-white/10 bg-white/[0.04] shrink-0 shadow-[0_10px_30px_rgba(0,0,0,0.35)]">
+
+                                                <div class="absolute inset-0 bg-gradient-to-br from-white/[0.05] to-transparent"></div>
+
+                                                {% with item.variant.product.images.all|first as img %}
+                                                {% if img %}
+                                                <img src="{{ img.image.url }}"
+                                                     alt="{{ item.variant.product.name }}"
+                                                     class="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
+                                                {% else %}
+                                                <div class="w-full h-full flex items-center justify-center text-[10px] text-white/30">
+                                                    No Image
+                                                </div>
+                                                {% endif %}
+                                                {% endwith %}
+                                            </div>
+
+                                            <div class="flex-1 min-w-0 flex flex-col justify-between">
+
+                                                <div>
+                                                    <h3 class="font-bold text-white leading-tight text-lg tracking-tight">
+                                                        {{ item.variant.product.name }}
+                                                    </h3>
+
+                                                    <p class="text-sm text-white/40 mt-2">
+                                                        {{ item.variant }}
+                                                    </p>
+                                                </div>
+
+                                                <div class="flex items-end justify-between mt-6">
+
+                                                    <div class="px-3 py-1.5 rounded-full border border-white/10 bg-white/[0.03] text-xs uppercase tracking-[0.2em] text-white/50">
+                                                        Qty {{ item.quantity }}
+                                                    </div>
+
+                                                    <p class="text-2xl font-black tracking-tight">
+                                                        ₹{{ item.selling_total }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PRICE -->
+                        <div class="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-white/[0.03] backdrop-blur-3xl shadow-[0_30px_120px_rgba(0,0,0,0.45)]">
+
+                            <div class="absolute inset-0 bg-gradient-to-br from-white/[0.03] via-transparent to-transparent"></div>
+
+                            <div class="relative p-6 sm:p-8">
+
+                                <div class="mb-8">
+                                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/[0.04] mb-5">
+                                        <div class="w-2 h-2 rounded-full bg-primary"></div>
+
+                                        <span class="text-[10px] uppercase tracking-[0.35em] text-white/50 font-bold">
+                                            Billing
+                                        </span>
+                                    </div>
+
+                                    <h2 class="text-3xl font-black tracking-tight">
+                                        Pricing Details
+                                    </h2>
+                                </div>
+
+                                {% with mrp=0 %}
+                                {% for item in checkout_items %}
+                                {% with mrp=mrp|add:item.mrp_total %}{% endwith %}
+                                {% endfor %}
+
+                                <div class="space-y-5">
+
+                                    <!-- MRP -->
+                                    <div class="flex items-center justify-between py-1">
+                                        <p class="text-white/50">MRP Total</p>
+
+                                        <p class="font-semibold text-white/80">
+                                            ₹{{ mrp_total }}
+                                        </p>
+                                    </div>
+
+                                    <!-- Discount -->
+                                    <div class="flex items-center justify-between py-1">
+                                        <p class="text-white/50">Discount</p>
+
+                                        <p class="font-bold text-green-400">
+                                            - ₹{{ discount }}
+                                        </p>
+                                    </div>
+
+                                    <!-- Subtotal -->
+                                    <div class="flex items-center justify-between py-1">
+                                        <p class="text-white/50">Subtotal</p>
+
+                                        <p class="font-semibold text-white/80">
+                                            ₹{{ subtotal }}
+                                        </p>
+                                    </div>
+
+                                    <!-- Shipping -->
+                                    <div class="flex items-center justify-between py-1">
+                                        <p class="text-white/50">Shipping</p>
+
+                                        <p class="font-semibold text-white/80">
+                                            {% if shipping == 0 %}
+                                            Free
+                                            {% else %}
+                                            ₹{{ shipping }}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+
+                                    <!-- Total -->
+                                    <div class="relative overflow-hidden mt-7 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+
+                                        <div class="absolute inset-0 bg-gradient-to-r from-white/[0.04] to-transparent"></div>
+
+                                        <div class="relative flex items-end justify-between gap-5">
+
+                                            <div>
+                                                <p class="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3">
+                                                    Grand Total
+                                                </p>
+
+                                                <h3 class="text-white/70">
+                                                    Inclusive of all taxes
+                                                </h3>
+                                            </div>
+
+                                            <h3 class="text-4xl sm:text-5xl font-black tracking-tight">
+                                                ₹{{ final_total }}
+                                            </h3>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                {% endwith %}
+
+                                <button type="submit"
+                                        class="group relative overflow-hidden w-full mt-8 py-5 rounded-[1.7rem] bg-white text-black font-black text-lg tracking-wide hover:scale-[1.02] active:scale-[0.99] transition-all duration-500 shadow-[0_25px_80px_rgba(255,255,255,0.15)]">
+
+                                    <span class="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent translate-x-[-120%] group-hover:translate-x-[120%] transition duration-1000"></span>
+
+                                    <span class="relative flex items-center justify-center gap-3">
+                                        <span>Place Order</span>
+                                        <span class="group-hover:translate-x-1 transition duration-300">
+                                            →
+                                        </span>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- ADDRESS MODAL -->
+<div id="addressModal"
+     class="hidden fixed inset-0 z-[120] bg-black/80 backdrop-blur-2xl grid place-items-center p-4">
+
+    <div class="relative w-full max-w-lg rounded-[2rem] border border-white/10 bg-[#090909]/95 backdrop-blur-3xl shadow-[0_30px_100px_rgba(0,0,0,0.65)] overflow-hidden">
+
+        <div class="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-transparent"></div>
+
+        <div class="relative flex items-center justify-between px-5 py-4 border-b border-white/10">
+
+            <div>
+                <p id="modalSubHeading"
+                   class="text-[9px] uppercase tracking-[0.45em] text-primary font-black">
+                    SHIPPING ADDRESS
+                </p>
+
+                <h2 id="modalHeading"
+                    class="text-3xl font-black tracking-tight mt-3">
+                    Add Address
+                </h2>
+            </div>
+
+            <button type="button"
+                    onclick="closeAddressModal()"
+                    class="group w-12 h-12 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white/50 hover:text-white transition-all duration-300 flex items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.35)] hover:rotate-90">
+                ✕
+            </button>
+        </div>
+
+        <form id="addressForm"
+      method="POST"
+      action="{% url 'add_address' %}"
+      class="relative p-5">
+            <input type="hidden" name="next" value="{{ request.path }}" />
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                <div>
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
+                        Full Name
+                    </label>
+
+                    <input type="text"
+                           name="full_name"
+                           id="full_name"
+                           required
+                           class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
+                </div>
+
+                <div>
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
+                        Phone Number
+                    </label>
+
+                    <input type="text"
+                           name="phone_number"
+                           id="phone_number"
+                           maxlength="10"
+                           required
+                           class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
+                        Address Line 1
+                    </label>
+
+                    <input type="text"
+                           name="address_line_1"
+                           id="address_line_1"
+                           required
+                           class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
+                        Apartment / Suite
+                    </label>
+
+                    <input type="text"
+                           name="address_line_2"
+                           id="address_line_2"
+                           class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
+                </div>
+
+                <div>
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
+                        City
+                    </label>
+
+                    <input type="text"
+                           name="city"
+                           id="city"
+                           required
+                           class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
+                </div>
+
+                <div>
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
+                        State
+                    </label>
+
+                    <input type="text"
+                           name="state"
+                           id="state"
+                           required
+                           class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
+                </div>
+
+                <div>
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
+                        Pincode
+                    </label>
+
+                    <input type="text"
+                           name="pincode"
+                           id="pincode"
+                           maxlength="6"
+                           required
+                           class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
+                </div>
+
+                <div>
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
+                        Address Type
+                    </label>
+
+                    <select name="address_type"
+                            id="address_type"
+                            class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white outline-none focus:border-primary transition-all duration-300 shadow-inner">
+
+                        <option value="HOME">Home</option>
+                        <option value="WORK">Work</option>
+                        <option value="OTHER">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 mt-7 p-4 rounded-2xl border border-white/10 bg-white/[0.03]">
+
+                <input type="checkbox"
+                       name="is_default"
+                       id="is_default"
+                       class="w-5 h-5 rounded border-white/20 bg-black accent-white" />
+
+                <label for="is_default"
+                       class="text-sm text-white/70 font-medium">
+                    Set as default address
+                </label>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 mt-8">
+
+                <button type="button"
+                        onclick="closeAddressModal()"
+                        class="flex-1 h-14 rounded-2xl border border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/[0.06] hover:text-white transition-all duration-300 font-semibold">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        id="modalSubmitBtn"
+                        class="group relative overflow-hidden flex-1 h-14 rounded-2xl bg-white text-black font-black hover:scale-[1.02] transition-all duration-500 shadow-[0_20px_60px_rgba(255,255,255,0.15)]">
+
+                    <span class="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent translate-x-[-120%] group-hover:translate-x-[120%] transition duration-1000"></span>
+
+                    <span class="relative">
+                        Save Address
+                    </span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById("addressModal");
+    const form = document.getElementById("addressForm");
+    const modalHeading = document.getElementById("modalHeading");
+    const modalSubHeading = document.getElementById("modalSubHeading");
+    const modalSubmitBtn = document.getElementById("modalSubmitBtn");
+
+    function openAddressModal() {
+        form.reset();
+        modalHeading.innerText = "Add Address";
+        modalSubHeading.innerText = "SHIPPING ADDRESS";
+        modalSubmitBtn.innerText = "Save Address";
+        form.action = "{% url 'add_address' %}";
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeAddressModal() {
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+        document.body.style.overflow = "auto";
+    }
+
+    function openEditAddressModal(id, full_name, phone_number, address_line_1, address_line_2, city, state, pincode, address_type, is_default) {
+        openAddressModal();
+        modalHeading.innerText = "Edit Address";
+        modalSubHeading.innerText = "UPDATE ADDRESS";
+        modalSubmitBtn.innerText = "Update Address";
+        form.action = `/profile/address/edit/${id}/`;
+
+        document.getElementById("full_name").value = full_name || "";
+        document.getElementById("phone_number").value = phone_number || "";
+        document.getElementById("address_line_1").value = address_line_1 || "";
+        document.getElementById("address_line_2").value = address_line_2 || "";
+        document.getElementById("city").value = city || "";
+        document.getElementById("state").value = state || "";
+        document.getElementById("pincode").value = pincode || "";
+        document.getElementById("address_type").value = address_type || "HOME";
+        document.getElementById("is_default").checked = is_default === "true";
+    }
+
+    modal.addEventListener("click", function(e) {
+        if (e.target === modal) closeAddressModal();
+    });
+
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+            closeAddressModal();
+        }
+    });
+
+    const phoneInput = document.getElementById("phone_number");
+    phoneInput.addEventListener("input", function(e) {
+        e.target.value = e.target.value.replace(/\D/g, "").slice(0, 10);
+    });
+
+    const pincodeInput = document.getElementById("pincode");
+    pincodeInput.addEventListener("input", function(e) {
+        e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6);
+    });
+
+    ["city", "state"].forEach(id => {
+        document.getElementById(id).addEventListener("input", function(e) {
+            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
+        });
+    });
+
+    form.addEventListener("submit", function(e) {
+        const fullName = document.getElementById("full_name").value.trim();
+        const phone = phoneInput.value.trim();
+        const address1 = document.getElementById("address_line_1").value.trim();
+        const city = document.getElementById("city").value.trim();
+        const state = document.getElementById("state").value.trim();
+        const pincode = pincodeInput.value.trim();
+
+        if (fullName.length < 3) {
+            alert("Full name must contain at least 3 characters");
+            e.preventDefault();
+            return;
+        }
+
+        if (!/^[6-9]\d{9}$/.test(phone)) {
+            alert("Enter a valid 10 digit phone number");
+            e.preventDefault();
+            return;
+        }
+
+        if (address1.length < 5) {
+            alert("Address is too short");
+            e.preventDefault();
+            return;
+        }
+
+        if (city.length < 2) {
+            alert("Enter a valid city");
+            e.preventDefault();
+            return;
+        }
+
+        if (state.length < 2) {
+            alert("Enter a valid state");
+            e.preventDefault();
+            return;
+        }
+
+        if (!/^\d{6}$/.test(pincode)) {
+            alert("Pincode must be 6 digits");
+            e.preventDefault();
+            return;
+        }
+    });
+</script>
+{% endblock %}

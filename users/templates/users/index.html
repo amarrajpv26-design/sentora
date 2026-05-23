@@ -1,19 +1,17 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-
-    <title>Scentora | Luxury Fragrances</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <meta name="csrf-token" content="{{ csrf_token }}">
-
-
-
-    <script id="tailwind-config">
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>Scentora | Luxury Fragrances</title>
+        <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+              rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+              rel="stylesheet" />
+        <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+        <meta name="csrf-token" content="{{ csrf_token }}">
+        <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
@@ -29,9 +27,8 @@
                 },
             },
         }
-    </script>
-    
-    <style>
+        </script>
+        <style>
         body { font-family: 'Manrope', sans-serif; }
         .hero-gradient {
             background: linear-gradient(to right, #0a0a0a 0%, rgba(10, 10, 10, 0.7) 40%, transparent 100%);
@@ -48,213 +45,172 @@
     transform: scale(1.05);
 }
 
-    </style>
-</head>
-<body class="bg-background-dark text-slate-100 antialiased">
-
-
-    <!-- PREMIUM TOAST CONTAINER -->
-<div id="global-toast-container"
-     class="fixed top-8 left-1/2 -translate-x-1/2
-            z-[9999]
-            flex flex-col gap-4
-            items-center
-            pointer-events-none">
-</div>
-
-
-<header class="sticky top-0 z-50 w-full border-b border-neutral-border bg-background-dark/90 backdrop-blur-md">
-<div class="w-full px-10 lg:px-16 py-5 flex items-center justify-between">        <div class="flex items-center gap-16">
-            <a class="flex items-center gap-2 group" href="{% url 'home' %}">
-    <span class="material-symbols-outlined text-primary text-3xl transition-transform group-hover:rotate-12">fluid</span>
-    <h1 class="text-2xl font-extrabold tracking-tighter uppercase">Scentora</h1>
-</a>
-       <nav class="hidden lg:flex items-center">
-    <div class="flex items-center gap-1 px-2 py-2 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-xl">
-
-        <a href="{% url 'home' %}"
-           class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300
-           {% if request.resolver_match.url_name == 'home' %}
-                text-primary
-           {% else %}
-                text-slate-300 hover:text-white
-           {% endif %}">
-            Home
-            {% if request.resolver_match.url_name == 'home' %}
-            <span class="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
-            {% endif %}
-        </a>
-
-        <a href="{% url 'shop:product_list' %}"
-           class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300
-           {% if request.resolver_match.url_name == 'product_list' %}
-                text-primary
-           {% else %}
-                text-slate-300 hover:text-white
-           {% endif %}">
-            Shop
-            {% if request.resolver_match.url_name == 'product_list' %}
-            <span class="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
-            {% endif %}
-        </a>
-
-        <a href="{% url 'shop:brand_list' %}"
-           class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300
-           {% if request.resolver_match.url_name == 'brand_list' %}
-                text-primary
-           {% else %}
-                text-slate-300 hover:text-white
-           {% endif %}">
-            Brands
-            {% if request.resolver_match.url_name == 'brand_list' %}
-            <span class="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
-            {% endif %}
-        </a>
-
-       
-
-       <a href="{% url 'shop:category_list' %}"
-           class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300
-           {% if request.resolver_match.url_name == 'category_list' %}
-                text-primary
-           {% else %}
-                text-slate-300 hover:text-white
-           {% endif %}">
-            Category
-            {% if request.resolver_match.url_name == 'category_list' %}
-            <span class="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
-            {% endif %}
-        </a>
-    </div>
-</nav>
+        </style>
+    </head>
+    <body class="bg-background-dark text-slate-100 antialiased">
+        <!-- PREMIUM TOAST CONTAINER -->
+        <div id="global-toast-container"
+             class="fixed top-8 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-4 items-center pointer-events-none">
         </div>
-        
-        <div class="flex items-center gap-6">
-            <div class="hidden md:flex items-center bg-neutral-dark border border-neutral-border rounded-full px-4 py-2 group focus-within:border-primary transition-all">
-                <span class="material-symbols-outlined text-slate-500 text-xl">search</span>
-<input class="bg-transparent border-none focus:ring-0 text-xs w-48 placeholder:text-slate-600" 
-       placeholder="Search fragrances..." type="text"/>
+        <header class="sticky top-0 z-50 w-full border-b border-neutral-border bg-background-dark/90 backdrop-blur-md">
+            <div class="w-full px-10 lg:px-16 py-5 flex items-center justify-between">
+                <div class="flex items-center gap-16">
+                    <a class="flex items-center gap-2 group" href="{% url 'home' %}">
+                        <span class="material-symbols-outlined text-primary text-3xl transition-transform group-hover:rotate-12">fluid</span>
+                        <h1 class="text-2xl font-extrabold tracking-tighter uppercase">Scentora</h1>
+                    </a>
+                    <nav class="hidden lg:flex items-center">
+                        <div class="flex items-center gap-1 px-2 py-2 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-xl">
+                            <a href="{% url 'home' %}"
+                               class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300 {% if request.resolver_match.url_name == 'home' %} text-primary {% else %} text-slate-300 hover:text-white {% endif %}">
+                                Home
+                                {% if request.resolver_match.url_name == 'home' %}
+                                    <span class="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
+                                {% endif %}
+                            </a>
+                            <a href="{% url 'shop:product_list' %}"
+                               class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300 {% if request.resolver_match.url_name == 'product_list' %} text-primary {% else %} text-slate-300 hover:text-white {% endif %}">
+                                Shop
+                                {% if request.resolver_match.url_name == 'product_list' %}
+                                    <span class="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
+                                {% endif %}
+                            </a>
+                            <a href="{% url 'shop:brand_list' %}"
+                               class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300 {% if request.resolver_match.url_name == 'brand_list' %} text-primary {% else %} text-slate-300 hover:text-white {% endif %}">
+                                Brands
+                                {% if request.resolver_match.url_name == 'brand_list' %}
+                                    <span class="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
+                                {% endif %}
+                            </a>
+                            <a href="{% url 'shop:category_list' %}"
+                               class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300 {% if request.resolver_match.url_name == 'category_list' %} text-primary {% else %} text-slate-300 hover:text-white {% endif %}">
+                                Category
+                                {% if request.resolver_match.url_name == 'category_list' %}
+                                    <span class="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
+                                {% endif %}
+                            </a>
+                        </div>
+                    </nav>
                 </div>
-
-            
-                {% if user.is_authenticated %}
-   <div class="flex items-center gap-7 border-l border-neutral-border pl-8">
-
-    <!-- Wishlist -->
-    <a href="{% url 'cart:wishlist_detail' %}" class="relative group pt-2">
-    <span class="material-symbols-outlined text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
-        favorite
-    </span>
-    <span id="wishlist-icon-count" 
-          hx-get="{% url 'cart:wishlist_count_only' %}" 
-          hx-trigger="wishlistUpdated from:body"
-          class="absolute -top-1 left-1/2 -translate-x-1/2
-                 min-w-[18px] h-[18px] px-1
-                 flex items-center justify-center
-                 rounded-full
-                 bg-primary text-black
-                 text-[9px] font-black leading-none
-                 ">
-        {{ request.user.wishlist.items.count }}
-    </span>
-</a>
-    <!-- Cart -->
-   <a href="{% url 'cart:cart_detail' %}" class="relative group pt-2">
-    <span class="material-symbols-outlined text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
-        shopping_bag
-    </span>
-    
-    <span id="cart-icon-count" hx-get="{% url 'cart:cart_count_only' %}" hx-trigger="update-cart from:body"
-          class="absolute -top-1 left-1/2 -translate-x-1/2
-                 min-w-[18px] h-[18px] px-1
-                 flex items-center justify-center
-                 rounded-full
-                 bg-primary text-black
-                 text-[9px] font-black leading-none
-                ">
-        {{ cart|length }}
-    </span>
-</a>
-
-    <!-- Profile -->
-    <a href="{% url 'profile' %}" class="flex items-center gap-4 border-l border-neutral-border pl-7 group">
-        <div class="flex flex-col items-end hidden sm:flex">
-            <span class="text-[8px] uppercase tracking-[0.35em] text-slate-500 group-hover:text-primary transition-colors">
-                Access Vault
-            </span>
-            <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-white">
-                {{ user.username }}
-            </span>
-        </div>
-
-        <div class="relative">
-            <div class="w-11 h-11 rounded-full border border-neutral-border group-hover:border-primary transition-all p-0.5 overflow-hidden">
-                {% if user.profile_image %}
-                    <img src="{{ user.profile_image.url }}"
-                         class="w-full h-full object-cover rounded-full">
-                {% else %}
-                    <div class="w-full h-full bg-neutral-dark rounded-full flex items-center justify-center">
-                        <span class="material-symbols-outlined text-slate-500 group-hover:text-primary">
-                            person
-                        </span>
+                <div class="flex items-center gap-6">
+                    <div class="hidden md:flex items-center bg-neutral-dark border border-neutral-border rounded-full px-4 py-2 group focus-within:border-primary transition-all">
+                        <span class="material-symbols-outlined text-slate-500 text-xl">search</span>
+                        <input class="bg-transparent border-none focus:ring-0 text-xs w-48 placeholder:text-slate-600"
+                               placeholder="Search fragrances..."
+                               type="text" />
                     </div>
-                {% endif %}
+                    {% if user.is_authenticated %}
+                        <div class="flex items-center gap-7 border-l border-neutral-border pl-8">
+                            <!-- Wishlist -->
+                            <a href="{% url 'cart:wishlist_detail' %}" class="relative group pt-2">
+                                <span class="material-symbols-outlined text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
+                                    favorite
+                                </span>
+                                <span id="wishlist-icon-count"
+                                      hx-get="{% url 'cart:wishlist_count_only' %}"
+                                      hx-trigger="wishlistUpdated from:body"
+                                      class="absolute -top-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-black text-[9px] font-black leading-none ">
+                                    {{ request.user.wishlist.items.count }}
+                                </span>
+                            </a>
+                            <!-- Cart -->
+                            <a href="{% url 'cart:cart_detail' %}" class="relative group pt-2">
+                                <span class="material-symbols-outlined text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
+                                    shopping_bag
+                                </span>
+                                <span id="cart-icon-count"
+                                      hx-get="{% url 'cart:cart_count_only' %}"
+                                      hx-trigger="update-cart from:body"
+                                      class="absolute -top-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-black text-[9px] font-black leading-none ">
+                                    {{ cart|length }}
+                                </span>
+                            </a>
+                            <!-- Profile -->
+                            <a href="{% url 'profile' %}"
+                               class="flex items-center gap-4 border-l border-neutral-border pl-7 group">
+                                <div class="flex flex-col items-end hidden sm:flex">
+                                    <span class="text-[8px] uppercase tracking-[0.35em] text-slate-500 group-hover:text-primary transition-colors">
+                                        Access Vault
+                                    </span>
+                                    <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-white">{{ user.username }}</span>
+                                </div>
+                                <div class="relative">
+                                    <div class="w-11 h-11 rounded-full border border-neutral-border group-hover:border-primary transition-all p-0.5 overflow-hidden">
+                                        {% if user.profile_image %}
+                                            <img src="{{ user.profile_image.url }}"
+                                                 class="w-full h-full object-cover rounded-full">
+                                        {% else %}
+                                            <div class="w-full h-full bg-neutral-dark rounded-full flex items-center justify-center">
+                                                <span class="material-symbols-outlined text-slate-500 group-hover:text-primary">person</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-background-dark"></span>
+                                </div>
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-
-            <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-background-dark"></span>
         </div>
-    </a>
-
-</div>
-
-{% endif %}
-            </div>
-        </div>
-    </div>
-</header>
-
-<main>
-    {% block content %}
-
-    <section class="relative h-[85vh] w-full overflow-hidden bg-black">
-    <div id="hero-carousel" class="absolute inset-0 z-0 flex transition-transform duration-[1200ms] cubic-bezier(0.4, 0, 0.2, 1)">
-        <div class="min-w-full h-full relative">
-<img alt="Luxury Gold" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1544468266-6a8948003cd7?q=80&w=1174&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"/>        </div>
-        <div class="min-w-full h-full relative">
-<img alt="Modern Noir" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1611255680915-114e3414c085?q=80&w=1172&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"/>        </div>
-        <div class="min-w-full h-full relative">
-<img alt="Glass Essence" class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1602070945737-067cfd04174c?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"/>        </div>
-    </div>
-
-    <div class="absolute inset-0 z-10 hero-gradient"></div>
-    
-    <div class="relative z-20 h-full max-w-[1440px] mx-auto px-8 lg:px-12 flex items-center">
-        <div class="max-w-2xl space-y-8">
-            <div class="flex items-center gap-4">
-                <span class="w-12 h-[1px] bg-primary"></span>
-                <h2 class="text-primary font-bold tracking-[0.4em] uppercase text-[10px]">Exquisite Collection 2026</h2>
-            </div>
-            <h1 class="text-6xl lg:text-8xl font-light leading-none tracking-tighter">
-    Capture Your <br/><span class="font-extrabold text-white">Essence.</span>
-</h1>
-<p class="text-lg text-slate-400 font-light max-w-md leading-relaxed">
-    Explore a curated collection of rare fragrances and signature scents from the world's most prestigious perfume houses.
-</p>
-            <div class="flex flex-wrap gap-6 pt-4">
-                <button class="bg-primary text-background-dark font-black uppercase tracking-widest text-[11px] px-12 py-5 rounded-sm hover:brightness-110 transition-all">Shop Now</button>
-                <button class="border border-white/20 text-white font-bold uppercase tracking-widest text-[11px] px-12 py-5 rounded-sm hover:bg-white hover:text-black transition-all">The Collection</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="carousel-dots" class="absolute bottom-10 right-12 z-30 flex gap-3">
-        <div class="w-1.5 h-1.5 rounded-full bg-primary cursor-pointer transition-all duration-500 scale-125" onclick="goToSlide(0)"></div>
-        <div class="w-1.5 h-1.5 rounded-full bg-white/20 cursor-pointer transition-all duration-500" onclick="goToSlide(1)"></div>
-        <div class="w-1.5 h-1.5 rounded-full bg-white/20 cursor-pointer transition-all duration-500" onclick="goToSlide(2)"></div>
-    </div>
-</section>
-
-    <script>
+    </header>
+    <main>
+        {% block content %}
+            <section class="relative h-[85vh] w-full overflow-hidden bg-black">
+                <div id="hero-carousel"
+                     class="absolute inset-0 z-0 flex transition-transform duration-[1200ms] cubic-bezier(0.4, 0, 0.2, 1)">
+                    <div class="min-w-full h-full relative">
+                        <img alt="Luxury Gold"
+                             class="w-full h-full object-cover"
+                             src="https://images.unsplash.com/photo-1544468266-6a8948003cd7?q=80&w=1174&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
+                    </div>
+                    <div class="min-w-full h-full relative">
+                        <img alt="Modern Noir"
+                             class="w-full h-full object-cover"
+                             src="https://images.unsplash.com/photo-1611255680915-114e3414c085?q=80&w=1172&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
+                    </div>
+                    <div class="min-w-full h-full relative">
+                        <img alt="Glass Essence"
+                             class="w-full h-full object-cover"
+                             src="https://images.unsplash.com/photo-1602070945737-067cfd04174c?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
+                    </div>
+                </div>
+                <div class="absolute inset-0 z-10 hero-gradient"></div>
+                <div class="relative z-20 h-full max-w-[1440px] mx-auto px-8 lg:px-12 flex items-center">
+                    <div class="max-w-2xl space-y-8">
+                        <div class="flex items-center gap-4">
+                            <span class="w-12 h-[1px] bg-primary"></span>
+                            <h2 class="text-primary font-bold tracking-[0.4em] uppercase text-[10px]">Exquisite Collection 2026</h2>
+                        </div>
+                        <h1 class="text-6xl lg:text-8xl font-light leading-none tracking-tighter">
+                            Capture Your
+                            <br />
+                            <span class="font-extrabold text-white">Essence.</span>
+                        </h1>
+                        <p class="text-lg text-slate-400 font-light max-w-md leading-relaxed">
+                            Explore a curated collection of rare fragrances and signature scents from the world's most prestigious perfume houses.
+                        </p>
+                        <div class="flex flex-wrap gap-6 pt-4">
+                            <button class="bg-primary text-background-dark font-black uppercase tracking-widest text-[11px] px-12 py-5 rounded-sm hover:brightness-110 transition-all">
+                                Shop Now
+                            </button>
+                            <button class="border border-white/20 text-white font-bold uppercase tracking-widest text-[11px] px-12 py-5 rounded-sm hover:bg-white hover:text-black transition-all">
+                                The Collection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="carousel-dots"
+                     class="absolute bottom-10 right-12 z-30 flex gap-3">
+                    <div class="w-1.5 h-1.5 rounded-full bg-primary cursor-pointer transition-all duration-500 scale-125"
+                         onclick="goToSlide(0)"></div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-white/20 cursor-pointer transition-all duration-500"
+                         onclick="goToSlide(1)"></div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-white/20 cursor-pointer transition-all duration-500"
+                         onclick="goToSlide(2)"></div>
+                </div>
+            </section>
+            <script>
         let currentSlide = 0;
         const slides = document.querySelectorAll('#hero-carousel > div');
         const dots = document.querySelectorAll('.z-30 > div');
@@ -275,205 +231,236 @@
             currentSlide = (currentSlide + 1) % slides.length;
             goToSlide(currentSlide);
         }, 5000);
-    </script>
-    <section class="bg-neutral-dark border-b border-neutral-border py-16">
+            </script>
+            <section class="bg-neutral-dark border-b border-neutral-border py-16">
+                <div class="max-w-[1440px] mx-auto px-8 lg:px-12">
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-12">
+                        <div class="flex flex-col gap-4">
+                            <span class="material-symbols-outlined text-primary text-3xl">verified</span>
+                            <div>
+                                <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Authentic Heritage</h4>
+                                <p class="text-[10px] text-slate-500 uppercase tracking-widest">100% Genuine Origin</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-4">
+                            <span class="material-symbols-outlined text-primary text-3xl">lock</span>
+                            <div>
+                                <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Secure Transaction</h4>
+                                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Encrypted Checkout</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-4">
+                            <span class="material-symbols-outlined text-primary text-3xl">local_shipping</span>
+                            <div>
+                                <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Global Delivery</h4>
+                                <p class="text-[10px] text-slate-500 uppercase tracking-widest">2-3 Day Express</p>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-4">
+                            <span class="material-symbols-outlined text-primary text-3xl">assignment_return</span>
+                            <div>
+                                <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Concierge Returns</h4>
+                                <p class="text-[10px] text-slate-500 uppercase tracking-widest">7-Day Policy</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="py-32 max-w-[1440px] mx-auto px-8 lg:px-12">
+                <div class="flex items-end justify-between mb-20">
+                    <div class="space-y-4">
+                        <p class="text-primary text-[10px] font-bold uppercase tracking-[0.4em]">Curated for you</p>
+                        <h2 class="text-4xl font-extralight tracking-tight">
+                            Featured <span class="font-bold">Masterpieces</span>
+                        </h2>
+                    </div>
+                    <a class="text-xs font-bold uppercase tracking-widest border-b border-primary/40 pb-2 hover:text-primary transition-all"
+                       href="#">View Gallery</a>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+                    <div class="group space-y-6">
+                        <div class="relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-sm">
+                            <img class="w-full h-full object-cover hover-reveal"
+                                 src="https://www.myperfumeshop.in/cdn/shop/products/lancome-tresor-midnight-rose-leau-de-parfum-perfume-cologne-943209.jpg?v=1704917875&width=1200" />
+                            <button class="absolute top-4 right-4 p-2 bg-black/40 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="material-symbols-outlined text-sm">favorite</span>
+                            </button>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] text-primary font-bold uppercase tracking-widest">Noir Series</p>
+                            <h3 class="text-lg font-bold tracking-tight">Midnight Rose</h3>
+                            <p class="text-slate-500 text-sm font-light">$210.00</p>
+                        </div>
+                    </div>
+                    <div class="group space-y-6 lg:translate-y-12">
+                        <div class="relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-sm">
+                            <img class="w-full h-full object-cover hover-reveal"
+                                 src="https://bellavitaorganic.com/cdn/shop/files/OUDGold-04_1c7adc0f-fab0-414b-b717-746089a3b5fd.jpg?v=1767772699&width=1000" />
+                            <button class="absolute top-4 right-4 p-2 bg-black/40 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="material-symbols-outlined text-sm">favorite</span>
+                            </button>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] text-primary font-bold uppercase tracking-widest">Royal Collection</p>
+                            <h3 class="text-lg font-bold tracking-tight">Golden Oud</h3>
+                            <p class="text-slate-500 text-sm font-light">$185.00</p>
+                        </div>
+                    </div>
+                    <div class="group space-y-6">
+                        <div class="relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-sm">
+                            <img class="w-full h-full object-cover hover-reveal"
+                                 src="https://www.perfumeclique.ca/cdn/shop/files/AzureBreeze_2_1800x1800.png?v=1747684438" />
+                            <button class="absolute top-4 right-4 p-2 bg-black/40 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="material-symbols-outlined text-sm">favorite</span>
+                            </button>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] text-primary font-bold uppercase tracking-widest">Elements</p>
+                            <h3 class="text-lg font-bold tracking-tight">Azure Breeze</h3>
+                            <p class="text-slate-500 text-sm font-light">$145.00</p>
+                        </div>
+                    </div>
+                    <div class="group space-y-6 lg:translate-y-12">
+                        <div class="relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-sm">
+                            <img class="w-full h-full object-cover hover-reveal"
+                                 src="https://www.kyt-mv.com/web/image/product.product/48642/image_1024/KYT%20PERFUME%20VELVET%20MUSK%20%28DIAMOND%29%20%28OIL-6ML%29?unique=6a696ae" />
+                            <button class="absolute top-4 right-4 p-2 bg-black/40 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="material-symbols-outlined text-sm">favorite</span>
+                            </button>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[10px] text-primary font-bold uppercase tracking-widest">Private Blend</p>
+                            <h3 class="text-lg font-bold tracking-tight">Velvet Musk</h3>
+                            <p class="text-slate-500 text-sm font-light">$290.00</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="py-32 bg-[#050505]">
+                <div class="max-w-[1440px] mx-auto px-8 lg:px-12">
+                    <h2 class="text-center text-xs font-bold uppercase tracking-[0.5em] text-slate-500 mb-16">The Departments</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <a class="group relative h-[600px] overflow-hidden" href="#">
+                            <img class="w-full h-full object-cover hover-reveal"
+                                 src="https://assets.myntassets.com/w_360,q_50,,dpr_2,fl_progressive,f_webp/assets/images/2026/JANUARY/22/foUx9mlZ_b8ce87725d264dbfbbec9db71458c188.jpg" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-10 left-10 space-y-2">
+                                <h3 class="text-2xl font-bold tracking-tight">For Him</h3>
+                                <p class="text-primary text-[10px] font-bold uppercase tracking-widest">Explore Collection</p>
+                            </div>
+                        </a>
+                        <a class="group relative h-[600px] overflow-hidden" href="#">
+                            <img class="w-full h-full object-cover hover-reveal"
+                                 src="https://www.frenchessence.com/cdn/shop/files/30ML-CHARM-2.jpg?v=1758783530&width=1445" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-10 left-10 space-y-2">
+                                <h3 class="text-2xl font-bold tracking-tight">For Her</h3>
+                                <p class="text-primary text-[10px] font-bold uppercase tracking-widest">Explore Collection</p>
+                            </div>
+                        </a>
+                        <a class="group relative h-[600px] overflow-hidden" href="#">
+                            <img class="w-full h-full object-cover hover-reveal"
+                                 src="https://images-static.nykaa.com/media/catalog/product/4/d/4d1e177NISAR00000110ab_ab1.jpg?tr=w-500" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
+                            <div class="absolute bottom-10 left-10 space-y-2">
+                                <h3 class="text-2xl font-bold tracking-tight">Unisex</h3>
+                                <p class="text-primary text-[10px] font-bold uppercase tracking-widest">Explore Collection</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </section>
+            <section class="py-32">
+                <div class="max-w-4xl mx-auto px-8 text-center">
+                    <div class="space-y-8">
+                        <span class="material-symbols-outlined text-primary text-6xl font-light">mail</span>
+                        <h2 class="text-4xl font-extralight tracking-tight">
+                            The <span class="font-bold italic">Scentora</span> Journal
+                        </h2>
+                        <p class="text-slate-500 text-sm uppercase tracking-[0.3em] max-w-lg mx-auto leading-loose">
+                            Subscribe for exclusive access to vintage releases and private invitations.
+                        </p>
+                        <form class="flex flex-col sm:flex-row gap-0 max-w-md mx-auto border-b border-neutral-border focus-within:border-primary transition-all">
+                            <input class="flex-1 bg-transparent border-none text-sm py-4 outline-none placeholder:text-slate-700"
+                                   placeholder="Email Address"
+                                   type="email" />
+                            <button class="text-primary font-bold uppercase tracking-widest text-[10px] py-4 px-6 hover:text-white transition-colors">
+                                Join
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+        {% endblock content %}
+    </main>
+    <footer class="bg-neutral-dark pt-32 pb-16 border-t border-neutral-border">
         <div class="max-w-[1440px] mx-auto px-8 lg:px-12">
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-12">
-                <div class="flex flex-col gap-4">
-                    <span class="material-symbols-outlined text-primary text-3xl">verified</span>
-                    <div>
-                        <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Authentic Heritage</h4>
-                        <p class="text-[10px] text-slate-500 uppercase tracking-widest">100% Genuine Origin</p>
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-20 mb-24">
+                <div class="space-y-8">
+                    <a class="flex items-center gap-2" href="#">
+                        <span class="material-symbols-outlined text-primary text-3xl">fluid</span>
+                        <h2 class="text-2xl font-extrabold tracking-tighter uppercase text-white">Scentora</h2>
+                    </a>
+                    <p class="text-slate-500 text-sm font-light leading-relaxed">
+                        A legacy of olfactory excellence. Curating the world's most intimate memories through the art of fine perfumery.
+                    </p>
                 </div>
-                <div class="flex flex-col gap-4">
-                    <span class="material-symbols-outlined text-primary text-3xl">lock</span>
-                    <div>
-                        <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Secure Transaction</h4>
-                        <p class="text-[10px] text-slate-500 uppercase tracking-widest">Encrypted Checkout</p>
-                    </div>
+                <div>
+                    <h4 class="font-bold text-[10px] uppercase tracking-[0.3em] text-primary mb-10">Collections</h4>
+                    <ul class="space-y-4 text-xs text-slate-500 uppercase tracking-widest">
+                        <li>
+                            <a class="hover:text-primary transition-all" href="#">Shop All</a>
+                        </li>
+                        <li>
+                            <a class="hover:text-primary transition-all" href="#">New Arrivals</a>
+                        </li>
+                        <li>
+                            <a class="hover:text-primary transition-all" href="#">Maison Private</a>
+                        </li>
+                    </ul>
                 </div>
-                <div class="flex flex-col gap-4">
-                    <span class="material-symbols-outlined text-primary text-3xl">local_shipping</span>
-                    <div>
-                        <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Global Delivery</h4>
-                        <p class="text-[10px] text-slate-500 uppercase tracking-widest">2-3 Day Express</p>
-                    </div>
+                <div>
+                    <h4 class="font-bold text-[10px] uppercase tracking-[0.3em] text-primary mb-10">Maison</h4>
+                    <ul class="space-y-4 text-xs text-slate-500 uppercase tracking-widest">
+                        <li>
+                            <a class="hover:text-primary transition-all" href="#">Our Story</a>
+                        </li>
+                        <li>
+                            <a class="hover:text-primary transition-all" href="#">Philosophy</a>
+                        </li>
+                        <li>
+                            <a class="hover:text-primary transition-all" href="#">Boutiques</a>
+                        </li>
+                    </ul>
                 </div>
-                <div class="flex flex-col gap-4">
-                    <span class="material-symbols-outlined text-primary text-3xl">assignment_return</span>
-                    <div>
-                        <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Concierge Returns</h4>
-                        <p class="text-[10px] text-slate-500 uppercase tracking-widest">7-Day Policy</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="py-32 max-w-[1440px] mx-auto px-8 lg:px-12">
-        <div class="flex items-end justify-between mb-20">
-            <div class="space-y-4">
-                <p class="text-primary text-[10px] font-bold uppercase tracking-[0.4em]">Curated for you</p>
-                <h2 class="text-4xl font-extralight tracking-tight">Featured <span class="font-bold">Masterpieces</span></h2>
-            </div>
-            <a class="text-xs font-bold uppercase tracking-widest border-b border-primary/40 pb-2 hover:text-primary transition-all" href="#">View Gallery</a>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-            <div class="group space-y-6">
-                <div class="relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-sm">
-                    <img class="w-full h-full object-cover hover-reveal" src="https://www.myperfumeshop.in/cdn/shop/products/lancome-tresor-midnight-rose-leau-de-parfum-perfume-cologne-943209.jpg?v=1704917875&width=1200"/>
-                    <button class="absolute top-4 right-4 p-2 bg-black/40 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span class="material-symbols-outlined text-sm">favorite</span>
-                    </button>
-                </div>
-                <div class="space-y-1">
-                    <p class="text-[10px] text-primary font-bold uppercase tracking-widest">Noir Series</p>
-                    <h3 class="text-lg font-bold tracking-tight">Midnight Rose</h3>
-                    <p class="text-slate-500 text-sm font-light">$210.00</p>
+                <div>
+                    <h4 class="font-bold text-[10px] uppercase tracking-[0.3em] text-primary mb-10">Concierge</h4>
+                    <ul class="space-y-4 text-xs text-slate-500 uppercase tracking-widest">
+                        <li>
+                            <a class="hover:text-primary transition-all" href="#">Contact</a>
+                        </li>
+                        <li>
+                            <a class="hover:text-primary transition-all" href="#">Shipping</a>
+                        </li>
+                        <li>
+                            <a class="hover:text-primary transition-all" href="#">Returns</a>
+                        </li>
+                    </ul>
                 </div>
             </div>
-            <div class="group space-y-6 lg:translate-y-12">
-                <div class="relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-sm">
-                    <img class="w-full h-full object-cover hover-reveal" src="https://bellavitaorganic.com/cdn/shop/files/OUDGold-04_1c7adc0f-fab0-414b-b717-746089a3b5fd.jpg?v=1767772699&width=1000"/>
-                    <button class="absolute top-4 right-4 p-2 bg-black/40 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span class="material-symbols-outlined text-sm">favorite</span>
-                    </button>
-                </div>
-                <div class="space-y-1">
-                    <p class="text-[10px] text-primary font-bold uppercase tracking-widest">Royal Collection</p>
-                    <h3 class="text-lg font-bold tracking-tight">Golden Oud</h3>
-                    <p class="text-slate-500 text-sm font-light">$185.00</p>
-                </div>
-            </div>
-            <div class="group space-y-6">
-                <div class="relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-sm">
-                    <img class="w-full h-full object-cover hover-reveal" src="https://www.perfumeclique.ca/cdn/shop/files/AzureBreeze_2_1800x1800.png?v=1747684438"/>
-                <button class="absolute top-4 right-4 p-2 bg-black/40 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span class="material-symbols-outlined text-sm">favorite</span>
-                    </button>
-                </div>
-                <div class="space-y-1">
-                    <p class="text-[10px] text-primary font-bold uppercase tracking-widest">Elements</p>
-                    <h3 class="text-lg font-bold tracking-tight">Azure Breeze</h3>
-                    <p class="text-slate-500 text-sm font-light">$145.00</p>
-                </div>
-            </div>
-            <div class="group space-y-6 lg:translate-y-12">
-                <div class="relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-sm">
-                    <img class="w-full h-full object-cover hover-reveal" src="https://www.kyt-mv.com/web/image/product.product/48642/image_1024/KYT%20PERFUME%20VELVET%20MUSK%20%28DIAMOND%29%20%28OIL-6ML%29?unique=6a696ae"/>
-                <button class="absolute top-4 right-4 p-2 bg-black/40 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span class="material-symbols-outlined text-sm">favorite</span>
-                    </button>
-                </div>
-                <div class="space-y-1">
-                    <p class="text-[10px] text-primary font-bold uppercase tracking-widest">Private Blend</p>
-                    <h3 class="text-lg font-bold tracking-tight">Velvet Musk</h3>
-                    <p class="text-slate-500 text-sm font-light">$290.00</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="py-32 bg-[#050505]">
-        <div class="max-w-[1440px] mx-auto px-8 lg:px-12">
-            <h2 class="text-center text-xs font-bold uppercase tracking-[0.5em] text-slate-500 mb-16">The Departments</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <a class="group relative h-[600px] overflow-hidden" href="#">
-                    <img class="w-full h-full object-cover hover-reveal" src="https://assets.myntassets.com/w_360,q_50,,dpr_2,fl_progressive,f_webp/assets/images/2026/JANUARY/22/foUx9mlZ_b8ce87725d264dbfbbec9db71458c188.jpg"/>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
-                    <div class="absolute bottom-10 left-10 space-y-2">
-                        <h3 class="text-2xl font-bold tracking-tight">For Him</h3>
-                        <p class="text-primary text-[10px] font-bold uppercase tracking-widest">Explore Collection</p>
-                    </div>
-                </a>
-                <a class="group relative h-[600px] overflow-hidden" href="#">
-                    <img class="w-full h-full object-cover hover-reveal" src="https://www.frenchessence.com/cdn/shop/files/30ML-CHARM-2.jpg?v=1758783530&width=1445"/>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
-                    <div class="absolute bottom-10 left-10 space-y-2">
-                        <h3 class="text-2xl font-bold tracking-tight">For Her</h3>
-                        <p class="text-primary text-[10px] font-bold uppercase tracking-widest">Explore Collection</p>
-                    </div>
-                </a>
-                <a class="group relative h-[600px] overflow-hidden" href="#">
-                    <img class="w-full h-full object-cover hover-reveal" src="https://images-static.nykaa.com/media/catalog/product/4/d/4d1e177NISAR00000110ab_ab1.jpg?tr=w-500"/>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
-                    <div class="absolute bottom-10 left-10 space-y-2">
-                        <h3 class="text-2xl font-bold tracking-tight">Unisex</h3>
-                        <p class="text-primary text-[10px] font-bold uppercase tracking-widest">Explore Collection</p>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <section class="py-32">
-        <div class="max-w-4xl mx-auto px-8 text-center">
-            <div class="space-y-8">
-                <span class="material-symbols-outlined text-primary text-6xl font-light">mail</span>
-                <h2 class="text-4xl font-extralight tracking-tight">The <span class="font-bold italic">Scentora</span> Journal</h2>
-                <p class="text-slate-500 text-sm uppercase tracking-[0.3em] max-w-lg mx-auto leading-loose">
-                    Subscribe for exclusive access to vintage releases and private invitations.
+            <div class="pt-10 border-t border-neutral-border flex flex-col md:flex-row justify-between items-center gap-6">
+                <p class="text-slate-600 text-[10px] uppercase tracking-widest">
+                    © 2026 Scentora Maison De Parfum. All Rights Reserved.
                 </p>
-                <form class="flex flex-col sm:flex-row gap-0 max-w-md mx-auto border-b border-neutral-border focus-within:border-primary transition-all">
-                    <input class="flex-1 bg-transparent border-none text-sm py-4 outline-none placeholder:text-slate-700" placeholder="Email Address" type="email"/>
-                    <button class="text-primary font-bold uppercase tracking-widest text-[10px] py-4 px-6 hover:text-white transition-colors">Join</button>
-                </form>
+                <div class="flex gap-8 opacity-30 text-slate-400">
+                    <span class="material-symbols-outlined text-xl">payments</span>
+                    <span class="material-symbols-outlined text-xl">wallet</span>
+                    <span class="material-symbols-outlined text-xl">credit_card</span>
+                </div>
             </div>
         </div>
-    </section>
-    {% endblock content %}
-</main>
-
-<footer class="bg-neutral-dark pt-32 pb-16 border-t border-neutral-border">
-    <div class="max-w-[1440px] mx-auto px-8 lg:px-12">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-20 mb-24">
-            <div class="space-y-8">
-                <a class="flex items-center gap-2" href="#">
-                    <span class="material-symbols-outlined text-primary text-3xl">fluid</span>
-                    <h2 class="text-2xl font-extrabold tracking-tighter uppercase text-white">Scentora</h2>
-                </a>
-                <p class="text-slate-500 text-sm font-light leading-relaxed">
-                    A legacy of olfactory excellence. Curating the world's most intimate memories through the art of fine perfumery.
-                </p>
-            </div>
-            <div>
-                <h4 class="font-bold text-[10px] uppercase tracking-[0.3em] text-primary mb-10">Collections</h4>
-                <ul class="space-y-4 text-xs text-slate-500 uppercase tracking-widest">
-                    <li><a class="hover:text-primary transition-all" href="#">Shop All</a></li>
-                    <li><a class="hover:text-primary transition-all" href="#">New Arrivals</a></li>
-                    <li><a class="hover:text-primary transition-all" href="#">Maison Private</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4 class="font-bold text-[10px] uppercase tracking-[0.3em] text-primary mb-10">Maison</h4>
-                <ul class="space-y-4 text-xs text-slate-500 uppercase tracking-widest">
-                    <li><a class="hover:text-primary transition-all" href="#">Our Story</a></li>
-                    <li><a class="hover:text-primary transition-all" href="#">Philosophy</a></li>
-                    <li><a class="hover:text-primary transition-all" href="#">Boutiques</a></li>
-                </ul>
-            </div>
-            <div>
-                <h4 class="font-bold text-[10px] uppercase tracking-[0.3em] text-primary mb-10">Concierge</h4>
-                <ul class="space-y-4 text-xs text-slate-500 uppercase tracking-widest">
-                    <li><a class="hover:text-primary transition-all" href="#">Contact</a></li>
-                    <li><a class="hover:text-primary transition-all" href="#">Shipping</a></li>
-                    <li><a class="hover:text-primary transition-all" href="#">Returns</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="pt-10 border-t border-neutral-border flex flex-col md:flex-row justify-between items-center gap-6">
-            <p class="text-slate-600 text-[10px] uppercase tracking-widest">© 2026 Scentora Maison De Parfum. All Rights Reserved.</p>
-            <div class="flex gap-8 opacity-30 text-slate-400">
-                <span class="material-symbols-outlined text-xl">payments</span>
-                <span class="material-symbols-outlined text-xl">wallet</span>
-                <span class="material-symbols-outlined text-xl">credit_card</span>
-            </div>
-        </div>
-    </div>
-</footer>
-<script>
+    </footer>
+    <script>
     // CSRF for HTMX
     document.body.addEventListener('htmx:configRequest', (event) => {
         event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
@@ -613,8 +600,6 @@
         }
     });
 
-</script>
-    
-    
+    </script>
 </body>
 </html>

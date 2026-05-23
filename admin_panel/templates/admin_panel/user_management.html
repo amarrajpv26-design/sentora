@@ -1,8 +1,8 @@
 {% extends 'admin_panel/base_admin.html' %}
-
 {% block extra_css %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-<style>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <style>
     /* Luxury Scrollbar */
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: #0a0a0a; }
@@ -43,179 +43,185 @@
     /* Table Hover */
     .luxury-table tr { transition: all 0.3s ease; border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
     .luxury-table tr:hover { background: rgba(255, 255, 255, 0.01); }
-</style>
+    </style>
 {% endblock %}
-
 {% block breadcrumb %}
-<span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">User Management</span>
+    <span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">User Management</span>
 {% endblock %}
-
 {% block content %}
-<div class="animate__animated animate__fadeIn">
-    <div class="mb-10">
-        <h2 class="text-4xl font-extralight text-white tracking-tighter">
-            Users <span class="font-black luxury-shimmer">Directory</span>
-        </h2>
-        <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">Manage and monitor your customer base.</p>
-    </div>
-
-    <form method="GET" action="{% url 'user_management' %}" class="glass-panel rounded-2xl p-8 grid grid-cols-12 gap-8 items-end mb-8">
-        <div class="col-span-5">
-            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Search Directory</label>
-            <div class="relative flex items-center gap-3">
-                <div class="relative flex-grow">
-                    <input type="text" name="search" value="{{ search_query|default:'' }}" 
-                           placeholder="Name or Email..." 
-                           class="luxury-input py-3 px-5 rounded-xl text-sm w-full placeholder:text-white/20">
-                    {% if search_query %}
-                    <a href="{% url 'user_management' %}" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
-                        <i class="bi bi-x-circle-fill text-xs"></i>
-                    </a>
+    <div class="animate__animated animate__fadeIn">
+        <div class="mb-10">
+            <h2 class="text-4xl font-extralight text-white tracking-tighter">
+                Users <span class="font-black luxury-shimmer">Directory</span>
+            </h2>
+            <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">
+                Manage and monitor your customer base.
+            </p>
+        </div>
+        <form method="GET"
+              action="{% url 'user_management' %}"
+              class="glass-panel rounded-2xl p-8 grid grid-cols-12 gap-8 items-end mb-8">
+            <div class="col-span-5">
+                <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Search Directory</label>
+                <div class="relative flex items-center gap-3">
+                    <div class="relative flex-grow">
+                        <input type="text"
+                               name="search"
+                               value="{{ search_query|default:'' }}"
+                               placeholder="Name or Email..."
+                               class="luxury-input py-3 px-5 rounded-xl text-sm w-full placeholder:text-white/20">
+                        {% if search_query %}
+                            <a href="{% url 'user_management' %}"
+                               class="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
+                                <i class="bi bi-x-circle-fill text-xs"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                    <button type="submit"
+                            class="px-6 py-3 text-[10px] font-black uppercase tracking-[2px] text-black bg-gold rounded-xl hover:shadow-[0_0_20px_rgba(244,180,26,0.3)] transition-all">
+                        Search
+                    </button>
+                </div>
+            </div>
+            <div class="col-span-3">
+                <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Filter by Status</label>
+                <select name="status"
+                        onchange="this.form.submit()"
+                        class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none">
+                    <option value="" {% if not status_filter %}selected{% endif %}>All Statuses</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="blocked"
+                            {% if status_filter == 'blocked' %}selected{% endif %}>Blocked</option>
+                </select>
+            </div>
+            <div class="col-span-4">
+                <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Sort Results</label>
+                <select name="sort"
+                        onchange="this.form.submit()"
+                        class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none">
+                    <option value="newest" {% if sort_order == 'newest' %}selected{% endif %}>Newest First</option>
+                    <option value="oldest" {% if sort_order == 'oldest' %}selected{% endif %}>Oldest First</option>
+                    <option value="alpha" {% if sort_order == 'alpha' %}selected{% endif %}>A - Z</option>
+                    <option value="dob" {% if sort_order == 'dob' %}selected{% endif %}>Age (DOB)</option>
+                </select>
+            </div>
+        </form>
+        <div class="glass-panel rounded-[32px] overflow-hidden animate__animated animate__fadeInUp">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="p-4 bg-gold/10 border-b border-gold/20 text-gold text-[10px] font-black uppercase tracking-[2px] flex items-center gap-3">
+                        <i class="bi bi-shield-check"></i> {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            <table class="w-full text-left luxury-table">
+                <thead>
+                    <tr class="bg-white/[0.01]">
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">User ID</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Name</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Email</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Phone</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Date of Birth</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Status</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Joined Date</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/[0.03]">
+                    {% for user in users %}
+                        <tr class="group cursor-pointer">
+                            <td class="px-8 py-6 text-xs text-white/30 font-medium">#USR-{{ user.id }}</td>
+                            <td class="px-8 py-6 text-sm text-white font-bold tracking-tight">{{ user.username }}</td>
+                            <td class="px-8 py-6 text-xs text-white/60 font-light">{{ user.email }}</td>
+                            <td class="px-8 py-6 text-xs text-white/60">
+                                {% if user.phone_number %}
+                                    {{ user.phone_number }}
+                                {% else %}
+                                    <span class="opacity-20 italic">Unlisted</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-8 py-6 text-xs text-white/60">
+                                {% if user.dob %}
+                                    <span class="tracking-widest">{{ user.dob|date:"d . m . Y" }}</span>
+                                {% else %}
+                                    <span class="opacity-20 italic">Not Set</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-8 py-6">
+                                {% if user.is_active %}
+                                    <span class="px-3 py-1 bg-green-500/10 text-green-400 text-[9px] font-black uppercase tracking-widest rounded-full">Active</span>
+                                {% else %}
+                                    <span class="px-3 py-1 bg-red-500/10 text-red-400 text-[9px] font-black uppercase tracking-widest rounded-full">Blocked</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-8 py-6 text-xs text-white/40 italic">{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td class="px-8 py-6 text-right">
+                                <div class="flex items-center justify-end gap-5">
+                                    <a href="{% url 'user_detail' user.id %}"
+                                       class="text-white/20 hover:text-gold transition-all transform group-hover:scale-110">
+                                        <i class="bi bi-eye text-lg"></i>
+                                    </a>
+                                    {% if user.is_active %}
+                                        <a href="{% url 'confirm_block_user' user.id %}"
+                                           class="text-white/20 hover:text-red-500 transition-all transform group-hover:scale-110"
+                                           title="Block User">
+                                            <i class="bi bi-slash-circle text-lg"></i>
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'confirm_block_user' user.id %}"
+                                           class="text-gold/40 hover:text-gold transition-all transform group-hover:scale-110"
+                                           title="Unblock User">
+                                            <i class="bi bi-check-circle text-lg"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-10 flex items-center justify-between px-4 animate__animated animate__fadeIn">
+            <div class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
+                Showing <span class="text-gold">{{ users.start_index }}-{{ users.end_index }}</span> of {{ total_count }}
+            </div>
+            <div class="mt-10 flex items-center justify-between px-4 animate__animated animate__fadeIn">
+                <div class="flex items-center gap-4">
+                    {% if users.has_previous %}
+                        <a href="?page={{ users.previous_page_number }}&search={{ search_query|default:'' }}&status={{ status_filter|default:'' }}&sort={{ sort_order|default:'newest' }}"
+                           class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
+                            Prev
+                        </a>
+                    {% endif %}
+                    <div class="text-[11px] font-black text-gold tracking-[2px]">{{ users.number }} / {{ users.paginator.num_pages }}</div>
+                    {% if users.has_next %}
+                        <a href="?page={{ users.next_page_number }}&search={{ search_query|default:'' }}&status={{ status_filter|default:'' }}&sort={{ sort_order|default:'newest' }}"
+                           class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
+                            Next
+                        </a>
                     {% endif %}
                 </div>
-                <button type="submit" class="px-6 py-3 text-[10px] font-black uppercase tracking-[2px] text-black bg-gold rounded-xl hover:shadow-[0_0_20px_rgba(244,180,26,0.3)] transition-all">
-                    Search
-                </button>
             </div>
         </div>
-
-        <div class="col-span-3">
-            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Filter by Status</label>
-            <select name="status" onchange="this.form.submit()" class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none">
-                <option value="" {% if not status_filter %}selected{% endif %}>All Statuses</option>
-                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
-                <option value="blocked" {% if status_filter == 'blocked' %}selected{% endif %}>Blocked</option>
-            </select>
-        </div>
-
-        <div class="col-span-4">
-            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Sort Results</label>
-            <select name="sort" onchange="this.form.submit()" class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none">
-                <option value="newest" {% if sort_order == 'newest' %}selected{% endif %}>Newest First</option>
-                <option value="oldest" {% if sort_order == 'oldest' %}selected{% endif %}>Oldest First</option>
-                <option value="alpha" {% if sort_order == 'alpha' %}selected{% endif %}>A - Z</option>
-                <option value="dob" {% if sort_order == 'dob' %}selected{% endif %}>Age (DOB)</option>
-            </select>
-        </div>
-    </form>
-
-    <div class="glass-panel rounded-[32px] overflow-hidden animate__animated animate__fadeInUp">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="p-4 bg-gold/10 border-b border-gold/20 text-gold text-[10px] font-black uppercase tracking-[2px] flex items-center gap-3">
-                    <i class="bi bi-shield-check"></i> {{ message }}
+        <div class="grid grid-cols-3 gap-8 mt-12 animate__animated animate__fadeInUp animate__delay-1s">
+            <div class="glass-panel rounded-[24px] p-8 relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/5 blur-2xl rounded-full transition-all group-hover:bg-green-500/10">
                 </div>
-            {% endfor %}
-        {% endif %}
-
-        <table class="w-full text-left luxury-table">
-            <thead>
-                <tr class="bg-white/[0.01]">
-                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">User ID</th>
-                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Name</th>
-                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Email</th>
-                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Phone</th>
-                                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Date of Birth</th>
-
-                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Status</th>
-                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Joined Date</th>
-                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black text-right">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-white/[0.03]">
-                {% for user in users %}
-                <tr class="group cursor-pointer">
-                    <td class="px-8 py-6 text-xs text-white/30 font-medium">#USR-{{ user.id }}</td>
-                    <td class="px-8 py-6 text-sm text-white font-bold tracking-tight">{{ user.username }}</td>
-                    <td class="px-8 py-6 text-xs text-white/60 font-light">{{ user.email }}</td>
-                    
-                    <td class="px-8 py-6 text-xs text-white/60">
-                        {% if user.phone_number %}
-                            {{ user.phone_number }}
-                        {% else %}
-                            <span class="opacity-20 italic">Unlisted</span>
-                        {% endif %}
-                    </td>
-                    <td class="px-8 py-6 text-xs text-white/60">
-    {% if user.dob %}
-        <span class="tracking-widest">{{ user.dob|date:"d . m . Y" }}</span>
-    {% else %}
-        <span class="opacity-20 italic">Not Set</span>
-    {% endif %}
-</td>
-                    <td class="px-8 py-6">
-                        {% if user.is_active %}
-                        <span class="px-3 py-1 bg-green-500/10 text-green-400 text-[9px] font-black uppercase tracking-widest rounded-full">Active</span>
-                        {% else %}
-                        <span class="px-3 py-1 bg-red-500/10 text-red-400 text-[9px] font-black uppercase tracking-widest rounded-full">Blocked</span>
-                        {% endif %}
-                    </td>
-                    <td class="px-8 py-6 text-xs text-white/40 italic">{{ user.date_joined|date:"M d, Y" }}</td>
-                    <td class="px-8 py-6 text-right">
-                        <div class="flex items-center justify-end gap-5">
-                            <a href="{% url 'user_detail' user.id %}" class="text-white/20 hover:text-gold transition-all transform group-hover:scale-110">
-                                <i class="bi bi-eye text-lg"></i>
-                            </a>
-
-                            {% if user.is_active %}
-                            <a href="{% url 'confirm_block_user' user.id %}" class="text-white/20 hover:text-red-500 transition-all transform group-hover:scale-110" title="Block User">
-                                <i class="bi bi-slash-circle text-lg"></i>
-                            </a>
-                            {% else %}
-                            <a href="{% url 'confirm_block_user' user.id %}" class="text-gold/40 hover:text-gold transition-all transform group-hover:scale-110" title="Unblock User">
-                                <i class="bi bi-check-circle text-lg"></i>
-                            </a>
-                            {% endif %}
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <div class="mt-10 flex items-center justify-between px-4 animate__animated animate__fadeIn">
-        <div class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
-            Showing <span class="text-gold">{{ users.start_index }}-{{ users.end_index }}</span> of {{ total_count }}
-        </div>
-       <div class="mt-10 flex items-center justify-between px-4 animate__animated animate__fadeIn">
-    
-    <div class="flex items-center gap-4">
-        {% if users.has_previous %}
-            <a href="?page={{ users.previous_page_number }}&search={{ search_query|default:'' }}&status={{ status_filter|default:'' }}&sort={{ sort_order|default:'newest' }}" 
-               class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
-                Prev
-            </a>
-        {% endif %}
-
-        <div class="text-[11px] font-black text-gold tracking-[2px]">{{ users.number }} / {{ users.paginator.num_pages }}</div>
-
-        {% if users.has_next %}
-            <a href="?page={{ users.next_page_number }}&search={{ search_query|default:'' }}&status={{ status_filter|default:'' }}&sort={{ sort_order|default:'newest' }}" 
-               class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
-                Next
-            </a>
-        {% endif %}
-    </div>
-</div>
-    </div>
-
-    <div class="grid grid-cols-3 gap-8 mt-12 animate__animated animate__fadeInUp animate__delay-1s">
-        <div class="glass-panel rounded-[24px] p-8 relative overflow-hidden group">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-500/5 blur-2xl rounded-full transition-all group-hover:bg-green-500/10"></div>
-            <label class="block text-[10px] text-white/30 uppercase tracking-[4px] font-black">Active Users</label>
-            <span class="text-4xl font-black text-white mt-4 block tracking-tighter">{{ active_count }}</span>
-        </div>
-        <div class="glass-panel rounded-[24px] p-8 relative overflow-hidden group">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-gold/5 blur-2xl rounded-full transition-all group-hover:bg-gold/10"></div>
-            <label class="block text-[10px] text-white/30 uppercase tracking-[4px] font-black">Total Users</label>
-            <span class="text-4xl font-black text-white mt-4 block tracking-tighter">{{ total_count }}</span>
-        </div>
-        <div class="glass-panel rounded-[24px] p-8 relative overflow-hidden group">
-            <div class="absolute -right-4 -top-4 w-24 h-24 bg-red-500/5 blur-2xl rounded-full transition-all group-hover:bg-red-500/10"></div>
-            <label class="block text-[10px] text-white/30 uppercase tracking-[4px] font-black">Blocked Accounts</label>
-            <span class="text-4xl font-black text-white mt-4 block tracking-tighter">{{ blocked_count }}</span>
+                <label class="block text-[10px] text-white/30 uppercase tracking-[4px] font-black">Active Users</label>
+                <span class="text-4xl font-black text-white mt-4 block tracking-tighter">{{ active_count }}</span>
+            </div>
+            <div class="glass-panel rounded-[24px] p-8 relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-gold/5 blur-2xl rounded-full transition-all group-hover:bg-gold/10">
+                </div>
+                <label class="block text-[10px] text-white/30 uppercase tracking-[4px] font-black">Total Users</label>
+                <span class="text-4xl font-black text-white mt-4 block tracking-tighter">{{ total_count }}</span>
+            </div>
+            <div class="glass-panel rounded-[24px] p-8 relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-red-500/5 blur-2xl rounded-full transition-all group-hover:bg-red-500/10">
+                </div>
+                <label class="block text-[10px] text-white/30 uppercase tracking-[4px] font-black">Blocked Accounts</label>
+                <span class="text-4xl font-black text-white mt-4 block tracking-tighter">{{ blocked_count }}</span>
+            </div>
         </div>
     </div>
-</div>
 {% endblock %}

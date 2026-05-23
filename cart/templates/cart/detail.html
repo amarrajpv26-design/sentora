@@ -1,6 +1,7 @@
-{% extends 'users/index.html' %} {% load static %} {% block content %}
-
-<style>
+{% extends 'users/index.html' %}
+{% load static %}
+{% block content %}
+    <style>
   @keyframes floatCard {
     0%,
     100% {
@@ -183,274 +184,121 @@
 .animate-liquid-shine {
     animation: liquidShine 12s linear infinite;
 }
-</style>
-
-<div
-  class="relative overflow-hidden bg-[#0f0f0f] min-h-screen text-slate-200 selection:bg-primary selection:text-black pt-32 pb-40"
->
-  <!-- ambient glow -->
-  <div
-    class="absolute top-[-120px] left-[-80px] w-[350px] h-[350px] bg-primary/10 blur-[120px] rounded-full ambient-orb"
-  ></div>
-
-  <div
-    class="absolute bottom-[-100px] right-[-80px] w-[320px] h-[320px] bg-white/5 blur-[120px] rounded-full ambient-orb"
-  ></div>
-
-  <main class="relative z-10 max-w-[1440px] mx-auto px-8 lg:px-12">
-    <!-- PREMIUM HERO -->
-    <!-- REPLACE ONLY THE HERO SECTION WITH THIS -->
-
-    <section class="mb-16 hero-card">
-      <div
-        class="relative overflow-hidden rounded-[32px] border border-white/10 glass-panel premium-border noise"
-      >
-        <!-- moving glow -->
-        <div
-          class="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/[0.05] to-transparent blur-3xl moving-glow"
-        ></div>
-
-        <div class="relative z-10 px-8 lg:px-12 py-8">
-          <div
-            class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8"
-          >
-            <!-- LEFT CONTENT -->
-            <div class="flex flex-col justify-center space-y-5">
-              <!-- top label -->
-              <div class="flex items-center gap-3">
-                <div class="relative flex items-center justify-center">
-                  <div
-                    class="absolute w-5 h-5 rounded-full bg-primary/30 blur-md"
-                  ></div>
-
-                  <div
-                    class="relative w-2 h-2 rounded-full bg-primary animate-pulse"
-                  ></div>
-                </div>
-
-                <span
-                  class="text-[10px] uppercase tracking-[0.42em] text-slate-500 leading-none"
-                >
-                  Private Fragrance Vault
-                </span>
-              </div>
-
-              <!-- heading -->
-              <div class="space-y-3">
-                <h1
-                  class="flex flex-wrap items-center gap-4 text-4xl md:text-5xl lg:text-6xl leading-none tracking-[-0.07em] uppercase"
-                >
-                  <span class="font-extralight text-white"> Your </span>
-
-                  <span class="font-black italic text-primary">
-                    Collection
-                  </span>
-                </h1>
-
-                <!-- bottom meta -->
-                <div class="flex items-center gap-4">
-                  <div
-                    class="w-16 h-[1px] bg-gradient-to-r from-primary to-transparent"
-                  ></div>
-
-                  <span
-                    class="text-[10px] uppercase tracking-[0.35em] text-slate-600"
-                  >
-                    Curated Luxury
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- RIGHT CONTENT -->
-            <div class="flex items-center gap-6 lg:pl-10">
-              <!-- text -->
-              <div class="hidden md:block w-px h-10 bg-white/10"></div>
-
-              <!-- button -->
-              <a
-                href="{% url 'shop:product_list' %}"
-                class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] px-7 py-4 flex items-center justify-center transition-all duration-500 hover:border-primary/40 hover:bg-white/[0.06] hover:-translate-y-1"
-              >
-                <!-- hover glow -->
-                <div
-                  class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700 bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0"
-                ></div>
-
-                <span
-                  class="relative z-10 text-[10px] font-black uppercase tracking-[0.32em] text-slate-300 group-hover:text-primary whitespace-nowrap transition-all duration-500"
-                >
-                  Back to Gallery
-                </span>
-              </a>
-            </div>
-          </div>
+    </style>
+    <div class="relative overflow-hidden bg-[#0f0f0f] min-h-screen text-slate-200 selection:bg-primary selection:text-black pt-32 pb-40">
+        <!-- ambient glow -->
+        <div class="absolute top-[-120px] left-[-80px] w-[350px] h-[350px] bg-primary/10 blur-[120px] rounded-full ambient-orb">
         </div>
-      </div>
-    </section>
-
-    <!-- TOAST -->
-    <div id="message-container"></div>
-
-    <!-- CART CONTENT -->
-  <section class="relative mt-10">
-
-    <!-- liquid ambient -->
-    <div class="absolute inset-0 overflow-hidden pointer-events-none">
-
-        <div class="absolute top-[-100px] left-[10%]
-                    w-[320px] h-[320px]
-                    rounded-full
-                    bg-primary/10
-                    blur-[120px]
-                    animate-blob-1">
+        <div class="absolute bottom-[-100px] right-[-80px] w-[320px] h-[320px] bg-white/5 blur-[120px] rounded-full ambient-orb">
         </div>
-
-        <div class="absolute bottom-[-120px] right-[5%]
-                    w-[300px] h-[300px]
-                    rounded-full
-                    bg-white/[0.05]
-                    blur-[120px]
-                    animate-blob-2">
-        </div>
-
-    </div>
-
-    <!-- LIQUID PANEL -->
-    <div id="liquid-panel"
-         class="group relative overflow-hidden
-                rounded-[38px]
-                border border-white/10
-                bg-white/[0.04]
-                backdrop-blur-[40px]
-                transition-all duration-500
-                shadow-[0_20px_100px_rgba(0,0,0,0.45)]">
-
-        <!-- cursor glow -->
-        <div id="cursor-glow"
-             class="absolute w-[400px] h-[400px]
-                    rounded-full
-                    bg-primary/10
-                    blur-[100px]
-                    pointer-events-none
-                    opacity-0
-                    transition-opacity duration-500">
-        </div>
-
-        <!-- liquid reflections -->
-        <div class="absolute inset-0 overflow-hidden pointer-events-none">
-
-            <div class="absolute inset-y-0 left-[-20%]
-                        w-[30%]
-                        bg-gradient-to-r
-                        from-transparent
-                        via-white/[0.06]
-                        to-transparent
-                        skew-x-[-20deg]
-                        animate-liquid-shine">
-            </div>
-
-            <div class="absolute top-0 left-0 right-0 h-[1px]
-                        bg-gradient-to-r
-                        from-transparent
-                        via-white/40
-                        to-transparent">
-            </div>
-
-        </div>
-
-        <!-- HEADER -->
-        <div class="relative z-10 px-8 lg:px-10 py-7 border-b border-white/5">
-
-            <div class="flex items-center gap-5">
-
-                <!-- liquid orb -->
-                <div class="relative w-14 h-14 rounded-[22px]
-                            border border-white/10
-                            bg-white/[0.05]
-                            backdrop-blur-2xl
-                            overflow-hidden">
-
-                    <div class="absolute inset-0
-                                bg-gradient-to-br
-                                from-white/[0.18]
-                                via-transparent
-                                to-transparent">
+        <main class="relative z-10 max-w-[1440px] mx-auto px-8 lg:px-12">
+            <!-- PREMIUM HERO -->
+            <!-- REPLACE ONLY THE HERO SECTION WITH THIS -->
+            <section class="mb-16 hero-card">
+                <div class="relative overflow-hidden rounded-[32px] border border-white/10 glass-panel premium-border noise">
+                    <!-- moving glow -->
+                    <div class="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/[0.05] to-transparent blur-3xl moving-glow">
                     </div>
-
-                    <div class="absolute inset-0 flex items-center justify-center">
-
-                        <div class="relative w-3 h-3 rounded-full bg-primary">
-
-                            <div class="absolute inset-0 rounded-full
-                                        bg-primary
-                                        animate-ping
-                                        opacity-60">
+                    <div class="relative z-10 px-8 lg:px-12 py-8">
+                        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+                            <!-- LEFT CONTENT -->
+                            <div class="flex flex-col justify-center space-y-5">
+                                <!-- top label -->
+                                <div class="flex items-center gap-3">
+                                    <div class="relative flex items-center justify-center">
+                                        <div class="absolute w-5 h-5 rounded-full bg-primary/30 blur-md"></div>
+                                        <div class="relative w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                                    </div>
+                                    <span class="text-[10px] uppercase tracking-[0.42em] text-slate-500 leading-none">Private Fragrance Vault</span>
+                                </div>
+                                <!-- heading -->
+                                <div class="space-y-3">
+                                    <h1 class="flex flex-wrap items-center gap-4 text-4xl md:text-5xl lg:text-6xl leading-none tracking-[-0.07em] uppercase">
+                                        <span class="font-extralight text-white">Your</span>
+                                        <span class="font-black italic text-primary">Collection</span>
+                                    </h1>
+                                    <!-- bottom meta -->
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-16 h-[1px] bg-gradient-to-r from-primary to-transparent"></div>
+                                        <span class="text-[10px] uppercase tracking-[0.35em] text-slate-600">Curated Luxury</span>
+                                    </div>
+                                </div>
                             </div>
-
+                            <!-- RIGHT CONTENT -->
+                            <div class="flex items-center gap-6 lg:pl-10">
+                                <!-- text -->
+                                <div class="hidden md:block w-px h-10 bg-white/10"></div>
+                                <!-- button -->
+                                <a href="{% url 'shop:product_list' %}"
+                                   class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.04] px-7 py-4 flex items-center justify-center transition-all duration-500 hover:border-primary/40 hover:bg-white/[0.06] hover:-translate-y-1">
+                                    <!-- hover glow -->
+                                    <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-700 bg-gradient-to-r from-primary/0 via-primary/10 to-primary/0">
+                                    </div>
+                                    <span class="relative z-10 text-[10px] font-black uppercase tracking-[0.32em] text-slate-300 group-hover:text-primary whitespace-nowrap transition-all duration-500">
+                                        Back to Gallery
+                                    </span>
+                                </a>
+                            </div>
                         </div>
-
                     </div>
-
                 </div>
-
-                <!-- title -->
-                <div class="space-y-2">
-
-                    <h2 class="text-2xl md:text-3xl
-                               font-light
-                               uppercase
-                               tracking-[-0.06em]
-                               text-white
-                               leading-none">
-
-                        Fragrance Cart
-
-                    </h2>
-
-                    <div class="flex items-center gap-3">
-
-                        <div class="w-10 h-[1px]
-                                    bg-gradient-to-r
-                                    from-primary
-                                    to-transparent">
+            </section>
+            <!-- TOAST -->
+            <div id="message-container"></div>
+            <!-- CART CONTENT -->
+            <section class="relative mt-10">
+                <!-- liquid ambient -->
+                <div class="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div class="absolute top-[-100px] left-[10%] w-[320px] h-[320px] rounded-full bg-primary/10 blur-[120px] animate-blob-1">
+                    </div>
+                    <div class="absolute bottom-[-120px] right-[5%] w-[300px] h-[300px] rounded-full bg-white/[0.05] blur-[120px] animate-blob-2">
+                    </div>
+                </div>
+                <!-- LIQUID PANEL -->
+                <div id="liquid-panel"
+                     class="group relative overflow-hidden rounded-[38px] border border-white/10 bg-white/[0.04] backdrop-blur-[40px] transition-all duration-500 shadow-[0_20px_100px_rgba(0,0,0,0.45)]">
+                    <!-- cursor glow -->
+                    <div id="cursor-glow"
+                         class="absolute w-[400px] h-[400px] rounded-full bg-primary/10 blur-[100px] pointer-events-none opacity-0 transition-opacity duration-500">
+                    </div>
+                    <!-- liquid reflections -->
+                    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+                        <div class="absolute inset-y-0 left-[-20%] w-[30%] bg-gradient-to-r from-transparent via-white/[0.06] to-transparent skew-x-[-20deg] animate-liquid-shine">
                         </div>
-
-                        <span class="text-[10px]
-                                     uppercase
-                                     tracking-[0.35em]
-                                     text-slate-600">
-
-                            Luxury Selection
-
-                        </span>
-
+                        <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent"></div>
                     </div>
-
+                    <!-- HEADER -->
+                    <div class="relative z-10 px-8 lg:px-10 py-7 border-b border-white/5">
+                        <div class="flex items-center gap-5">
+                            <!-- liquid orb -->
+                            <div class="relative w-14 h-14 rounded-[22px] border border-white/10 bg-white/[0.05] backdrop-blur-2xl overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-br from-white/[0.18] via-transparent to-transparent"></div>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="relative w-3 h-3 rounded-full bg-primary">
+                                        <div class="absolute inset-0 rounded-full bg-primary animate-ping opacity-60"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- title -->
+                            <div class="space-y-2">
+                                <h2 class="text-2xl md:text-3xl font-light uppercase tracking-[-0.06em] text-white leading-none">Fragrance Cart</h2>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-[1px] bg-gradient-to-r from-primary to-transparent"></div>
+                                    <span class="text-[10px] uppercase tracking-[0.35em] text-slate-600">Luxury Selection</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- CONTENT -->
+                    <div class="relative z-10 p-5 lg:p-8">
+                        <div id="cart-wrapper">{% include 'cart/partials/cart_content.html' %}</div>
+                    </div>
                 </div>
-
-            </div>
-
-        </div>
-
-        <!-- CONTENT -->
-        <div class="relative z-10 p-5 lg:p-8">
-
-            <div id="cart-wrapper">
-                {% include 'cart/partials/cart_content.html' %}
-            </div>
-
-        </div>
-
+            </section>
+        </main>
     </div>
-
-</section>
-  </main>
-</div>
-
-<script src="https://unpkg.com/htmx.org@1.9.10"></script>
-
-<script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script>
   document.body.addEventListener("htmx:configRequest", (event) => {
     event.detail.headers["X-CSRFToken"] = "{{ csrf_token }}";
   });
@@ -463,50 +311,27 @@
     const container = document.getElementById("message-container");
 
     container.innerHTML = `
-            <div id="toast-message"
-                 class="fixed top-8 left-1/2 -translate-x-1/2 z-[999]
-                        bg-black/75 backdrop-blur-[30px]
-                        border border-white/10
-                        rounded-full
-                        px-8 py-5
-                        shadow-[0_0_60px_rgba(0,0,0,0.6)]
-                        flex items-center gap-5
-                        transition-all duration-700
-                        opacity-0 translate-y-[-20px] scale-[0.95]">
+            <div id="toast-message" class="fixed top-8 left-1/2 -translate-x-1/2 z-[999] bg-black/75 backdrop-blur-[30px] border border-white/10 rounded-full px-8 py-5 shadow-[0_0_60px_rgba(0,0,0,0.6)] flex items-center gap-5 transition-all duration-700 opacity-0 translate-y-[-20px] scale-[0.95]">
 
                 <div class="relative">
 
-                    <div class="absolute inset-0
-                                bg-primary/50
-                                blur-xl
-                                rounded-full">
+                    <div class="absolute inset-0 bg-primary/50 blur-xl rounded-full">
                     </div>
 
-                    <div class="relative w-3 h-3
-                                rounded-full
-                                bg-primary
-                                animate-pulse">
+                    <div class="relative w-3 h-3 rounded-full bg-primary animate-pulse">
                     </div>
 
                 </div>
 
                 <div>
 
-                    <p class="text-[9px]
-                              font-black
-                              uppercase
-                              tracking-[0.35em]
-                              text-primary/60">
+                    <p class="text-[9px] font-black uppercase tracking-[0.35em] text-primary/60">
 
                         Scentora Notification
 
                     </p>
 
-                    <p class="text-xs
-                              text-white
-                              font-light
-                              uppercase
-                              tracking-[0.25em]">
+                    <p class="text-xs text-white font-light uppercase tracking-[0.25em]">
 
                         ${triggerHeader}
 
@@ -581,6 +406,5 @@ if (liquidPanel && cursorGlow) {
     });
 
 }
-</script>
-
+    </script>
 {% endblock %}

@@ -1,15 +1,17 @@
-<!doctype html>
+<!DOCTYPE html>
 <html class="dark" lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Scentora Admin | Security Protocol</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    
-    <script>
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>Scentora Admin | Security Protocol</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap"
+              rel="stylesheet" />
+        <link rel="stylesheet"
+              href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+        <link rel="stylesheet"
+              href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+        <script>
       tailwind.config = {
         darkMode: "class",
         theme: {
@@ -23,8 +25,8 @@
           },
         },
       };
-    </script>
-    <style>
+        </script>
+        <style>
         /* The Luxury Shimmer Effect */
         .luxury-shimmer {
             background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
@@ -57,82 +59,68 @@
         /* Mobile Viewport Adjustment */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    </style>
-  </head>
-  <body class="font-sans bg-[#020202] text-slate-100 antialiased min-h-screen flex items-center justify-center p-4">
-    
-    <div class="fixed inset-0 pointer-events-none">
-      <div class="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gold/10 blur-[150px] rounded-full opacity-50"></div>
-    </div>
-
-    <div class="relative z-10 w-full max-w-[420px] animate__animated animate__fadeIn">
-      
-      <div class="text-center mb-6">
-        <h1 class="text-[9px] font-black tracking-[0.9em] text-white/40 uppercase mb-2">
-          Scentora
-        </h1>
-        <div class="h-[1px] w-6 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto"></div>
-      </div>
-
-      <div class="glass-card rounded-[40px] p-8 md:p-10 relative overflow-hidden">
-        
-        <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent"></div>
-
-        <div class="flex flex-col items-center">
-          
-          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-gold/10 to-transparent flex items-center justify-center border border-gold/20 mb-6 shadow-[inset_0_0_15px_rgba(244,180,26,0.1)]">
-            <i class="bi {% if user_to_manage.is_active %}bi-shield-slash{% else %}bi-shield-fill-check{% endif %} text-3xl text-gold"></i>
-          </div>
-
-          <h2 class="text-2xl font-extralight text-white tracking-tighter mb-2 text-center">
-              {% if user_to_manage.is_active %}Restrict <span class="font-black luxury-shimmer">Access?</span>{% else %}Restore <span class="font-black luxury-shimmer">Access?</span>{% endif %}
-          </h2>
-
-          <p class="text-white/30 text-[10px] uppercase tracking-[2px] mb-8 text-center font-bold">
-              Security Protocol Sequence
-          </p>
-
-          <div class="w-full bg-white/[0.03] border border-white/5 rounded-[24px] p-4 flex items-center gap-4 mb-8">
-            
-            <div class="w-14 h-14 rounded-full p-[1px] bg-gradient-to-b from-white/10 to-transparent shadow-xl">
-                {% if user_to_manage.profile_image %}
-                    <img src="{{ user_to_manage.profile_image.url }}" 
-                         class="w-full h-full rounded-full object-cover">
-                {% else %}
-                    <div class="w-full h-full rounded-full bg-rich flex items-center justify-center border border-white/5">
-                        <span class="text-gold font-black text-xl">{{ user_to_manage.username|first|upper }}</span>
-                    </div>
-                {% endif %}
+        </style>
+    </head>
+    <body class="font-sans bg-[#020202] text-slate-100 antialiased min-h-screen flex items-center justify-center p-4">
+        <div class="fixed inset-0 pointer-events-none">
+            <div class="absolute top-[40%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gold/10 blur-[150px] rounded-full opacity-50">
             </div>
-
-            <div class="text-left flex-grow truncate">
-              <p class="text-sm font-bold text-white tracking-tight truncate">
-                {{ user_to_manage.username }}
-              </p>
-              <p class="text-[9px] text-white/30 tracking-[1px] font-medium truncate">
-                {{ user_to_manage.email }}
-              </p>
-            </div>
-          </div>
-
-          <form method="POST" action="{% url 'toggle_user_status' user_to_manage.id %}" class="w-full space-y-3">
-            {% csrf_token %}
-            <button type="submit" class="btn-luxury w-full py-4 bg-gold text-black font-black uppercase tracking-[3px] text-[10px] rounded-2xl">
-              Execute Protocol
-            </button>
-            
-            <a href="{% url 'user_management' %}" class="block w-full py-4 bg-white/[0.02] border border-white/5 text-white/40 font-bold uppercase tracking-[3px] text-[10px] rounded-2xl hover:text-white hover:bg-white/5 transition-all text-center">
-              Abort Mission
-            </a>
-          </form>
         </div>
-      </div>
-
-      <div class="mt-8 flex items-center justify-center gap-4 text-white/20">
-          <div class="h-[1px] w-8 bg-white/5"></div>
-          <p class="text-[8px] uppercase tracking-[4px] font-black">Secure Terminal</p>
-          <div class="h-[1px] w-8 bg-white/5"></div>
-      </div>
-    </div>
-  </body>
+        <div class="relative z-10 w-full max-w-[420px] animate__animated animate__fadeIn">
+            <div class="text-center mb-6">
+                <h1 class="text-[9px] font-black tracking-[0.9em] text-white/40 uppercase mb-2">Scentora</h1>
+                <div class="h-[1px] w-6 bg-gradient-to-r from-transparent via-gold to-transparent mx-auto"></div>
+            </div>
+            <div class="glass-card rounded-[40px] p-8 md:p-10 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent"></div>
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-gold/10 to-transparent flex items-center justify-center border border-gold/20 mb-6 shadow-[inset_0_0_15px_rgba(244,180,26,0.1)]">
+                        <i class="bi {% if user_to_manage.is_active %}bi-shield-slash{% else %}bi-shield-fill-check{% endif %} text-3xl text-gold"></i>
+                    </div>
+                    <h2 class="text-2xl font-extralight text-white tracking-tighter mb-2 text-center">
+                        {% if user_to_manage.is_active %}
+                            Restrict <span class="font-black luxury-shimmer">Access?</span>
+                        {% else %}
+                            Restore <span class="font-black luxury-shimmer">Access?</span>
+                        {% endif %}
+                    </h2>
+                    <p class="text-white/30 text-[10px] uppercase tracking-[2px] mb-8 text-center font-bold">Security Protocol Sequence</p>
+                    <div class="w-full bg-white/[0.03] border border-white/5 rounded-[24px] p-4 flex items-center gap-4 mb-8">
+                        <div class="w-14 h-14 rounded-full p-[1px] bg-gradient-to-b from-white/10 to-transparent shadow-xl">
+                            {% if user_to_manage.profile_image %}
+                                <img src="{{ user_to_manage.profile_image.url }}"
+                                     class="w-full h-full rounded-full object-cover">
+                            {% else %}
+                                <div class="w-full h-full rounded-full bg-rich flex items-center justify-center border border-white/5">
+                                    <span class="text-gold font-black text-xl">{{ user_to_manage.username|first|upper }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="text-left flex-grow truncate">
+                            <p class="text-sm font-bold text-white tracking-tight truncate">{{ user_to_manage.username }}</p>
+                            <p class="text-[9px] text-white/30 tracking-[1px] font-medium truncate">{{ user_to_manage.email }}</p>
+                        </div>
+                    </div>
+                    <form method="POST"
+                          action="{% url 'toggle_user_status' user_to_manage.id %}"
+                          class="w-full space-y-3">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn-luxury w-full py-4 bg-gold text-black font-black uppercase tracking-[3px] text-[10px] rounded-2xl">
+                            Execute Protocol
+                        </button>
+                        <a href="{% url 'user_management' %}"
+                           class="block w-full py-4 bg-white/[0.02] border border-white/5 text-white/40 font-bold uppercase tracking-[3px] text-[10px] rounded-2xl hover:text-white hover:bg-white/5 transition-all text-center">
+                            Abort Mission
+                        </a>
+                    </form>
+                </div>
+            </div>
+            <div class="mt-8 flex items-center justify-center gap-4 text-white/20">
+                <div class="h-[1px] w-8 bg-white/5"></div>
+                <p class="text-[8px] uppercase tracking-[4px] font-black">Secure Terminal</p>
+                <div class="h-[1px] w-8 bg-white/5"></div>
+            </div>
+        </div>
+    </body>
 </html>

@@ -1,0 +1,254 @@
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.admin.views.decorators import staff_member_required
+from django.core.paginator import Paginator
+from django.db.models import Q, F
+from django.contrib import messages
+from orders.models import Order
+from products.models import ProductVariant
+from django.db import transaction
+
+# ==========================================
+# A. ORDER MANAGEMENT WORKFLOWS
+# ==========================================
+
+
+@staff_member_required(login_url="user_login")
+def admin_orders_list(request):
+    """
+    i. List orders in descending order by order date
+    iv. Search, sort, and filter with clear functionality
+    v. Pagination
+    """
+    orders = Order.objects.all().order_by("-created_at")
+
+    # iv. Search by OrderID, full_name, or user email
+    search_query = request.GET.get("search", "").strip()
+    if search_query:
+        orders = orders.filter(
+            Q(order_id__icontains=search_query)
+            | Q(full_name__icontains=search_query)
+            | Q(user__email__icontains=search_query)
+        )
+
+    # iv. Filter by Status
+    status_filter = request.GET.get("status", "").strip()
+    if status_filter:
+        orders = orders.filter(order_status=status_filter)
+
+    # v. Pagination (12 entries per grid layout view)
+    paginator = Paginator(orders, 12)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "orders": page_obj,
+        "search_query": search_query,
+        "status_filter": status_filter,
+        "status_choices": Order.ORDER_STATUS,
+    }
+    return render(request, "management/orders_list.html", context)
+
+
+@staff_member_required(login_url="user_login")
+def admin_order_detail(request, order_id):
+    """ii. Show orderID, date, user details, snapshot variables, and active item details"""
+    # Look up using your specific alphanumeric unique string field
+    order = get_object_or_404(Order, order_id=order_id)
+    items = order.items.all()
+    return render(
+        request, "management/order_detail.html", {"order": order, "items": items}
+    )
+
+
+@staff_member_required(login_url="user_login")
+@transaction.atomic
+def change_order_status(request, order_id):
+    """iii. Change order status cleanly via POST parameters"""
+    if request.method == "POST":
+        order = get_object_or_404(Order, order_id=order_id)
+        new_status = request.POST.get("order_status")
+
+        if new_status in dict(Order.ORDER_STATUS):
+            old_status = order.order_status
+            order.order_status = new_status
+            order.save()
+
+            # IF ADMIN RESETS AN ORDER BACK TO PENDING FROM CANCELLED
+            if new_status == "PENDING" and old_status in ["CANCELLED", "RETURNED"]:
+                for item in order.items.all():
+                    if item.item_status == "CANCELLED":
+                        variant = item.product_variant
+                        if variant and variant.stock >= item.quantity:
+                            # Re-deduct the stock since order is moving back to pending
+                            ProductVariant.objects.filter(id=variant.id).update(
+                                stock=F("stock") - item.quantity
+                            )
+                            item.item_status = "ACTIVE"
+                            item.save()
+                        else:
+                            messages.warning(
+                                request,
+                                f"Could not re-activate {item.product_name} due to low inventory stock.",
+                            )
+
+                # Inline recalculation engine to avoid NameError
+                active_items = order.items.filter(item_status="ACTIVE")
+
+                subtotal = sum(item.subtotal for item in active_items)
+                discount = sum(
+                    ((item.price * item.quantity) - item.subtotal)
+                    for item in active_items
+                )
+
+                order.subtotal = subtotal
+                order.discount = discount
+                order.total_amount = subtotal + getattr(order, "shipping_charge", 0)
+                order.save()
+
+            messages.success(
+                request,
+                f"Order #{order.order_id} status updated to {order.get_order_status_display()}.",
+            )
+        else:
+            messages.error(request, "Invalid status choice value transition.")
+
+    return redirect("management:admin_orders_list")
+
+
+# ==========================================
+# B. INVENTORY / STOCK MANAGEMENT WORKFLOWS
+# ==========================================
+
+
+@staff_member_required(login_url="user_login")
+def admin_inventory_list(request):
+    """Lists product variants with search options, sorting, and inline updates"""
+    variants = ProductVariant.objects.select_related("product", "product__brand").all()
+
+    # Search by variant identifier name, product title, or brand title
+    search_query = request.GET.get("search", "").strip()
+    if search_query:
+        variants = variants.filter(
+            Q(name__icontains=search_query)
+            | Q(product__name__icontains=search_query)
+            | Q(product__brand__name__icontains=search_query)
+        )
+
+    # Filter rules for stock status
+    stock_filter = request.GET.get("stock_status", "").strip()
+
+    if stock_filter == "abundant":
+        variants = variants.filter(stock__gt=5)
+
+    elif stock_filter == "low":
+        variants = variants.filter(stock__lte=5, stock__gt=0)
+    
+    elif stock_filter == "out":
+        variants = variants.filter(stock=0)
+
+    # Order/sorting rules
+    sort = request.GET.get("sort", "product_name")
+    if sort == "stock_low":
+        variants = variants.order_by("stock")
+        
+    elif sort == "stock_high":
+        variants = variants.order_by("-stock")
+    else:
+        variants = variants.order_by("product__name")
+
+    paginator = Paginator(variants, 8)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "variants": page_obj,
+        "search_query": search_query,
+        "stock_filter": stock_filter,
+        "sort": sort,
+    }
+    return render(request, "management/inventory_list.html", context)
+
+
+@staff_member_required(login_url="user_login")
+def update_variant_stock(request, variant_id):
+    """Updates stock inventory levels instantly via dashboard inputs"""
+
+    if request.method == "POST":
+        variant = get_object_or_404(ProductVariant, id=variant_id)
+
+        try:
+            new_stock = int(request.POST.get("stock", 0))
+
+            if new_stock >= 0:
+                variant.stock = new_stock
+                variant.save()
+
+                messages.success(
+                    request,
+                    f"Stock updated successfully for {variant.product.name} ({variant.size}).",
+                )
+
+            else:
+                messages.error(
+                    request, "Stock totals cannot register as less than zero."
+                )
+
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid numeric input entered.")
+
+    return redirect(request.META.get("HTTP_REFERER", "management:admin_inventory_list"))
+
+
+@staff_member_required(login_url="user_login")
+@transaction.atomic
+def handle_item_status_change(request, item_id):
+    """
+    Safely changes an order item status and auto-adjusts variant inventory
+    if the item transitions into a CANCELLED or RETURNED state.
+    """
+    if request.method == "POST":
+        # 1. Look up the specific order line item
+        # (Assuming your order item model is named OrderItem)
+        from orders.models import OrderItem
+
+        item = get_object_or_404(OrderItem, id=item_id)
+        new_status = request.POST.get("item_status")
+        old_status = item.item_status
+
+        if new_status != old_status:
+            # 2. Check if transitioning TO a restock state (Cancelled/Returned) from an active state
+            if new_status in ["CANCELLED", "RETURNED"] and old_status == "ACTIVE":
+                if item.product_variant:
+                    # Increment stock directly in the database to avoid race conditions
+                    ProductVariant.objects.filter(id=item.product_variant.id).update(
+                        stock=F("stock") + item.quantity
+                    )
+                    messages.success(
+                        request,
+                        f"Restocked {item.quantity} units for variant {item.product_name}.",
+                    )
+
+            # 3. Check if reverting BACK from Cancelled/Returned to Active (re-deduct stock)
+            elif old_status in ["CANCELLED", "RETURNED"] and new_status == "ACTIVE":
+                if item.product_variant:
+                    variant = item.product_variant
+                    if variant.stock >= item.quantity:
+                        ProductVariant.objects.filter(id=variant.id).update(
+                            stock=F("stock") - item.quantity
+                        )
+                    else:
+                        messages.error(
+                            request,
+                            f"Insufficient stock available to re-activate this item.",
+                        )
+                        return redirect(
+                            request.META.get(
+                                "HTTP_REFERER", "management:admin_orders_list"
+                            )
+                        )
+
+            item.item_status = new_status
+            item.save()
+            messages.success(request, f"Item status updated successfully.")
+
+    return redirect(request.META.get("HTTP_REFERER", "management:admin_orders_list"))
