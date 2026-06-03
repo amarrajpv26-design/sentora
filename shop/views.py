@@ -92,10 +92,10 @@ def product_list(request):
     return render(request, "shop/product_list.html", context)
 
 
-def product_detail(request, product_id):
+def product_detail(request, product_uuid):
     product = get_object_or_404(
         Product.objects.prefetch_related("images", "variants", "categories"),
-        id=product_id,
+        uuid=product_uuid,
     )
 
     if not product.is_active:

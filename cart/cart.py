@@ -51,7 +51,9 @@ class Cart:
                 return False, f"You can only add {MAX_PER_ITEM} of this item."
 
 
-            if not override_quantity and new_qty > variant.stock:
+            if new_qty > variant.stock:
+                if not is_new_item and item.quantity >= variant.stock:
+                    return False, f"You already have {item.quantity} in your cart. Only {variant.stock} available."
                 return False, "Not enough stock available."
 
             item.quantity = new_qty

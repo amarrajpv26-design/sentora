@@ -2,7 +2,7 @@
     <button type="button"
             hx-post="{% url 'cart:wishlist_toggle' variant.id %}"
             hx-target="#heart-container-detail-{{ product.id }}"
-            hx-swap="outerHTML"
+            hx-swap="innerHTML"
             class="group relative">
         <!-- subtle hover lift layer (no visual noise) -->
         <div class="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 {% if is_in_wishlist %} bg-primary/10 {% else %} bg-white/5 {% endif %} ">

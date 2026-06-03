@@ -61,7 +61,7 @@ def add_category(request):
 
             category.name = category.name.strip().capitalize()
 
-            if Category.objects.filter(name=category.name).exists():
+            if Category.objects.filter(name__iexact=category.name).exists():
                 form.add_error("name", f"The vault '{category.name}' already exists.")
                 return render(
                     request, "products/admin_add_category.html", {"form": form}
@@ -327,26 +327,23 @@ def edit_product(request, product_id):
         product.base_notes = request.POST.get("base_notes", product.base_notes)
         product.is_featured = "is_featured" in request.POST
 
-        
         product.save()
 
-        
         cat_id = request.POST.get("category")
         if cat_id and str(cat_id).isdigit():
             try:
                 selected_category = Category.objects.get(id=int(cat_id))
-                
+
                 product.categories.set([selected_category])
             except Category.DoesNotExist:
                 pass
-
-        
 
         variant_ids = request.POST.getlist("variant_id[]")
         sizes = request.POST.getlist("v_size[]")
         prices = request.POST.getlist("v_price[]")
         offers = request.POST.getlist("v_offer[]")
         stocks = request.POST.getlist("v_stock[]")
+        stocks_original = request.POST.getlist("v_stock_original[]")
 
         existing_variant_ids = []
 
@@ -372,7 +369,16 @@ def edit_product(request, product_id):
                     variant.size = size
                     variant.price = price
                     variant.offer_price = offer
-                    variant.stock = stock
+
+
+                    
+                    submitted_stock = int(stock) if stock else 0
+                    original_stock = int(stocks_original[i]) if i < len(stocks_original) and stocks_original[i] else 0
+
+                    if submitted_stock != original_stock:
+                        
+                        variant.stock = submitted_stock
+
                     variant.save()
 
                     existing_variant_ids.append(variant.id)
@@ -393,13 +399,11 @@ def edit_product(request, product_id):
 
                 existing_variant_ids.append(variant.id)
 
-        
         product.variants.exclude(id__in=existing_variant_ids).delete()
 
         images_data = request.POST.getlist("cropped_images[]")
         existing_ids = request.POST.getlist("existing_image_ids[]")
 
-        
         for i, img_id in enumerate(existing_ids):
             if i < len(images_data):
                 img_status = images_data[i]
@@ -425,7 +429,6 @@ def edit_product(request, product_id):
                     except ProductImage.DoesNotExist:
                         continue
 
-        
         for i in range(len(existing_ids), len(images_data)):
             new_img_data = images_data[i]
             if new_img_data and new_img_data.startswith("data:image"):

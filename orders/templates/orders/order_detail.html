@@ -399,7 +399,7 @@ body{
                         {% if order.order_status == 'PENDING' or order.order_status == 'CONFIRMED' %}
     {% if item.item_status == 'ACTIVE' %}
         <div class="mt-10 pt-10 border-t border-white/10">
-            <form action="{% url 'cancel_order_item' item.id %}" method="POST">
+            <form action="{% url 'cancel_order_item' item.id %}" method="POST" onsubmit="return confirmCancel(event, this, false)">
                 {% csrf_token %}
                 <textarea name="reason"
                           rows="4"
@@ -419,6 +419,35 @@ body{
         <p class="text-[9px] uppercase tracking-[0.25em] text-red-400 mb-3">Cancellation Reason</p>
         <p class="w-full rounded-[2rem] border border-red-500/20 bg-red-500/[0.04] p-6 text-white/50 text-sm leading-relaxed">
             {{ item.cancellation_reason }}
+        </p>
+    </div>
+{% endif %}
+
+
+{% if order.order_status == 'DELIVERED' %}
+    {% if item.item_status == 'ACTIVE' %}
+        <div class="mt-10 pt-10 border-t border-white/10">
+            <form action="{% url 'return_order_item' item.id %}" method="POST" onsubmit="return confirmReturn(event, this)">
+                {% csrf_token %}
+                <textarea name="reason"
+                          rows="4"
+                          required
+                          placeholder="Reason for return..."
+                          class="w-full rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 outline-none resize-none text-white placeholder:text-white/25"></textarea>
+                <button type="submit"
+                        class="luxury-btn mt-5 px-8 py-4 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-bold tracking-wide">
+                    Return This Item
+                </button>
+            </form>
+        </div>
+    {% endif %}
+{% endif %}
+
+{% if item.item_status == 'RETURN_REQUESTED' and item.return_reason %}
+    <div class="mt-10 pt-10 border-t border-white/10">
+        <p class="text-[9px] uppercase tracking-[0.25em] text-yellow-400 mb-3">Return Reason</p>
+        <p class="w-full rounded-[2rem] border border-yellow-500/20 bg-yellow-500/[0.04] p-6 text-white/50 text-sm leading-relaxed">
+            {{ item.return_reason }}
         </p>
     </div>
 {% endif %}
@@ -523,7 +552,7 @@ body{
 
                         {% if order.order_status == 'PENDING' or order.order_status == 'CONFIRMED' %}
 
-                        <form action="{% url 'cancel_order' order.order_id %}" method="POST">
+                        <form action="{% url 'cancel_order' order.order_id %}" method="POST" onsubmit="return confirmCancel(event, this, true)">
                             {% csrf_token %}
 
                             <textarea
@@ -577,5 +606,142 @@ body{
     </div>
 
 </div>
+
+<!-- CONFIRMATION MODAL -->
+<div id="cancelModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center"
+     style="background:rgba(0,0,0,0.72);backdrop-filter:blur(8px);">
+    <div id="cancelModalBox"
+         class="glass-panel rounded-[2.7rem] p-12 max-w-md w-full mx-6 border border-white/10"
+         style="transition:all 0.4s ease;transform:translateY(24px);opacity:0;">
+        <div class="w-12 h-px mb-8" style="background:linear-gradient(to right,#D4AF37,transparent)"></div>
+        <p class="text-[10px] uppercase tracking-[0.5em] text-white/25 mb-5">Confirm Action</p>
+        <h2 id="cancelModalTitle" class="text-3xl font-extralight tracking-tight leading-snug mb-4">
+            Cancel this item?
+        </h2>
+        <p class="text-white/40 text-sm leading-relaxed mb-10">
+            This action cannot be undone. The item will be marked as cancelled
+            and a refund (if applicable) will be processed.
+        </p>
+        <div class="flex gap-4">
+            <button onclick="submitCancelForm()"
+                    class="luxury-btn flex-1 py-4 rounded-2xl bg-red-500 hover:bg-red-400 text-white font-bold tracking-wide text-sm">
+                Yes, Cancel
+            </button>
+            <button onclick="closeCancelModal()"
+                    class="luxury-btn flex-1 py-4 rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] text-white/70 font-semibold tracking-wide text-sm">
+                Go Back
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="returnModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center"
+     style="background:rgba(0,0,0,0.72);backdrop-filter:blur(8px);">
+    <div id="returnModalBox"
+         class="glass-panel rounded-[2.7rem] p-12 max-w-md w-full mx-6 border border-white/10"
+         style="transition:all 0.4s ease;transform:translateY(24px);opacity:0;">
+        <div class="w-12 h-px mb-8" style="background:linear-gradient(to right,#D4AF37,transparent)"></div>
+        <p class="text-[10px] uppercase tracking-[0.5em] text-white/25 mb-5">Confirm Action</p>
+        <h2 class="text-3xl font-extralight tracking-tight leading-snug mb-4">
+            Return this item?
+        </h2>
+        <p class="text-white/40 text-sm leading-relaxed mb-10">
+            A return request will be submitted for review. Our team will process it shortly.
+        </p>
+        <div class="flex gap-4">
+            <button onclick="submitReturnForm()"
+                    class="luxury-btn flex-1 py-4 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-bold tracking-wide text-sm">
+                Yes, Return
+            </button>
+            <button onclick="closeReturnModal()"
+                    class="luxury-btn flex-1 py-4 rounded-2xl border border-white/10 bg-white/[0.03] hover:bg-white/[0.07] text-white/70 font-semibold tracking-wide text-sm">
+                Go Back
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+var _pendingForm = null;
+
+function confirmCancel(event, form, isEntireOrder) {
+    event.preventDefault();
+    _pendingForm = form;
+    document.getElementById('cancelModalTitle').textContent = isEntireOrder
+        ? 'Cancel the entire order?'
+        : 'Cancel this item?';
+    var modal = document.getElementById('cancelModal');
+    var box = document.getElementById('cancelModalBox');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(function() {
+        box.style.transform = 'translateY(0)';
+        box.style.opacity = '1';
+    }, 10);
+    return false;
+}
+
+function closeCancelModal() {
+    var modal = document.getElementById('cancelModal');
+    var box = document.getElementById('cancelModalBox');
+    box.style.transform = 'translateY(24px)';
+    box.style.opacity = '0';
+    setTimeout(function() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        _pendingForm = null;
+    }, 350);
+}
+
+function submitCancelForm() {
+    if (_pendingForm) {
+        _pendingForm.submit();
+    }
+}
+
+document.getElementById('cancelModal').addEventListener('click', function(e) {
+    if (e.target === this) closeCancelModal();
+});
+
+var _pendingReturnForm = null;
+
+function confirmReturn(event, form) {
+    event.preventDefault();
+    _pendingReturnForm = form;
+    var modal = document.getElementById('returnModal');
+    var box = document.getElementById('returnModalBox');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(function() {
+        box.style.transform = 'translateY(0)';
+        box.style.opacity = '1';
+    }, 10);
+    return false;
+}
+
+function closeReturnModal() {
+    var modal = document.getElementById('returnModal');
+    var box = document.getElementById('returnModalBox');
+    box.style.transform = 'translateY(24px)';
+    box.style.opacity = '0';
+    setTimeout(function() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        _pendingReturnForm = null;
+    }, 350);
+}
+
+function submitReturnForm() {
+    if (_pendingReturnForm) _pendingReturnForm.submit();
+}
+
+document.getElementById('returnModal').addEventListener('click', function(e) {
+    if (e.target === this) closeReturnModal();
+});
+
+</script>
+
 
 {% endblock %}

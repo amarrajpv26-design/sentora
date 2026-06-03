@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Invoice - {{ order.order_id }}</title>
+
+<style>
+
+@page {
+    size: A4;
+    margin: 20mm;
+}
+
+body{
+    font-family: Arial, sans-serif;
+    margin:0;
+    color:#222;
+    background:#ffffff;
+    font-size:14px;
+}
+
+.invoice-wrapper{
+    width:100%;
+}
+
+/* ===========================
+   HEADER
+=========================== */
+
+.header{
+    background:#111111;
+    color:white;
+    padding:35px;
+    border-radius:14px;
+}
+
+.logo{
+    font-size:34px;
+    font-weight:bold;
+    letter-spacing:8px;
+}
+
+.tagline{
+    color:#cccccc;
+    margin-top:5px;
+    font-size:12px;
+    letter-spacing:2px;
+}
+
+.invoice-title{
+    float:right;
+    text-align:right;
+}
+
+.invoice-title h1{
+    margin:0;
+    font-size:34px;
+    color:#d4af37;
+}
+
+.invoice-id{
+    margin-top:5px;
+    color:#dddddd;
+}
+
+/* ===========================
+   INFO CARDS
+=========================== */
+
+.info-section{
+    margin-top:25px;
+}
+
+.info-table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:15px;
+}
+
+.info-card{
+    background:#f8f8f8;
+    padding:18px;
+    border-radius:10px;
+    border:1px solid #ececec;
+}
+
+.label{
+    font-size:11px;
+    text-transform:uppercase;
+    color:#888;
+    margin-bottom:6px;
+}
+
+.value{
+    font-size:14px;
+    font-weight:600;
+}
+
+/* ===========================
+   ADDRESS
+=========================== */
+
+.address-section{
+    margin-top:25px;
+}
+
+.address-table{
+    width:100%;
+    border-spacing:15px;
+}
+
+.address-box{
+    background:#fafafa;
+    border:1px solid #ececec;
+    border-radius:10px;
+    padding:20px;
+    vertical-align:top;
+}
+
+.address-title{
+    font-size:13px;
+    font-weight:bold;
+    text-transform:uppercase;
+    margin-bottom:12px;
+    color:#111;
+}
+
+.address-content{
+    line-height:1.8;
+}
+
+/* ===========================
+   ITEMS
+=========================== */
+
+.items{
+    width:100%;
+    margin-top:30px;
+    border-collapse:collapse;
+}
+
+.items thead{
+    background:#111111;
+    color:white;
+}
+
+.items th{
+    padding:15px;
+    text-align:left;
+    font-size:12px;
+    letter-spacing:1px;
+}
+
+.items td{
+    padding:15px;
+    border-bottom:1px solid #eeeeee;
+}
+
+.items tbody tr:nth-child(even){
+    background:#fafafa;
+}
+
+.text-center{
+    text-align:center;
+}
+
+.text-right{
+    text-align:right;
+}
+
+.product-name{
+    font-weight:600;
+}
+
+.variant{
+    color:#777;
+    font-size:12px;
+    margin-top:4px;
+}
+
+/* ===========================
+   TOTALS
+=========================== */
+
+.totals-wrapper{
+    margin-top:35px;
+}
+
+.totals{
+    width:320px;
+    margin-left:auto;
+}
+
+.total-row{
+    display:flex;
+    justify-content:space-between;
+    padding:10px 0;
+    border-bottom:1px solid #eeeeee;
+}
+
+.grand-total{
+    margin-top:10px;
+    background:#111111;
+    color:white;
+    padding:18px;
+    border-radius:10px;
+    font-size:20px;
+    font-weight:bold;
+    display:flex;
+    justify-content:space-between;
+}
+
+.discount{
+    color:#16a34a;
+}
+
+/* ===========================
+   FOOTER
+=========================== */
+
+.footer{
+    margin-top:60px;
+    text-align:center;
+    color:#777;
+    font-size:12px;
+    border-top:1px solid #eeeeee;
+    padding-top:20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="invoice-wrapper">
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <div style="float:left;">
+            <div class="logo">SCENTORA</div>
+            <div class="tagline">
+                LUXURY PERFUME COLLECTION
+            </div>
+        </div>
+
+        <div class="invoice-title">
+            <h1>INVOICE</h1>
+            <div class="invoice-id">
+                #{{ order.order_id }}
+            </div>
+        </div>
+
+        <div style="clear:both;"></div>
+
+    </div>
+
+    <!-- INFO -->
+
+    <div class="info-section">
+
+        <table class="info-table">
+
+            <tr>
+
+                <td class="info-card">
+                    <div class="label">Invoice Date</div>
+                    <div class="value">
+                        {{ order.created_at|date:"d M Y" }}
+                    </div>
+                </td>
+
+                <td class="info-card">
+                    <div class="label">Payment Method</div>
+                    <div class="value">
+                        {{ order.payment_method }}
+                    </div>
+                </td>
+
+                <td class="info-card">
+                    <div class="label">Order Status</div>
+                    <div class="value">
+                        {{ order.order_status }}
+                    </div>
+                </td>
+
+                <td class="info-card">
+                    <div class="label">Payment Status</div>
+                    <div class="value">
+                        {{ order.payment_status }}
+                    </div>
+                </td>
+
+            </tr>
+
+        </table>
+
+    </div>
+
+    <!-- ADDRESS -->
+
+    <div class="address-section">
+
+        <table class="address-table">
+
+            <tr>
+
+                <td class="address-box">
+
+                    <div class="address-title">
+                        Billing Address
+                    </div>
+
+                    <div class="address-content">
+
+                        {{ order.full_name }}<br>
+
+                        {{ order.address_line_1 }}<br>
+
+                        {% if order.address_line_2 %}
+                        {{ order.address_line_2 }}<br>
+                        {% endif %}
+
+                        {{ order.city }},
+                        {{ order.state }}
+                        - {{ order.pincode }}<br>
+
+                        Phone:
+                        {{ order.phone_number }}
+
+                    </div>
+
+                </td>
+
+                <td class="address-box">
+
+                    <div class="address-title">
+                        Shipping Address
+                    </div>
+
+                    <div class="address-content">
+
+                        {{ order.full_name }}<br>
+
+                        {{ order.address_line_1 }}<br>
+
+                        {% if order.address_line_2 %}
+                        {{ order.address_line_2 }}<br>
+                        {% endif %}
+
+                        {{ order.city }},
+                        {{ order.state }}
+                        - {{ order.pincode }}<br>
+
+                        Phone:
+                        {{ order.phone_number }}
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+        </table>
+
+    </div>
+
+    <!-- ITEMS -->
+
+    <table class="items">
+
+        <thead>
+
+            <tr>
+                <th>PRODUCT</th>
+                <th class="text-center">QTY</th>
+                <th class="text-right">PRICE</th>
+                <th class="text-right">TOTAL</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for item in items %}
+
+            <tr>
+
+                <td>
+
+                    <div class="product-name">
+                        {{ item.product_name }}
+                    </div>
+
+                    {% if item.product_variant %}
+                    <div class="variant">
+                        Size: {{ item.product_variant.size }}
+                    </div>
+                    {% endif %}
+
+                </td>
+
+                <td class="text-center">
+                    {{ item.quantity }}
+                </td>
+
+                <td class="text-right">
+                    ₹{{ item.price }}
+                </td>
+
+                <td class="text-right">
+                    ₹{{ item.subtotal }}
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    <!-- TOTALS -->
+
+    <div class="totals-wrapper">
+
+        <div class="totals">
+
+            <div class="total-row">
+                <span>Subtotal</span>
+                <span>₹{{ order.subtotal }}</span>
+            </div>
+
+            <div class="total-row">
+                <span>Discount</span>
+                <span class="discount">
+                    - ₹{{ order.discount }}
+                </span>
+            </div>
+
+            <div class="total-row">
+                <span>Shipping</span>
+                <span>
+                    ₹{{ order.shipping_charge }}
+                </span>
+            </div>
+
+            <div class="grand-total">
+                <span>Total</span>
+                <span>
+                    ₹{{ order.total_amount }}
+                </span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+
+    <div class="footer">
+
+        This is a computer generated invoice and does not require a signature.
+
+        <br><br>
+
+        Thank you for shopping with SCENTORA.
+
+    </div>
+
+</div>
+
+</body>
+</html>

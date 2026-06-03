@@ -3,10 +3,11 @@ from django.contrib.auth.decorators import login_required
 from users.models import Address
 from cart.cart import Cart
 from products.models import ProductVariant
-
+from django.db.models import F
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
 from django.db import transaction
+from cart.models import WishlistItem
 
 from orders.models import Order, OrderItem
 
@@ -60,7 +61,6 @@ def checkout_view(request):
         "-is_default", "-created_at"
     )
 
-    # FIX 1: compute total MRP and total discount across all items
     total_mrp = sum(item["mrp_total"] for item in checkout_items)
     total_discount = sum(item["discount"] for item in checkout_items)
 
@@ -73,8 +73,8 @@ def checkout_view(request):
         "checkout_items": checkout_items,
         "addresses": addresses,
         "subtotal": subtotal,
-        "discount": total_discount,      # FIX 1
-        "mrp_total": total_mrp,          # FIX 1
+        "discount": total_discount,
+        "mrp_total": total_mrp,
         "shipping": shipping,
         "final_total": final_total,
         "next_url": next_url,
@@ -102,7 +102,6 @@ def buy_now_checkout_view(request, variant_id):
 
         return redirect("product_detail", variant.product.id)
 
-    
     mrp_total = variant.price * quantity
     selling_total = (variant.offer_price or variant.price) * quantity
 
@@ -120,7 +119,7 @@ def buy_now_checkout_view(request, variant_id):
     )
 
     subtotal = selling_total
-    discount = mrp_total - selling_total  # FIX 2: was hardcoded 0
+    discount = mrp_total - selling_total
     shipping = 0
 
     final_total = subtotal + shipping
@@ -131,7 +130,7 @@ def buy_now_checkout_view(request, variant_id):
         "addresses": addresses,
         "subtotal": subtotal,
         "mrp_total": mrp_total,
-        "discount": discount,            # FIX 2
+        "discount": discount,
         "shipping": shipping,
         "final_total": final_total,
     }
@@ -169,7 +168,6 @@ def place_order_view(request):
 
     subtotal = 0
 
-    # CART CHECKOUT
     if checkout_type == "cart":
 
         cart = Cart(request)
@@ -184,6 +182,8 @@ def place_order_view(request):
 
             variant = item["variant"]
             quantity = item["quantity"]
+
+            variant = ProductVariant.objects.select_for_update().get(pk=variant.pk)
 
             if variant.stock < quantity:
 
@@ -208,19 +208,17 @@ def place_order_view(request):
                 }
             )
 
-        # FIX 3: define discount for cart (was undefined, would crash)
         discount = sum(
             item["mrp_total"] - item["selling_total"] for item in checkout_items
         )
 
-    # BUY NOW CHECKOUT
     elif checkout_type == "buy_now":
 
         variant_id = request.POST.get("variant_id")
 
         quantity = int(request.POST.get("quantity", 1))
 
-        variant = get_object_or_404(ProductVariant, id=variant_id)
+        variant = ProductVariant.objects.select_for_update().get(pk=variant_id)
 
         if variant.stock < quantity:
 
@@ -251,7 +249,6 @@ def place_order_view(request):
 
     final_total = subtotal + shipping
 
-    # CREATE ORDER
     order = Order.objects.create(
         user=request.user,
         order_id=generate_order_id(),
@@ -284,15 +281,34 @@ def place_order_view(request):
             product_variant=variant,
             product_name=str(variant),
             quantity=quantity,
-            price=variant.price,
+            price=variant.offer_price or variant.price,
             subtotal=item_subtotal,
         )
 
-        # REDUCE STOCK
-        variant.stock -= quantity
-        variant.save()
+        ProductVariant.objects.filter(pk=variant.pk).update(stock=F("stock") - quantity)
+    ordered_variants = [item["variant"] for item in checkout_items]
 
-    # CLEAR CART
+    WishlistItem.objects.filter(
+        wishlist__user=request.user, variant__in=ordered_variants
+    ).delete()
+    if checkout_type == "buy_now":
+        variant = checkout_items[0]["variant"]
+        ordered_qty = checkout_items[0]["quantity"]
+
+        from cart.models import CartItem
+
+        cart_item = CartItem.objects.filter(
+            cart__user=request.user, variant=variant
+        ).first()
+        
+        if cart_item:
+            if cart_item.quantity <= ordered_qty:
+                cart_item.delete()
+            else:
+                cart_item.quantity -= ordered_qty
+                cart_item.save()
+
+                
     if checkout_type == "cart":
 
         cart.clear()

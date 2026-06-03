@@ -5,6 +5,7 @@ from django.http import HttpResponse
 from .models import Wishlist, WishlistItem  # <--- Add this line!
 from products.models import ProductVariant
 from .wishlist import WishlistManager
+import json
 from .cart import Cart, CartItem
 
 
@@ -33,8 +34,11 @@ def cart_add(request, variant_id):
 
     if request.headers.get("HX-Request"):
         response = HttpResponse("", status=200)
+        if success:
+            response["HX-Trigger"] = "update-cart, wishlistUpdated"
+        else:
+            response["HX-Trigger"] = json.dumps({"showMessage": message})
 
-        response["HX-Trigger"] = "update-cart, wishlistUpdated"
         return response
 
     if success:
@@ -42,7 +46,7 @@ def cart_add(request, variant_id):
     else:
         messages.error(request, message)
 
-    return redirect("cart:cart_detail")
+    return redirect(request.META.get('HTTP_REFERER', 'shop:product_list'))
 
 
 def cart_count_only(request):

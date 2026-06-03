@@ -12,6 +12,11 @@ urlpatterns = [
     ),
     path("return/<str:order_id>/", views.return_order_view, name="return_order"),
     path(
+        "return-item/<int:item_id>/",
+        views.return_order_item_view,
+        name="return_order_item",
+    ),
+    path(
         "invoice/<str:order_id>/", views.download_invoice_view, name="download_invoice"
     ),
 ]

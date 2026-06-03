@@ -6,6 +6,7 @@ import uuid
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False,unique=True)
     slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(blank=True)
     category_image = models.ImageField(
@@ -68,6 +69,7 @@ class Brand(models.Model):
 class Product(models.Model):
     
     name = models.CharField(max_length=200, unique=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False,unique=True)
     slug = models.SlugField(unique=True, blank=True)
     description = models.TextField()
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name="products")

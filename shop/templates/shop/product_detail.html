@@ -10,16 +10,7 @@
                   class="text-[10px] font-black uppercase tracking-[0.2em] text-white"></span>
         </div>
     </div>
-    {% if messages %}
-        {% for message in messages %}
-            <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // This passes Django messages into your JS toast function
-                showMessage("{{ message }}", "{% if message.tags == 'error' %}error{% else %}check_circle{% endif %}");
-            });
-            </script>
-        {% endfor %}
-    {% endif %}
+    
     <style>
 body {
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
@@ -311,7 +302,7 @@ h1 {
                                                 class="apple-btn flex-1 py-6 bg-white text-black font-black uppercase tracking-[0.4em] text-[10px] rounded-2xl hover:shadow-[0_20px_40px_rgba(212,175,55,0.2)] transition-all duration-700 hover:-translate-y-1">
                                             Buy Now
                                         </button>
-                                        <div id="heart-container-detail-{{ product.id }}">
+                                        <div id="heart-container-detail-{{ product.uuid }}">
                                             {% include 'cart/partials/wishlist_button.html' with variant=variants.0 product=product is_in_wishlist=is_in_wishlist %}
                                         </div>
                                     </div>
@@ -368,7 +359,7 @@ h1 {
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {% for related in related_products %}
-                        <a href="{% url 'shop:product_detail' related.id %}"
+                        <a href="{% url 'shop:product_detail' related.uuid %}"
                            class="group space-y-6">
                             <div class="aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-[#141414] border border-white/5 relative">
                                 {% if related.images.all %}
@@ -454,8 +445,8 @@ htmx.ajax(
     'GET',
     `/cart/wishlist/button/${variantId}/`,
     {
-        target: `#heart-container-detail-{{ product.id }}`,
-        swap: 'outerHTML'
+        target: `#heart-container-detail-{{ product.uuid }}`,
+        swap: 'innerHTML'
     }
 );
     // -------------------------

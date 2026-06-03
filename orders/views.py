@@ -4,12 +4,9 @@ from django.contrib import messages
 from django.db import transaction
 from .models import Order, OrderItem
 from django.http import HttpResponse
+from weasyprint import HTML
+from django.template.loader import render_to_string
 
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.pagesizes import letter
 
 
 @login_required
@@ -61,7 +58,6 @@ def cancel_order_view(request, order_id):
 
     order.save()
 
-    # CANCEL ITEMS + RESTORE STOCK
     for item in order.items.all():
 
         if item.item_status == "ACTIVE":
@@ -80,7 +76,7 @@ def cancel_order_view(request, order_id):
 
                 variant.save()
     recalculate_order_totals(order)
-    
+
     messages.success(request, "Order cancelled successfully.")
 
     return redirect("order_detail", order.order_id)
@@ -106,16 +102,13 @@ def cancel_order_item_view(request, item_id):
     item.cancellation_reason = reason
     item.save()
 
-    # RESTORE STOCK
     variant = item.product_variant
     if variant:
         variant.stock += item.quantity
         variant.save()
 
-    # ALWAYS recalculate first
     recalculate_order_totals(order)
 
-    # THEN check if all items cancelled
     if not order.items.filter(item_status="ACTIVE").exists():
         order.order_status = "CANCELLED"
         order.save()
@@ -126,132 +119,112 @@ def cancel_order_item_view(request, item_id):
 
 @login_required
 def return_order_view(request, order_id):
-
     order = get_object_or_404(Order, order_id=order_id, user=request.user)
 
     if order.order_status != "DELIVERED":
-
         messages.error(request, "Only delivered orders can be returned.")
-
         return redirect("order_detail", order.order_id)
 
     reason = request.POST.get("reason")
 
     if not reason:
-
         messages.error(request, "Return reason is required.")
-
         return redirect("order_detail", order.order_id)
 
     order.order_status = "RETURN_REQUESTED"
-
     order.return_reason = reason
-
     order.save()
 
+    # Mirror cancel: mark all active items too
+    for item in order.items.filter(item_status="ACTIVE"):
+        item.item_status = "RETURN_REQUESTED"
+        item.return_reason = reason
+        item.save()
 
     messages.success(request, "Return request submitted.")
-
     return redirect("order_detail", order.order_id)
 
-def recalculate_order_totals(order):
 
+@login_required
+@transaction.atomic
+def return_order_item_view(request, item_id):
+    item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
+    order = item.order
+
+    if order.order_status != "DELIVERED":
+        messages.error(request, "Only delivered orders can have items returned.")
+        return redirect("order_detail", order.order_id)
+
+    if item.item_status != "ACTIVE":
+        messages.error(request, "This item is not eligible for return.")
+        return redirect("order_detail", order.order_id)
+
+    reason = request.POST.get("reason", "")
+
+    if not reason:
+        messages.error(request, "Return reason is required.")
+        return redirect("order_detail", order.order_id)
+
+    item.item_status = "RETURN_REQUESTED"
+    item.return_reason = reason
+    item.save()
+
+    # If all active items are now return-requested, escalate the whole order
     active_items = order.items.filter(item_status="ACTIVE")
+    if not active_items.exists():
+        order.order_status = "RETURN_REQUESTED"
+        order.return_reason = "All items return requested"
+        order.save()
 
-    # Recalculate subtotal from active items' selling price
+    messages.success(request, "Return request submitted for item.")
+    return redirect("order_detail", order.order_id)
+
+
+def recalculate_order_totals(order):
+    active_items = order.items.filter(item_status="ACTIVE")
     subtotal = sum(item.subtotal for item in active_items)
-
-    # Recalculate discount from active items' (mrp - selling)
     discount = sum(
-        (item.price * item.quantity) - item.subtotal
-        for item in active_items
+        (item.price * item.quantity) - item.subtotal for item in active_items
     )
-
     order.subtotal = subtotal
     order.discount = discount
-    order.total_amount = subtotal + order.shipping_charge 
-
+    order.total_amount = subtotal + order.shipping_charge
     order.save()
 
 
 @login_required
 def download_invoice_view(request, order_id):
 
-    order = get_object_or_404(Order, order_id=order_id, user=request.user)
-
-    response = HttpResponse(content_type="application/pdf")
-
-    response["Content-Disposition"] = f'attachment; filename="{order.order_id}.pdf"'
-
-    doc = SimpleDocTemplate(response, pagesize=letter)
-
-    styles = getSampleStyleSheet()
-
-    elements = []
-
-    # TITLE
-    elements.append(Paragraph(f"Invoice - {order.order_id}", styles["Title"]))
-
-    elements.append(Spacer(1, 20))
-
-    # CUSTOMER
-    elements.append(
-        Paragraph(f"<b>Customer:</b> {order.full_name}", styles["BodyText"])
+    order = get_object_or_404(
+        Order.objects.prefetch_related("items"),
+        order_id=order_id,
+        user=request.user,
     )
 
-    elements.append(
-        Paragraph(f"<b>Phone:</b> {order.phone_number}", styles["BodyText"])
+    active_items = order.items.filter(item_status="ACTIVE")
+
+    context = {
+        "order": order,
+        "items": active_items,
+    }
+
+    html_string = render_to_string(
+        "orders/invoice.html",
+        context,
     )
 
-    elements.append(
-        Paragraph(
-            f"<b>Address:</b> "
-            f"{order.address_line_1}, "
-            f"{order.city}, "
-            f"{order.state} - "
-            f"{order.pincode}",
-            styles["BodyText"],
-        )
+    pdf_file = HTML(
+        string=html_string,
+        base_url=request.build_absolute_uri("/")
+    ).write_pdf()
+
+    response = HttpResponse(
+        pdf_file,
+        content_type="application/pdf"
     )
 
-    elements.append(Spacer(1, 20))
-
-    # TABLE DATA
-    data = [["Product", "Qty", "Price", "Subtotal"]]
-
-    for item in order.items.filter(item_status="ACTIVE"):
-
-        data.append(
-            [
-                item.product_name,
-                str(item.quantity),
-                f"₹{item.price}",
-                f"₹{item.subtotal}",
-            ]
-        )
-
-    table = Table(data)
-
-    table.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.black),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("GRID", (0, 0), (-1, -1), 1, colors.grey),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ]
-        )
+    response["Content-Disposition"] = (
+        f'attachment; filename="invoice-{order.order_id}.pdf"'
     )
-
-    elements.append(table)
-
-    elements.append(Spacer(1, 25))
-
-    # TOTAL
-    elements.append(
-        Paragraph(f"<b>Total Amount:</b> ₹{order.total_amount}", styles["Heading2"])
-    )
-
-    doc.build(elements)
 
     return response
