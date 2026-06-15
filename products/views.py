@@ -229,7 +229,7 @@ def admin_product_list(request):
 def product_detail(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
 
-    variants = product.variants.all().order_by("price")
+    variants = product.variants.all().order_by("size_ml")
     gallery = product.images.all()
 
     context = {
@@ -346,6 +346,8 @@ def edit_product(request, product_id):
         stocks_original = request.POST.getlist("v_stock_original[]")
 
         existing_variant_ids = []
+        used_sizes = set()
+        variant_validation = []
 
         for i in range(len(sizes)):
 
@@ -353,9 +355,27 @@ def edit_product(request, product_id):
 
             if not size:
                 continue
+            if size in used_sizes:
+                messages.error(
+                    request,
+                    f"Duplicate variant detected: {size} can only be added once.",
+                )
+                return redirect("edit_product", product_id=product.id)
+            used_sizes.add(size)
 
-            price = prices[i] if prices[i] else 0
-            offer = offers[i] if offers[i] else None
+            price = float(prices[i]) if prices[i] else 0
+
+            variant_validation.append(
+                (ProductVariant.SIZE_MAP.get(size, 0), size, price)
+            )
+
+            offer = float(offers[i]) if offers[i] else None
+            if offer and offer >= price:
+                messages.error(
+                    request, f"Offer price for {size} must be lower than actual price."
+                )
+                return redirect("edit_product", product_id=product.id)
+
             stock = stocks[i] if stocks[i] else 0
 
             variant_id = variant_ids[i] if i < len(variant_ids) else ""
@@ -370,13 +390,15 @@ def edit_product(request, product_id):
                     variant.price = price
                     variant.offer_price = offer
 
-
-                    
                     submitted_stock = int(stock) if stock else 0
-                    original_stock = int(stocks_original[i]) if i < len(stocks_original) and stocks_original[i] else 0
+                    original_stock = (
+                        int(stocks_original[i])
+                        if i < len(stocks_original) and stocks_original[i]
+                        else 0
+                    )
 
                     if submitted_stock != original_stock:
-                        
+
                         variant.stock = submitted_stock
 
                     variant.save()
@@ -399,6 +421,18 @@ def edit_product(request, product_id):
 
                 existing_variant_ids.append(variant.id)
 
+        variant_validation.sort()
+        for i in range(1, len(variant_validation)):
+
+            previous_size = variant_validation[i - 1]
+            current_size = variant_validation[i]
+
+            if current_size[2] <= previous_size[2]:
+                messages.error(
+                    request,
+                    f"{current_size[1]} price must be greater than {previous_size[1]} price.",
+                )
+                return redirect("edit_product", product_id=product.id)
         product.variants.exclude(id__in=existing_variant_ids).delete()
 
         images_data = request.POST.getlist("cropped_images[]")

@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.conf import settings
 from products.models import ProductVariant
 from .models import Cart as CartModel, CartItem
+from offers.utils import get_cart_item_price
 
 
 class Cart:
@@ -69,7 +70,10 @@ class Cart:
             return False, "You can only add 10 different items to the cart."
 
         if variant_id not in self.cart:
-            self.cart[variant_id] = {"quantity": 0, "price": str(variant.get_price())}
+            self.cart[variant_id] = {
+    "quantity": 0,
+    "price": str(get_cart_item_price(variant))
+}
 
         current_qty = self.cart[variant_id]["quantity"]
 
@@ -121,7 +125,7 @@ class Cart:
             for item in items:
 
                 variant = item.variant
-                price = variant.get_price()
+                price = get_cart_item_price(variant)
 
                 stock_issue = item.quantity > variant.stock
 
@@ -207,7 +211,7 @@ class Cart:
                 )
 
                 if is_available:
-                    total += item.quantity * variant.get_price()
+                    total += item.quantity * get_cart_item_price(variant)
 
             return total
 

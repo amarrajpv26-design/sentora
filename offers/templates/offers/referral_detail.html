@@ -1,0 +1,111 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block breadcrumb %}Offers / Referral Detail{% endblock %}
+
+{% block extra_css %}
+<style>
+  .stat-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8 max-w-4xl">
+
+  <!-- Header -->
+  <div class="flex items-center gap-4">
+    <a href="{% url 'offers:dashboard' %}"
+       class="w-9 h-9 flex items-center justify-center rounded-xl border border-white/10 text-white/40 hover:text-white hover:border-white/20 transition-all">
+      <i class="bi bi-arrow-left text-sm"></i>
+    </a>
+    <div>
+      <p class="text-[10px] text-gold/50 uppercase tracking-[4px] font-black mb-1">Offers / Referral</p>
+      <h1 class="text-2xl font-black text-white">{{ offer.referrer.username }}</h1>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-4 gap-4">
+    <div class="stat-card rounded-2xl p-5 text-center">
+      <p class="text-2xl font-black text-white">{{ offer.use_count }}</p>
+      <p class="text-[10px] text-white/30 uppercase tracking-widest font-bold mt-1">Total Uses</p>
+    </div>
+    <div class="stat-card rounded-2xl p-5 text-center">
+      <p class="text-2xl font-black text-purple-300">{{ offer.referral_code }}</p>
+      <p class="text-[10px] text-white/30 uppercase tracking-widest font-bold mt-1">Code</p>
+    </div>
+    <div class="stat-card rounded-2xl p-5 text-center">
+      <p class="text-2xl font-black text-gold">₹{{ offer.referrer_reward_value }}</p>
+      <p class="text-[10px] text-white/30 uppercase tracking-widest font-bold mt-1">Referrer Reward</p>
+    </div>
+    <div class="stat-card rounded-2xl p-5 text-center">
+      <p class="text-2xl font-black text-green-400">₹{{ offer.referee_reward_value }}</p>
+      <p class="text-[10px] text-white/30 uppercase tracking-widest font-bold mt-1">Referee Reward</p>
+    </div>
+  </div>
+
+  <!-- Token URL -->
+  <div class="bg-purple-500/5 border border-purple-500/20 rounded-2xl p-6">
+    <p class="text-[10px] text-purple-300/60 uppercase tracking-[4px] font-black mb-3">Token URL</p>
+    <div class="flex items-center gap-3">
+      <code id="token-url" class="flex-1 text-xs text-purple-200 bg-purple-500/10 px-4 py-3 rounded-xl font-mono overflow-x-auto">
+        {{ request.scheme }}://{{ request.get_host }}{% url 'offers:referral_signup' offer.token %}
+      </code>
+      <button onclick="copyToken()" class="px-4 py-3 text-[11px] font-black uppercase tracking-widest text-purple-300 border border-purple-500/30 rounded-xl hover:bg-purple-500/10 transition-all">Copy</button>
+    </div>
+  </div>
+
+  <!-- Usage Table -->
+  <div class="stat-card rounded-2xl overflow-hidden">
+    <div class="px-6 py-4 border-b border-white/5 flex items-center justify-between">
+      <h2 class="text-xs font-black uppercase tracking-widest text-white/60">Usage Log</h2>
+      <span class="text-[10px] text-white/30">{{ usages.count }} sign-up{{ usages.count|pluralize }}</span>
+    </div>
+    {% if usages %}
+    <table class="w-full">
+      <thead>
+        <tr class="border-b border-white/5">
+          <th class="px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest text-white/30">User</th>
+          <th class="px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest text-white/30">Email</th>
+          <th class="px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest text-white/30">Signed Up</th>
+          <th class="px-6 py-3 text-left text-[10px] font-black uppercase tracking-widest text-white/30">Reward</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/[0.03]">
+        {% for usage in usages %}
+        <tr class="hover:bg-white/[0.01] transition-colors">
+          <td class="px-6 py-4 text-sm font-bold text-white">{{ usage.referee.username }}</td>
+          <td class="px-6 py-4 text-xs text-white/40">{{ usage.referee.email }}</td>
+          <td class="px-6 py-4 text-xs text-white/40">{{ usage.created_at|date:"d M Y, H:i" }}</td>
+          <td class="px-6 py-4">
+            {% if usage.reward_granted %}
+            <span class="text-[10px] font-black uppercase tracking-wider text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20">Granted</span>
+            {% else %}
+            <span class="text-[10px] font-black uppercase tracking-wider text-white/30 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">Pending</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-16 text-white/20">
+      <i class="bi bi-person-plus text-4xl block mb-3 opacity-20"></i>
+      <p class="text-xs font-bold uppercase tracking-widest">No sign-ups yet</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToken() {
+  const url = document.getElementById('token-url').textContent.trim();
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = event.target;
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+</script>
+{% endblock %}

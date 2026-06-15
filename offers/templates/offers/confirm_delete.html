@@ -1,0 +1,28 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block breadcrumb %}Offers / Delete{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-20 text-center space-y-8">
+  <div class="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto">
+    <i class="bi bi-trash text-red-400 text-2xl"></i>
+  </div>
+  <div>
+    <h1 class="text-2xl font-black text-white mb-2">Delete {{ offer_type }}?</h1>
+    <p class="text-white/40 text-sm">
+      "<span class="text-white/70">{{ offer.name }}</span>" will be permanently removed.
+      This cannot be undone.
+    </p>
+  </div>
+  <form method="POST" class="flex gap-3 justify-center">
+    {% csrf_token %}
+    <button type="submit"
+            class="px-6 py-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-red-500/20 transition-all">
+      Yes, Delete
+    </button>
+    <a href="{% url 'offers:dashboard' %}"
+       class="px-6 py-3 text-white/40 text-xs font-bold uppercase tracking-widest border border-white/10 rounded-xl hover:text-white hover:border-white/20 transition-all">
+      Cancel
+    </a>
+  </form>
+</div>
+{% endblock %}

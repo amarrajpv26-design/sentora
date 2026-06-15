@@ -89,25 +89,70 @@
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--luxury-gold); border-radius: 10px; }
+
+    @keyframes starPulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.star-glow {
+    animation: starPulse 2.5s infinite ease-in-out;
+}
     </style>
     <main class="flex-grow max-w-[1440px] mx-auto w-full px-10 py-20 luxury-sans text-white/90">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-20">
             <aside class="lg:col-span-3 space-y-16 reveal-animation"
                    style="animation-delay: 0.1s">
                 <div class="space-y-8">
-                    <h2 class="text-[10px] font-bold uppercase tracking-[0.5em] text-white/20 px-4">Navigation</h2>
                     <nav class="flex flex-col space-y-2">
-                        <a class="flex items-center gap-5 px-5 py-4 transition-all duration-500 hover:bg-white/[0.03] group"
-                           href="{% url 'order_list' %}">
-                            <span class="material-symbols-outlined text-white/30 group-hover:text-primary transition-colors font-light">package_2</span>
-                            <span class="text-xs uppercase tracking-[0.2em] font-light">My Orders</span>
-                        </a>
-                        <a class="flex items-center gap-5 px-5 py-4 border-l border-primary bg-primary/5 transition-all duration-500"
-                           href="{% url 'profile' %}">
-                            <span class="material-symbols-outlined text-primary font-light">person</span>
-                            <span class="text-xs uppercase tracking-[0.2em] font-semibold text-white">Personal Info</span>
-                        </a>
-                    </nav>
+
+    <!-- ACTIVE ITEM -->
+    <a class="flex items-center gap-5 px-5 py-4 border-l border-primary bg-primary/5 transition-all duration-500"
+       href="{% url 'profile' %}">
+        <span class="material-symbols-outlined text-primary font-light">person</span>
+        <span class="text-xs uppercase tracking-[0.2em] font-semibold text-white">
+            Personal Info
+        </span>
+    </a>
+
+</nav>
+
+<!-- SMALL HEADING -->
+<div class="pt-8 pb-4 px-5">
+    <p class="text-[9px] uppercase tracking-[0.5em] text-white/20">
+        Navigate to
+    </p>
+</div>
+
+<!-- SECONDARY LINKS -->
+<div class="flex flex-col space-y-2">
+
+    <a href="{% url 'order_list' %}"
+       class="flex items-center gap-5 px-5 py-4 transition-all duration-500 hover:bg-white/[0.03] group">
+
+        <span class="material-symbols-outlined text-white/30 group-hover:text-primary">
+            package_2
+        </span>
+
+        <span class="text-xs uppercase tracking-[0.2em] font-light">
+            My Orders
+        </span>
+    </a>
+
+    <a href="{% url 'wallet' %}"
+       class="flex items-center gap-5 px-5 py-4 transition-all duration-500 hover:bg-white/[0.03] group">
+
+        <span class="material-symbols-outlined text-white/30 group-hover:text-primary">
+            account_balance_wallet
+        </span>
+
+        <span class="text-xs uppercase tracking-[0.2em] font-light">
+            My Wallet
+        </span>
+    </a>
+
+</div>
                 </div>
                 <div class="pt-10 border-t border-white/5">
                     <a href="{% url 'logout_confirmation' %}"
@@ -136,6 +181,7 @@
                     </p>
                     <div class="absolute -bottom-[1px] left-0 w-32 h-[1px] bg-primary"></div>
                 </div>
+                
                 <!-- Profile Overview -->
                 <div class="glass-panel overflow-hidden bg-black/40">
                     <div class="p-12 flex flex-col md:flex-row items-center gap-16">
@@ -217,7 +263,7 @@
                                 <label class="text-[9px] font-bold text-primary uppercase tracking-[0.5em]">Wallet Balance</label>
                                 <div class="flex items-baseline gap-4">
                                     <span class="text-sm text-primary/40 font-light">INR</span>
-                                    <p class="text-5xl luxury-serif text-primary">₹{{ user.wallet_balance }}</p>
+                                    <p class="text-5xl luxury-serif text-primary">₹{{  wallet.balance }}</p>
                                 </div>
                             </div>
                         </div>
@@ -237,15 +283,12 @@
                         {% for address in user.addresses.all %}
                             <div class="glass-panel address-card p-12 relative">
                                 {% if address.is_default %}
-    <div class="absolute top-5 right-5 z-20">
-        <span class="bg-primary text-black
-                     text-[9px] px-5 py-2
-                     rounded-full
-                     shadow-[0_0_20px_rgba(212,175,55,0.35)]
-                     font-black tracking-[0.35em]
-                     uppercase">
-            Primary
-        </span>
+    <div class="absolute top-4 right-4 z-20">
+        <div class="w-9 h-9 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center star-glow">
+            <span class="material-symbols-outlined text-primary text-sm">
+                star
+            </span>
+        </div>
     </div>
 {% endif %}
 

@@ -1,0 +1,262 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <style>
+    .luxury-shimmer {
+        background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 4s linear infinite;
+    }
+    @keyframes shimmer { to { background-position: 200% center; } }
+    .glass-panel { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    .luxury-input { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); color: white; transition: all 0.3s ease; }
+    .luxury-input:focus { border-color: #f4b41a; box-shadow: 0 0 15px rgba(244, 180, 26, 0.1); outline: none; }
+    .luxury-table tr { transition: all 0.3s ease; border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
+    .luxury-table tr:hover { background: rgba(255, 255, 255, 0.01); }
+    </style>
+{% endblock %}
+
+{% block breadcrumb %}
+    <span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">Promotions Ledger</span>
+{% endblock %}
+
+{% block content %}
+    <div class="animate__animated animate__fadeIn">
+
+        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-10">
+            <div>
+                <h2 class="text-4xl font-extralight text-white tracking-tighter">
+                    Coupon <span class="font-black luxury-shimmer">Vault</span>
+                </h2>
+                <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">
+                    Create, manage, and retire promotional codes.
+                </p>
+            </div>
+
+            <a href="{% url 'coupons:admin_coupon_create' %}"
+               class="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gold text-black text-[11px] font-black uppercase tracking-[2px] hover:scale-[1.03] transition-all duration-300 shadow-[0_10px_40px_rgba(244,180,26,0.2)] w-fit">
+                <i class="bi bi-plus-lg"></i> New Coupon
+            </a>
+        </div>
+
+        <form method="GET" action="{% url 'coupons:admin_coupon_list' %}" class="glass-panel rounded-2xl p-8 grid grid-cols-12 gap-8 items-end mb-8">
+            <div class="col-span-12 md:col-span-5">
+                <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Search</label>
+                <div class="relative flex items-center gap-3">
+                    <input type="text" name="search" value="{{ search_query|default:'' }}" placeholder="Coupon code or description..." class="luxury-input py-3 px-5 rounded-xl text-sm w-full placeholder:text-white/20">
+                    <button type="submit" class="px-6 py-3 text-[10px] font-black uppercase tracking-[2px] text-black bg-gold rounded-xl transition-all">Search</button>
+                </div>
+            </div>
+
+            <div class="col-span-6 md:col-span-3">
+                <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Status</label>
+                <select name="status" onchange="this.form.submit()" class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none bg-black">
+                    <option value="" {% if not status_filter %}selected{% endif %}>All Statuses</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="scheduled" {% if status_filter == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                    <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>Expired</option>
+                    <option value="exhausted" {% if status_filter == 'exhausted' %}selected{% endif %}>Exhausted</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+
+            <div class="col-span-6 md:col-span-4">
+                <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Sort By</label>
+                <select name="sort" onchange="this.form.submit()" class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none bg-black">
+                    <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest First</option>
+                    <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest First</option>
+                    <option value="expiring_soon" {% if sort == 'expiring_soon' %}selected{% endif %}>Expiring Soon</option>
+                    <option value="code" {% if sort == 'code' %}selected{% endif %}>Code (A-Z)</option>
+                </select>
+            </div>
+        </form>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-[2px] rounded-xl flex items-center gap-3">
+                    <i class="bi bi-info-circle"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="glass-panel rounded-[32px] overflow-hidden">
+            <table class="w-full text-left luxury-table">
+                <thead>
+                    <tr class="bg-white/[0.01]">
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Code</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Discount</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Min Purchase</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Validity</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Usage</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Status</th>
+                        <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black text-center w-[140px]">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/[0.03]">
+                    {% for coupon in coupons %}
+                        {% with status=coupon.get_status %}
+                        <tr>
+                            <td class="px-8 py-6">
+                                <div class="text-sm font-black text-white font-mono tracking-wider">{{ coupon.code }}</div>
+                                {% if coupon.description %}
+                                    <div class="text-[10px] text-white/40 mt-1">{{ coupon.description }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="px-8 py-6 text-xs text-white/80 font-bold">
+                                {% if coupon.is_fixed %}
+                                    ₹{{ coupon.discount }} OFF
+                                {% else %}
+                                    {{ coupon.discount }}% OFF
+                                    {% if coupon.max_discount_amount %}
+                                        <div class="text-[10px] text-white/40 mt-0.5">Max ₹{{ coupon.max_discount_amount }}</div>
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td class="px-8 py-6 text-xs text-white/80 font-bold">
+                                {% if coupon.min_purchase %}₹{{ coupon.min_purchase }}{% else %}—{% endif %}
+                            </td>
+                            <td class="px-8 py-6 text-[11px] text-white/60">
+                                {{ coupon.valid_from|date:"d M Y" }}<br>
+                                <span class="text-white/30">to</span> {{ coupon.valid_to|date:"d M Y" }}
+                            </td>
+                            <td class="px-8 py-6 text-[11px] text-white/60">
+                                Total: {{ coupon.used_count }} / {% if coupon.usage_limit %}{{ coupon.usage_limit }}{% else %}∞{% endif %}<br>
+                                Per user: {% if coupon.usage_limit_per_user %}{{ coupon.usage_limit_per_user }}{% else %}∞{% endif %}
+                            </td>
+                            <td class="px-8 py-6">
+                                {% if status == 'active' %}
+                                    <span class="px-3 py-1 bg-green-500/10 text-green-400 text-[8px] font-black uppercase tracking-widest rounded-full">Active</span>
+                                {% elif status == 'scheduled' %}
+                                    <span class="px-3 py-1 bg-blue-500/10 text-blue-400 text-[8px] font-black uppercase tracking-widest rounded-full">Scheduled</span>
+                                {% elif status == 'expired' %}
+                                    <span class="px-3 py-1 bg-red-500/10 text-red-400 text-[8px] font-black uppercase tracking-widest rounded-full">Expired</span>
+                                {% elif status == 'exhausted' %}
+                                    <span class="px-3 py-1 bg-amber-500/10 text-amber-400 text-[8px] font-black uppercase tracking-widest rounded-full animate-pulse">Exhausted</span>
+                                {% else %}
+                                    <span class="px-3 py-1 bg-white/5 text-white/40 text-[8px] font-black uppercase tracking-widest rounded-full">Inactive</span>
+                                {% endif %}
+                                {% if coupon.is_used %}
+                                    <div class="text-[9px] text-white/25 mt-1.5 uppercase tracking-wider">Has order history</div>
+                                {% endif %}
+                            </td>
+                            <td class="px-8 py-6">
+                                <div class="flex items-center justify-center gap-2">
+                                    <a href="{% url 'coupons:admin_coupon_edit' coupon.pk %}"
+                                       class="p-2 border border-white/10 text-white/60 hover:border-gold/40 hover:text-gold rounded-lg transition-all" title="Edit">
+                                        <i class="bi bi-pencil text-xs"></i>
+                                    </a>
+                                    <button type="button"
+                                            onclick="openDeleteCouponModal('{% url 'coupons:admin_coupon_delete' coupon.pk %}', '{{ coupon.code }}', {{ coupon.is_used|yesno:'true,false' }})"
+                                            class="p-2 border border-white/10 text-white/60 hover:border-red-500/40 hover:text-red-400 rounded-lg transition-all" title="Delete">
+                                        <i class="bi bi-trash text-xs"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endwith %}
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="px-8 py-20 text-center">
+                                <p class="text-[10px] text-white/20 uppercase tracking-[5px] italic">No coupons match the current filters</p>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if coupons.has_other_pages %}
+            <div class="mt-10 flex items-center justify-between px-4">
+                <div class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
+                    Showing <span class="text-gold">{{ coupons.start_index }}-{{ coupons.end_index }}</span> of {{ coupons.paginator.count }}
+                </div>
+                <div class="flex items-center gap-4">
+                    {% if coupons.has_previous %}
+                        <a href="?page={{ coupons.previous_page_number }}&search={{ search_query|default:'' }}&status={{ status_filter|default:'' }}&sort={{ sort|default:'newest' }}"
+                           class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
+                            Prev
+                        </a>
+                    {% endif %}
+                    <div class="text-[11px] font-black text-gold tracking-[2px]">{{ coupons.number }} / {{ coupons.paginator.num_pages }}</div>
+                    {% if coupons.has_next %}
+                        <a href="?page={{ coupons.next_page_number }}&search={{ search_query|default:'' }}&status={{ status_filter|default:'' }}&sort={{ sort|default:'newest' }}"
+                           class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
+                            Next
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- DELETE / DEACTIVATE CONFIRMATION MODAL -->
+    <div id="deleteCouponModal" class="hidden fixed inset-0 z-[120] bg-black/80 backdrop-blur-2xl grid place-items-center p-4">
+        <div class="relative w-full max-w-md rounded-[2rem] border border-white/10 bg-[#090909]/95 backdrop-blur-3xl shadow-[0_30px_100px_rgba(0,0,0,0.65)] overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-gold/[0.04] via-transparent to-transparent"></div>
+            <div class="relative p-8 text-center">
+                <div class="w-16 h-16 mx-auto rounded-2xl border border-gold/20 bg-gold/5 flex items-center justify-center text-2xl text-gold mb-6">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <h3 id="deleteCouponTitle" class="text-2xl font-black tracking-tight text-white mb-3">Delete Coupon?</h3>
+                <p id="deleteCouponMessage" class="text-white/50 text-sm leading-relaxed mb-8"></p>
+                <form id="deleteCouponForm" method="POST" action="">
+                    {% csrf_token %}
+                    <div class="flex gap-4">
+                        <button type="button" onclick="closeDeleteCouponModal()"
+                                class="flex-1 h-12 rounded-2xl border border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/[0.06] hover:text-white transition-all duration-300 font-semibold text-sm">
+                            Cancel
+                        </button>
+                        <button type="submit" id="deleteCouponConfirmBtn"
+                                class="flex-1 h-12 rounded-2xl bg-gold text-black font-black hover:scale-[1.02] transition-all duration-300 text-sm uppercase tracking-wider">
+                            Confirm
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const deleteCouponModal = document.getElementById('deleteCouponModal');
+        const deleteCouponForm = document.getElementById('deleteCouponForm');
+        const deleteCouponTitle = document.getElementById('deleteCouponTitle');
+        const deleteCouponMessage = document.getElementById('deleteCouponMessage');
+        const deleteCouponConfirmBtn = document.getElementById('deleteCouponConfirmBtn');
+
+        function openDeleteCouponModal(deleteUrl, code, isUsed) {
+            deleteCouponForm.action = deleteUrl;
+
+            if (isUsed) {
+                deleteCouponTitle.innerText = 'Deactivate Coupon?';
+                deleteCouponMessage.innerText = `"${code}" has order history, so it can't be permanently deleted. It will be deactivated and hidden from customers instead.`;
+                deleteCouponConfirmBtn.innerText = 'Deactivate';
+            } else {
+                deleteCouponTitle.innerText = 'Delete Coupon?';
+                deleteCouponMessage.innerText = `"${code}" has never been used and will be permanently deleted. This cannot be undone.`;
+                deleteCouponConfirmBtn.innerText = 'Delete';
+            }
+
+            deleteCouponModal.classList.remove('hidden');
+            deleteCouponModal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDeleteCouponModal() {
+            deleteCouponModal.classList.add('hidden');
+            deleteCouponModal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+        }
+
+        deleteCouponModal.addEventListener('click', function (e) {
+            if (e.target === this) closeDeleteCouponModal();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !deleteCouponModal.classList.contains('hidden')) {
+                closeDeleteCouponModal();
+            }
+        });
+    </script>
+{% endblock %}

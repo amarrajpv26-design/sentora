@@ -19,4 +19,6 @@ urlpatterns = [
     path(
         "invoice/<str:order_id>/", views.download_invoice_view, name="download_invoice"
     ),
+    path('admin/order/approve-return/<str:order_id>/', views.admin_approve_return_view, name='admin_approve_return'),
+    
 ]

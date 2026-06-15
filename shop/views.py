@@ -6,13 +6,21 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from products.models import Brand
 from cart.models import Wishlist, WishlistItem
+from reviews.models import Review
+from orders.models import OrderItem
+from offers.utils import get_effective_price
 
 
 @login_required(login_url="user_login")
 def product_list(request):
+    # NOTE: min_price is annotated here so it can be used for filtering
+    # and sorting below. This is the MRP-based minimum (variant.price),
+    # not the offer-adjusted price — offer pricing is applied separately
+    # below for display purposes only.
     products = Product.objects.filter(is_active=True).annotate(
         min_price=Min("variants__price")
     )
+
     query = request.GET.get("q", "").strip()
 
     if query:
@@ -48,7 +56,6 @@ def product_list(request):
     products = products.distinct()
 
     sort = request.GET.get("sort", "newest")
-    wishlist_variant_ids = []
 
     sort_options = {
         "price_low": "min_price",
@@ -64,7 +71,28 @@ def product_list(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    from cart.models import Wishlist
+    # ---------------- Offer-aware display pricing ----------------
+    # For each product on this page, compute:
+    #   display_min_price   -> lowest MRP across active variants
+    #   display_offer_price -> lowest effective price (after product/
+    #                           category offers) across active variants
+    #   has_offer            -> True if an offer actually lowers the price
+    for product in page_obj:
+        variants = list(product.variants.filter(is_active=True))
+
+        base_prices = [v.price for v in variants]
+        effective_prices = [get_effective_price(v)[0] for v in variants]
+
+        product.display_min_price = (
+            min(base_prices) if base_prices else (product.min_price or 0)
+        )
+        product.display_offer_price = (
+            min(effective_prices)
+            if effective_prices
+            else product.display_min_price
+        )
+        product.has_offer = product.display_offer_price < product.display_min_price
+    # ---------------------------------------------------------------
 
     wishlist_variant_ids = WishlistItem.objects.filter(
         wishlist__user=request.user
@@ -74,6 +102,7 @@ def product_list(request):
         variants__id__in=wishlist_variant_ids
     ).values_list("id", flat=True)
     wishlist_variant_ids = set(wishlist_variant_ids)
+
     context = {
         "products": page_obj,
         "categories": Category.objects.filter(is_active=True),
@@ -110,14 +139,29 @@ def product_detail(request, product_uuid):
         messages.error(request, "This essence is currently unavailable.")
         return redirect("shop:product_list")
 
-    variant_stats = active_variants.aggregate(
-        min_price=Min("price"), min_offer=Min("offer_price"), total_stock=Sum("stock")
-    )
+    variant_stats = active_variants.aggregate(total_stock=Sum("stock"))
 
     total_stock = variant_stats["total_stock"] or 0
-    min_price = variant_stats["min_price"]
-    offer_price = variant_stats["min_offer"]
 
+    variant_prices = []
+
+    for variant in active_variants:
+        effective_price, label = get_effective_price(variant)
+
+        variant.original_price = variant.price
+        variant.effective_price = effective_price
+        variant.offer_label = label
+
+        variant_prices.append(
+            {
+                "original_price": variant.price,
+                "effective_price": effective_price,
+            }
+        )
+
+    min_price = min(v["original_price"] for v in variant_prices)
+    offer_price = min(v["effective_price"] for v in variant_prices)
+    variants = sorted(active_variants, key=lambda v: v.price)
     product_category_ids = product.categories.values_list("id", flat=True)
 
     related_products = (
@@ -136,16 +180,35 @@ def product_detail(request, product_uuid):
             user=request.user, items__variant__product=product
         ).exists()
 
+    reviews = Review.objects.filter(product=product, is_approved=True).select_related(
+        "user"
+    )
+
+    can_review = False
+    if request.user.is_authenticated:
+        can_review = (
+            OrderItem.objects.filter(
+                order__user=request.user,
+                product_variant__product=product,
+                item_status="ACTIVE",
+                order__order_status="DELIVERED",
+            )
+            .exclude(review__isnull=False)
+            .exists()
+        )
+
     context = {
         "product": product,
         "related_products": related_products,
-        "variants": active_variants.order_by("price"),
+        "variants": variants,
         "min_price": min_price,
         "offer_price": offer_price,
         "total_stock": total_stock,
         "is_low_stock": is_low_stock,
         "is_in_wishlist": is_in_wishlist,
         "all_categories": Category.objects.filter(is_active=True),
+        "reviews": reviews,
+        "can_review": can_review,
     }
 
     return render(request, "shop/product_detail.html", context)
@@ -153,51 +216,58 @@ def product_detail(request, product_uuid):
 
 def brand_list(request):
 
-    first_image_qs = Product.objects.prefetch_related(
-        "images"
-    ).order_by("id")
+    first_image_qs = Product.objects.prefetch_related("images").order_by("id")
 
     brands = (
         Brand.objects.filter(is_active=True)
-        .order_by("id")   # oldest added first
-        .prefetch_related(
-            Prefetch(
-                "products",
-                queryset=first_image_qs
-            )
-        )
+        .order_by("id")  # oldest added first
+        .prefetch_related(Prefetch("products", queryset=first_image_qs))
     )
 
-    return render(
-        request,
-        "shop/brand_list.html",
-        {
-            "brands": brands
-        }
-    )
+    return render(request, "shop/brand_list.html", {"brands": brands})
 
 
 def category_list(request):
 
-    first_product_qs = Product.objects.prefetch_related(
-        "images"
-    ).order_by("id")
+    first_product_qs = Product.objects.prefetch_related("images").order_by("id")
 
     categories = (
         Category.objects.filter(is_active=True)
-        .order_by("id")   # oldest created first
-        .prefetch_related(
-            Prefetch(
-                "products",
-                queryset=first_product_qs
-            )
-        )
+        .order_by("id")  # oldest created first
+        .prefetch_related(Prefetch("products", queryset=first_product_qs))
     )
+
+    return render(request, "shop/category_list.html", {"categories": categories})
+
+
+def category_products(request, slug):
+    category = get_object_or_404(Category, slug=slug)
+
+    products = category.products.filter(is_active=True).prefetch_related(
+        "images", "variants"
+    )
+
+    # Same offer-aware display pricing as product_list, kept consistent
+    # so category pages show the same effective price as the main shop.
+    for product in products:
+        variants = list(product.variants.filter(is_active=True))
+
+        base_prices = [v.price for v in variants]
+        effective_prices = [get_effective_price(v)[0] for v in variants]
+
+        product.display_min_price = min(base_prices) if base_prices else 0
+        product.display_offer_price = (
+            min(effective_prices)
+            if effective_prices
+            else product.display_min_price
+        )
+        product.has_offer = product.display_offer_price < product.display_min_price
 
     return render(
         request,
-        "shop/category_list.html",
+        "shop/category_products.html",
         {
-            "categories": categories
-        }
+            "category": category,
+            "products": products,
+        },
     )

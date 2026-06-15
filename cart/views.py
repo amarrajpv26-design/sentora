@@ -7,6 +7,9 @@ from products.models import ProductVariant
 from .wishlist import WishlistManager
 import json
 from .cart import Cart, CartItem
+from django.contrib.auth.decorators import login_required
+from offers.utils import get_effective_price
+
 
 
 @require_POST
@@ -238,13 +241,19 @@ def wishlist_count_only(request):
 
     return HttpResponse(str(count))
 
-
+@login_required(login_url='user_login')
 def wishlist_detail(request):
     wishlist = Wishlist.objects.filter(user=request.user).first()
 
     wishlist_items = WishlistItem.objects.filter(wishlist=wishlist).select_related(
         "variant", "variant__product", "variant__product__brand"
     )
+    for item in wishlist_items:
+        effective_price, offer_label = get_effective_price(item.variant)
+        item.variant.effective_price = effective_price
+        item.variant.offer_label = offer_label
+
+
 
     return render(
         request, "cart/wishlist_detail.html", {"wishlist_items": wishlist_items}

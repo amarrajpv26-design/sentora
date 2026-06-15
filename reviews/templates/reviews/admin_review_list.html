@@ -1,0 +1,490 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block extra_css %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<style>
+::-webkit-scrollbar{
+width:5px;
+}
+
+::-webkit-scrollbar-track{
+background:#0a0a0a;
+}
+
+::-webkit-scrollbar-thumb{
+background:#f4b41a;
+border-radius:10px;
+}
+
+.luxury-shimmer{
+background:linear-gradient(90deg,#f4b41a,#fff,#f4b41a);
+background-size:200% auto;
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+animation:shimmer 4s linear infinite;
+}
+
+@keyframes shimmer{
+to{
+background-position:200% center;
+}
+}
+
+.glass-panel{
+background:rgba(255,255,255,.02);
+backdrop-filter:blur(12px);
+border:1px solid rgba(255,255,255,.05);
+transition:.4s;
+}
+
+.glass-panel:hover{
+border-color:rgba(244,180,26,.2);
+}
+
+.luxury-input{
+background:rgba(0,0,0,.4);
+border:1px solid rgba(255,255,255,.05);
+color:white;
+}
+
+.luxury-input:focus{
+border-color:#f4b41a;
+outline:none;
+box-shadow:0 0 20px rgba(244,180,26,.1);
+}
+
+.stat-card{
+background:rgba(255,255,255,.02);
+border:1px solid rgba(255,255,255,.05);
+backdrop-filter:blur(10px);
+transition:.3s;
+}
+
+.stat-card:hover{
+transform:translateY(-4px);
+border-color:rgba(244,180,26,.15);
+}
+
+.luxury-table tr{
+border-bottom:1px solid rgba(255,255,255,.03);
+transition:.3s;
+}
+
+.luxury-table tr:hover{
+background:rgba(255,255,255,.01);
+}
+</style>
+
+{% endblock %}
+
+{% block breadcrumb %} <span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">
+Review Management </span>
+{% endblock %}
+
+{% block content %}
+
+<div class="animate__animated animate__fadeIn">
+
+<div class="mb-10">
+<h2 class="text-4xl font-extralight text-white tracking-tighter">
+Customer <span class="font-black luxury-shimmer">Reviews</span>
+</h2>
+
+<p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">
+Moderate and manage product feedback.
+</p>
+</div>
+
+
+
+<form method="GET" class="glass-panel rounded-3xl p-8 mb-8">
+
+<div class="grid grid-cols-12 gap-6">
+
+<div class="col-span-5">
+
+<label class="block text-[9px] uppercase tracking-[3px] text-gold/50 mb-3 font-black">
+Search Reviews
+</label>
+
+<input
+type="text"
+name="search"
+value="{{ search }}"
+placeholder="Product, Customer or Review Title..."
+class="luxury-input w-full rounded-xl px-5 py-3 text-sm">
+
+</div>
+
+<div class="col-span-3">
+
+<label class="block text-[9px] uppercase tracking-[3px] text-gold/50 mb-3 font-black">
+Status
+</label>
+
+<select name="status" class="luxury-input w-full rounded-xl px-5 py-3">
+
+<option value="">All</option>
+
+<option value="approved" {% if status == 'approved' %}selected{% endif %}>
+Approved
+</option>
+
+<option value="pending" {% if status == 'pending' %}selected{% endif %}>
+Pending
+</option>
+
+</select>
+
+</div>
+
+<div class="col-span-2">
+
+<label class="block text-[9px] uppercase tracking-[3px] text-gold/50 mb-3 font-black">
+Rating
+</label>
+
+<select name="rating" class="luxury-input w-full rounded-xl px-5 py-3">
+
+<option value="">All</option>
+
+<option value="5" {% if rating == '5' %}selected{% endif %}>★★★★★</option>
+<option value="4" {% if rating == '4' %}selected{% endif %}>★★★★☆</option>
+<option value="3" {% if rating == '3' %}selected{% endif %}>★★★☆☆</option>
+<option value="2" {% if rating == '2' %}selected{% endif %}>★★☆☆☆</option>
+<option value="1" {% if rating == '1' %}selected{% endif %}>★☆☆☆☆</option>
+
+</select>
+
+</div>
+
+<div class="col-span-2 flex items-end gap-3">
+
+<button
+type="submit"
+class="w-full py-3 rounded-xl bg-gold text-black text-[10px] font-black uppercase tracking-[2px]">
+Search </button>
+
+</div>
+
+</div>
+
+</form>
+
+<form method="POST" action="{% url 'reviews:bulk_review_action' %}">
+    {% csrf_token %}
+
+    <div class="glass-panel rounded-[32px] overflow-hidden">
+        <div class="p-6 border-b border-white/5 flex items-center justify-between">
+
+    <div class="flex items-center gap-4">
+
+        <select
+            name="action"
+            class="luxury-input px-4 py-3 rounded-xl text-sm"
+        >
+            <option value="">
+                Bulk Actions
+            </option>
+
+            <option value="approve">
+                Approve Selected
+            </option>
+
+            <option value="unapprove">
+                Hide Selected
+            </option>
+
+            <option value="delete">
+                Delete Selected
+            </option>
+
+        </select>
+
+        <button
+            type="submit"
+            class="px-6 py-3 bg-gold text-black rounded-xl text-[10px] uppercase tracking-[2px] font-black"
+        >
+            Apply
+        </button>
+
+    </div>
+
+    <div class="text-[10px] uppercase tracking-[3px] text-white/30 font-black">
+        Bulk Moderation
+    </div>
+
+</div>
+<table class="w-full luxury-table">
+
+<thead>
+
+<tr class="bg-white/[0.01]">
+
+<th class="px-6 py-5">
+<input
+    type="checkbox"
+    id="select-all"
+>
+</th>
+
+<th class="px-6 py-5 text-[9px] uppercase tracking-[3px] text-gold/40 font-black">
+Review
+</th>
+
+<th class="px-6 py-5 text-[9px] uppercase tracking-[3px] text-gold/40 font-black">
+Customer
+</th>
+
+<th class="px-6 py-5 text-[9px] uppercase tracking-[3px] text-gold/40 font-black">
+Rating
+</th>
+
+<th class="px-6 py-5 text-[9px] uppercase tracking-[3px] text-gold/40 font-black">
+Status
+</th>
+
+<th class="px-6 py-5 text-[9px] uppercase tracking-[3px] text-gold/40 font-black">
+Date
+</th>
+
+<th class="px-6 py-5 text-[9px] uppercase tracking-[3px] text-gold/40 font-black text-right">
+Actions
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for review in page_obj %}
+
+<tr>
+
+<td class="px-6 py-5">
+<input
+    type="checkbox"
+    name="review_ids"
+    value="{{ review.id }}"
+    class="review-checkbox"
+>
+</td>
+
+<td class="px-6 py-5">
+
+<div class="flex items-center gap-4">
+
+{% with review.product.images.first as img %}
+{% if img %} <img
+src="{{ img.image.url }}"
+class="w-14 h-14 rounded-xl object-cover">
+{% endif %}
+{% endwith %}
+
+<div>
+
+<p class="text-white font-bold">
+{{ review.product.name }}
+</p>
+
+<p class="text-[11px] text-white/30">
+#{{ review.id }}
+</p>
+
+<p class="text-[11px] text-white/50 mt-1">
+{{ review.title|truncatechars:40 }}
+</p>
+
+</div>
+
+</div>
+
+</td>
+
+<td class="px-6 py-5">
+
+<p class="text-white text-sm font-bold">
+{{ review.user.username }}
+</p>
+
+<p class="text-white/30 text-[11px]">
+{{ review.user.email }}
+</p>
+
+</td>
+
+<td class="px-6 py-5">
+
+<span class="text-gold font-bold">
+{% for i in "12345" %}
+{% if forloop.counter <= review.rating %}
+★
+{% else %}
+☆
+{% endif %}
+{% endfor %}
+</span>
+
+</td>
+
+<td class="px-6 py-5">
+
+{% if review.is_approved %} <span class="px-4 py-2 rounded-full text-[10px] bg-green-500/10 text-green-400 uppercase font-black">
+Approved </span>
+{% else %} <span class="px-4 py-2 rounded-full text-[10px] bg-amber-500/10 text-amber-400 uppercase font-black">
+Pending </span>
+{% endif %}
+
+</td>
+
+<td class="px-6 py-5 text-white/50 text-xs">
+{{ review.created_at|date:"M d, Y" }}
+</td>
+
+<td class="px-6 py-5 text-right">
+
+<a
+href="{% url 'reviews:admin_review_detail' review.id %}"
+class="text-white/30 hover:text-gold transition">
+
+<i class="bi bi-eye text-lg"></i>
+
+</a>
+
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+
+<td colspan="7" class="text-center py-20">
+
+<p class="text-white/20 uppercase tracking-[4px] text-[11px]">
+No reviews found
+</p>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+</form>  <!-- bulk action form -->
+
+{% if page_obj.has_other_pages %}
+
+<div class="mt-10 flex items-center justify-between">
+
+<div class="text-[10px] uppercase tracking-[3px] text-white/30 font-black">
+
+Showing
+{{ page_obj.start_index }}
+-------
+
+{{ page_obj.end_index }}
+
+</div>
+
+<div class="flex items-center gap-4">
+
+{% if page_obj.has_previous %} <a
+href="?page={{ page_obj.previous_page_number }}&search={{ search }}&status={{ status }}&rating={{ rating }}"
+class="glass-panel px-5 py-2 rounded-full text-white/60 text-[10px] uppercase font-black">
+Prev </a>
+{% endif %}
+
+<div class="text-gold font-black">
+{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+</div>
+
+{% if page_obj.has_next %} <a
+href="?page={{ page_obj.next_page_number }}&search={{ search }}&status={{ status }}&rating={{ rating }}"
+class="glass-panel px-5 py-2 rounded-full text-white/60 text-[10px] uppercase font-black">
+Next </a>
+{% endif %}
+
+</div>
+
+</div>
+
+{% endif %}
+
+</div>
+
+<div class="grid grid-cols-4 gap-6 mt-16 mb-8">
+
+<div class="stat-card rounded-3xl p-6">
+<p class="text-[9px] uppercase tracking-[3px] text-white/30 font-black">
+Total Reviews
+</p>
+
+<h3 class="text-4xl text-white font-black mt-3">
+{{ total_reviews }}
+</h3>
+</div>
+
+<div class="stat-card rounded-3xl p-6">
+<p class="text-[9px] uppercase tracking-[3px] text-white/30 font-black">
+Approved
+</p>
+
+<h3 class="text-4xl text-green-400 font-black mt-3">
+{{ approved_reviews }}
+</h3>
+</div>
+
+<div class="stat-card rounded-3xl p-6">
+<p class="text-[9px] uppercase tracking-[3px] text-white/30 font-black">
+Pending
+</p>
+
+<h3 class="text-4xl text-amber-400 font-black mt-3">
+{{ pending_reviews }}
+</h3>
+</div>
+
+<div class="stat-card rounded-3xl p-6">
+<p class="text-[9px] uppercase tracking-[3px] text-white/30 font-black">
+Average Rating
+</p>
+
+<h3 class="text-4xl text-gold font-black mt-3">
+{{ average_rating }}★
+</h3>
+</div>
+
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const selectAll =
+        document.getElementById("select-all");
+
+    const checkboxes =
+        document.querySelectorAll(".review-checkbox");
+
+    if (!selectAll) return;
+
+    selectAll.addEventListener("change", function () {
+
+        checkboxes.forEach(function (checkbox) {
+
+            checkbox.checked = selectAll.checked;
+
+        });
+
+    });
+
+});
+</script>
+{% endblock %}

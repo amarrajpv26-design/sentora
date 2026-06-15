@@ -14,20 +14,63 @@ from .forms import UserProfileForm, AddressForm
 import random
 from django.core.mail import send_mail
 from django.conf import settings
-from datetime import date,timedelta
+from datetime import date, timedelta
+from wallets.models import Wallet
+from products.models import Product, Category, ProductImage
 
 
 @never_cache
 def welcome_view(request):
-    return render(request, "users/welcome.html")
 
-@login_required(login_url='welcome')
+    hero_categories = Category.objects.filter(
+        is_active=True, category_image__isnull=False
+    )
+
+    featured_products = Product.objects.filter(is_active=True).prefetch_related(
+        "images", "variants"
+    )
+
+    categories = Category.objects.filter(is_active=True)
+
+    return render(
+        request,
+        "users/welcome.html",
+        {
+            "hero_categories": hero_categories,
+            "featured_products": featured_products,
+            "categories": categories,
+        },
+    )
+
+
+@login_required(login_url="welcome")
 @never_cache
 def home(request):
-    if not request.user.is_authenticated:
-        return redirect("welcome")
-    
-    return render(request, "users/index.html")
+
+    hero_categories = Category.objects.filter(
+        is_active=True,
+        category_image__isnull=False
+    )
+
+    featured_products = (
+        Product.objects
+        .filter(is_active=True)
+        .prefetch_related("images", "variants")
+    )
+
+    categories = Category.objects.filter(is_active=True)
+
+    context = {
+        "hero_categories": hero_categories,
+        "featured_products": featured_products,
+        "categories": categories,
+    }
+
+    return render(
+        request,
+        "users/index.html",
+        context
+    )
 
 
 @never_cache
@@ -173,14 +216,18 @@ def logout_confirmation_view(request):
     return render(request, "users/logout_confirm.html")
 
 
-@never_cache
 @login_required
+@never_cache
 def profile_view(request):
+
+    wallet, created = Wallet.objects.get_or_create(user=request.user)
+
     return render(
         request,
         "users/profile.html",
         {
             "user": request.user,
+            "wallet": wallet,
             "active_tab": "personal_info",
         },
     )
@@ -197,7 +244,7 @@ def edit_profile_view(request):
         last_name = request.POST.get("last_name", "").strip()
         phone_number = request.POST.get("phone_number", "").strip()
         new_email = request.POST.get("email", "").strip()
-        dob = request.POST.get('dob') # Get DOB here
+        dob = request.POST.get("dob")  # Get DOB here
         profile_image = request.FILES.get("profile_image")
 
         errors = False
@@ -208,11 +255,17 @@ def edit_profile_view(request):
             messages.error(request, "Username is required.", extra_tags="username")
             errors = True
         elif User.objects.filter(username=username).exclude(pk=user.pk).exists():
-            messages.error(request, f"The identity '{username}' is already claimed.", extra_tags="username")
+            messages.error(
+                request,
+                f"The identity '{username}' is already claimed.",
+                extra_tags="username",
+            )
             errors = True
 
         if phone_number and (not phone_number.isdigit() or len(phone_number) != 10):
-            messages.error(request, "Phone number must be exactly 10 digits.", extra_tags="phone")
+            messages.error(
+                request, "Phone number must be exactly 10 digits.", extra_tags="phone"
+            )
             errors = True
 
         # DOB Logic (Cleaned up)
@@ -221,19 +274,31 @@ def edit_profile_view(request):
             try:
                 selected_date = date.fromisoformat(dob)
                 today = date.today()
-        
-        # Calculate age
-                age = today.year - selected_date.year - ((today.month, today.day) < (selected_date.month, selected_date.day))
-        
+
+                # Calculate age
+                age = (
+                    today.year
+                    - selected_date.year
+                    - (
+                        (today.month, today.day)
+                        < (selected_date.month, selected_date.day)
+                    )
+                )
+
                 if selected_date > today:
-                    messages.error(request, "Invalid Date: Future dates are not permitted.")
+                    messages.error(
+                        request, "Invalid Date: Future dates are not permitted."
+                    )
                     errors = True
                 elif age < 15:
-                    messages.error(request, "Identity rejected: Minimum age requirement is 15 years.")
+                    messages.error(
+                        request,
+                        "Identity rejected: Minimum age requirement is 15 years.",
+                    )
                     errors = True
                 else:
                     processed_dob = selected_date
-            
+
             except ValueError:
                 messages.error(request, "Invalid date format.")
                 errors = True
@@ -243,7 +308,9 @@ def edit_profile_view(request):
 
         if new_email and new_email != user.email:
             if User.objects.filter(email=new_email).exists():
-                messages.error(request, "This email is already linked.", extra_tags="email")
+                messages.error(
+                    request, "This email is already linked.", extra_tags="email"
+                )
                 errors = True
 
         if errors:
@@ -257,7 +324,7 @@ def edit_profile_view(request):
                 "first_name": first_name,
                 "last_name": last_name,
                 "phone_number": phone_number,
-                "dob": dob, # Save DOB to session too!
+                "dob": dob,  # Save DOB to session too!
             }
             return redirect("change_email_request")
 
@@ -267,7 +334,7 @@ def edit_profile_view(request):
         user.last_name = last_name
         user.phone_number = phone_number
         user.dob = processed_dob
-        
+
         if profile_image:
             user.profile_image = profile_image
 
@@ -310,7 +377,7 @@ def add_address_view(request):
             next_url = request.POST.get("next")
             if next_url:
                 return redirect(next_url)
-            
+
             return redirect("profile")
     else:
         form = AddressForm()

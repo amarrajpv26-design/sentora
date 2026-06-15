@@ -6,7 +6,7 @@ import uuid
 
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False,unique=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(blank=True)
     category_image = models.ImageField(
@@ -67,9 +67,9 @@ class Brand(models.Model):
 
 
 class Product(models.Model):
-    
+
     name = models.CharField(max_length=200, unique=True)
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False,unique=True)
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     slug = models.SlugField(unique=True, blank=True)
     description = models.TextField()
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE, related_name="products")
@@ -97,13 +97,21 @@ class Product(models.Model):
 
 
 class ProductVariant(models.Model):
-    
+
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name="variants"
     )
 
-    
+    SIZE_CHOICES = [
+        ("8ml", 8),
+        ("20ml", 20),
+        ("50ml", 50),
+        ("100ml", 100),
+    ]
+    SIZE_MAP = dict(SIZE_CHOICES)
+
     size = models.CharField(max_length=50, help_text="e.g., 50ml, 100ml, Sample")
+    size_ml = models.PositiveIntegerField(default=0)
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price in ₹")
     offer_price = models.DecimalField(
         max_digits=10,
@@ -118,8 +126,9 @@ class ProductVariant(models.Model):
     is_active = models.BooleanField(default=True)
 
     def save(self, *args, **kwargs):
+        self.size_ml = self.SIZE_MAP.get(self.size, 0)
         if not self.sku:
-            
+
             self.sku = f"SCENT-{uuid.uuid4().hex[:6].upper()}"
         super().save(*args, **kwargs)
 
@@ -133,7 +142,7 @@ class ProductVariant(models.Model):
 
 
 class ProductImage(models.Model):
-    
+
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name="images"
     )
@@ -142,7 +151,6 @@ class ProductImage(models.Model):
     is_main = models.BooleanField(
         default=False, help_text="The first image the user sees."
     )
-    
 
     def __str__(self):
         return f"Image for {self.product.name}"

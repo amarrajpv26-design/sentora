@@ -196,6 +196,7 @@ body{
                 <p class="text-[10px] uppercase tracking-[0.55em] text-white/25 font-bold mb-5">
                     ACCOUNT
                 </p>
+                
 
                 <h1 class="text-5xl md:text-6xl xl:text-7xl font-extralight tracking-tight leading-none">
                     My Orders
@@ -205,9 +206,14 @@ body{
                     View and manage all your purchases in one place
                 </p>
             </div>
-
+            
             <!-- SEARCH -->
             <form method="GET">
+                <a href="{% url 'profile' %}"
+                   class="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-primary transition-colors mb-8 group">
+                    <span class="material-symbols-outlined text-sm group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                    Back to Vault
+                </a>
 
                 <div class="search-shell flex items-center gap-4 px-6 py-4 rounded-[1.6rem]">
 

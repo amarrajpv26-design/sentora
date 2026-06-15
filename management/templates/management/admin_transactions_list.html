@@ -1,0 +1,196 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<style>
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: #0a0a0a; }
+  ::-webkit-scrollbar-thumb { background: #f4b41a; border-radius: 10px; }
+  .luxury-shimmer {
+    background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 4s linear infinite;
+  }
+  @keyframes shimmer { to { background-position: 200% center; } }
+  .glass-panel {
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.4s ease;
+  }
+  .glass-panel:hover { border-color: rgba(244,180,26,0.2); }
+  .luxury-input {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.05);
+    color: white;
+    transition: all 0.3s ease;
+  }
+  .luxury-input:focus {
+    border-color: #f4b41a;
+    box-shadow: 0 0 15px rgba(244,180,26,0.1);
+    outline: none;
+  }
+  .luxury-table tr {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(255,255,255,0.02);
+  }
+  .luxury-table tr:hover { background: rgba(255,255,255,0.01); }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">Wallet Transactions</span>
+{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn">
+
+  <div class="mb-10">
+    <h2 class="text-4xl font-extralight text-white tracking-tighter">
+      Transaction <span class="font-black luxury-shimmer">Ledger</span>
+    </h2>
+    <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">
+      Complete wallet activity across all user accounts.
+    </p>
+  </div>
+
+  <form method="GET" action="{% url 'management:admin_transactions_list' %}" class="glass-panel rounded-2xl p-8 grid grid-cols-12 gap-8 items-end mb-8">
+
+    <div class="col-span-4">
+      <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Search</label>
+      <div class="relative flex items-center gap-3">
+        <div class="relative flex-grow">
+          <input type="text" name="search" value="{{ search_query|default:'' }}"
+            placeholder="Email, username, payment ID..."
+            class="luxury-input py-3 px-5 rounded-xl text-sm w-full placeholder:text-white/20">
+          {% if search_query %}
+          <a href="{% url 'management:admin_transactions_list' %}" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
+            <i class="bi bi-x-circle-fill text-xs"></i>
+          </a>
+          {% endif %}
+        </div>
+        <button type="submit" class="px-6 py-3 text-[10px] font-black uppercase tracking-[2px] text-black bg-gold rounded-xl hover:shadow-[0_0_20px_rgba(244,180,26,0.3)] transition-all">
+          Search
+        </button>
+      </div>
+    </div>
+
+    <div class="col-span-3">
+      <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Type</label>
+      <select name="transaction_type" onchange="this.form.submit()" class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none bg-black">
+        <option value="" {% if not type_filter %}selected{% endif %}>All Types</option>
+        {% for key, value in type_choices %}
+        <option value="{{ key }}" {% if type_filter == key %}selected{% endif %}>{{ value }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-span-3">
+      <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Purpose</label>
+      <select name="purpose" onchange="this.form.submit()" class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none bg-black">
+        <option value="" {% if not purpose_filter %}selected{% endif %}>All Purposes</option>
+        {% for key, value in purpose_choices %}
+        <option value="{{ key }}" {% if purpose_filter == key %}selected{% endif %}>{{ value }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="col-span-2">
+      <a href="{% url 'management:admin_transactions_list' %}" class="block text-center px-6 py-3 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-[2px] text-white/60 hover:text-white hover:border-white transition-all">
+        Clear
+      </a>
+    </div>
+
+  </form>
+
+  <div class="glass-panel rounded-[32px] overflow-hidden">
+    <table class="w-full text-left luxury-table">
+      <thead>
+        <tr class="bg-white/[0.01]">
+          <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">#</th>
+          <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Date</th>
+          <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">User</th>
+          <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Amount</th>
+          <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Type</th>
+          <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Purpose</th>
+          <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black text-right">Action</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/[0.03]">
+        {% for txn in transactions %}
+        <tr class="group">
+          <td class="px-8 py-6 text-xs text-white/30 font-mono">{{ txn.pk }}</td>
+          <td class="px-8 py-6 text-xs text-white/60 font-light">{{ txn.created_at|date:"M d, Y H:i" }}</td>
+          <td class="px-8 py-6">
+            <div class="text-sm text-white font-bold tracking-tight">{{ txn.wallet.user.username }}</div>
+            <div class="text-[10px] text-white/30 font-medium tracking-wide mt-0.5">{{ txn.wallet.user.email }}</div>
+          </td>
+          <td class="px-8 py-6 text-sm font-black
+            {% if txn.transaction_type == 'CREDIT' %}text-green-400{% else %}text-red-400{% endif %}">
+            {% if txn.transaction_type == 'CREDIT' %}+{% else %}-{% endif %}₹{{ txn.amount }}
+          </td>
+          <td class="px-8 py-6">
+            <span class="px-4 py-2 rounded-full text-[10px] uppercase font-black tracking-wider
+              {% if txn.transaction_type == 'CREDIT' %}text-green-400 bg-green-500/10{% else %}text-red-400 bg-red-500/10{% endif %}">
+              {{ txn.transaction_type }}
+            </span>
+          </td>
+          <td class="px-8 py-6">
+  <span class="px-4 py-2 rounded-full text-[10px] uppercase font-black tracking-wider
+    {% if txn.purpose == 'RECHARGE' %}text-blue-400 bg-blue-500/10
+    {% elif txn.purpose == 'REFUND' %}text-amber-400 bg-amber-500/10
+    {% elif txn.purpose == 'PURCHASE' %}text-purple-400 bg-purple-500/10
+    {% else %}text-white/60 bg-white/5{% endif %}">
+    {% if txn.purpose == 'REFUND' %}
+      {% if 'item cancellation' in txn.description %}Item Cancel Refund
+      {% elif 'cancellation' in txn.description %}Order Cancel Refund
+      {% elif 'returned' in txn.description %}Return Refund
+      {% else %}Refund{% endif %}
+    {% else %}
+      {{ txn.get_purpose_display }}
+    {% endif %}
+  </span>
+</td>
+          <td class="px-8 py-6 text-right">
+            <a href="{% url 'management:admin_transaction_detail' txn.pk %}" class="text-white/20 hover:text-gold transition-all transform group-hover:scale-110 inline-block">
+              <i class="bi bi-eye text-lg"></i>
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="px-8 py-20 text-center">
+            <p class="text-[10px] text-white/20 uppercase tracking-[5px] italic">No transactions found</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% if transactions.has_other_pages %}
+<div class="mt-10 flex items-center justify-between px-4">
+  <div class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
+    Showing <span class="text-gold">{{ transactions.start_index }}–{{ transactions.end_index }}</span> of {{ transactions.paginator.count }}
+  </div>
+  <div class="flex items-center gap-4">
+    {% if transactions.has_previous %}
+    <a href="?page={{ transactions.previous_page_number }}&search={{ search_query|default:'' }}&transaction_type={{ type_filter|default:'' }}&purpose={{ purpose_filter|default:'' }}"
+      class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
+      Prev
+    </a>
+    {% endif %}
+    <div class="text-[11px] font-black text-gold tracking-[2px]">{{ transactions.number }} / {{ transactions.paginator.num_pages }}</div>
+    {% if transactions.has_next %}
+    <a href="?page={{ transactions.next_page_number }}&search={{ search_query|default:'' }}&transaction_type={{ type_filter|default:'' }}&purpose={{ purpose_filter|default:'' }}"
+      class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
+      Next
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+</div>
+{% endblock %}

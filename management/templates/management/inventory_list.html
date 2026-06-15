@@ -106,11 +106,11 @@
                             <td class="px-8 py-6 text-xs text-white/80 font-bold">₹{{ variant.price }}</td>
                             <td class="px-8 py-6">
                                 {% if variant.stock == 0 %}
-                                    <span class="px-3 py-1 bg-red-500/10 text-red-400 text-[8px] font-black uppercase tracking-widest rounded-full">Depleted</span>
+                                    <span class="px-3 py-1 bg-red-500/10 text-red-400 text-[8px] font-black uppercase tracking-widest rounded-full">Out of Stock</span>
                                 {% elif variant.stock <= 5 %}
-                                    <span class="px-3 py-1 bg-amber-500/10 text-amber-400 text-[8px] font-black uppercase tracking-widest rounded-full animate-pulse">Critical Threshold ({{ variant.stock }})</span>
+                                    <span class="px-3 py-1 bg-amber-500/10 text-amber-400 text-[8px] font-black uppercase tracking-widest rounded-full animate-pulse">Low Stock </span>
                                 {% else %}
-                                    <span class="px-3 py-1 bg-green-500/10 text-green-400 text-[8px] font-black uppercase tracking-widest rounded-full">Abundant ({{ variant.stock }})</span>
+                                    <span class="px-3 py-1 bg-green-500/10 text-green-400 text-[8px] font-black uppercase tracking-widest rounded-full">In Stock </span>
                                 {% endif %}
                             </td>
                             <td class="px-8 py-6 text-center">

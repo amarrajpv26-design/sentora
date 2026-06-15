@@ -1,0 +1,177 @@
+{% extends 'users/index.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+.quick-amount{
+    padding:12px;
+    border:1px solid rgba(255,255,255,.1);
+    border-radius:12px;
+    transition:.3s;
+}
+
+.quick-amount:hover{
+    border-color:#D4AF37;
+    background:rgba(212,175,55,.08);
+}
+.quick-amount.selected{
+    border-color:#D4AF37;
+    background:rgba(212,175,55,.15);
+}
+</style>
+
+<main class="max-w-7xl mx-auto px-10 py-20 text-white">
+
+    <div class="mb-12">
+        <a href="{% url 'profile' %}"
+                   class="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 hover:text-primary transition-colors mb-8 group">
+                    <span class="material-symbols-outlined text-sm group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                    Back to Vault
+                </a>
+
+        <h1 class="text-6xl font-light">
+            My Wallet
+        </h1>
+
+        <p class="text-white/40 mt-3">
+            Manage your balance and transactions
+        </p>
+
+    </div>
+
+    <!-- Wallet Balance -->
+     
+
+    <div class="bg-black border border-white/10 rounded-xl p-12">
+
+        <p class="text-primary uppercase tracking-[0.4em] text-xs mb-4">
+            Available Balance
+        </p>
+
+        <h2 class="text-6xl text-primary">
+            ₹{{ wallet.balance }}
+        </h2>
+
+       <a href="{% url 'wallet_recharge' %}"
+   class="mt-8 inline-block px-8 py-4 bg-primary text-black rounded-lg font-semibold">
+    Add Money
+</a>
+
+    </div>
+
+    <!-- Transaction History -->
+
+    <div class="mt-16">
+
+        <h3 class="text-3xl mb-8">
+            Transaction History
+        </h3>
+
+        <div class="border border-white/10 rounded-xl overflow-hidden">
+
+            {% for transaction in transactions %}
+
+            <div class="p-6 border-b border-white/10 flex justify-between items-center">
+
+                <div>
+
+                    <p class="font-medium">
+                        {{ transaction.get_purpose_display }}
+                    </p>
+
+                    <p class="text-white/40 text-sm">
+                        {{ transaction.created_at }}
+                    </p>
+
+                    {% if transaction.order_id %}
+                    <p class="text-white/40 text-sm">
+                        Order: {{ transaction.order_id }}
+                    </p>
+                    {% endif %}
+
+                </div>
+
+                <div>
+
+                    {% if transaction.transaction_type == "CREDIT" %}
+
+                        <span class="text-green-500 font-bold">
+                            + ₹{{ transaction.amount }}
+                        </span>
+
+                    {% else %}
+
+                        <span class="text-red-500 font-bold">
+                            - ₹{{ transaction.amount }}
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <div class="p-10 text-center text-white/40">
+
+                No transactions yet
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</main>
+
+<script>
+function setAmount(button, amount){
+
+    const input = document.getElementById("walletAmount");
+    const rechargeBtn = document.getElementById("rechargeBtn");
+
+    input.value = amount;
+
+    document.querySelectorAll(".quick-amount")
+        .forEach(btn => btn.classList.remove("selected"));
+
+    button.classList.add("selected");
+
+    // enforce validation
+    if(amount < 100 || amount > 50000){
+        rechargeBtn.disabled = true;
+    } else {
+        rechargeBtn.disabled = false;
+    }
+}
+
+
+document.getElementById("walletModal")
+    .addEventListener("click", function(e){
+
+        if(e.target === this){
+            closeWalletModal();
+        }
+
+});
+const amountInput = document.getElementById("walletAmount");
+const rechargeBtn = document.getElementById("rechargeBtn");
+
+amountInput.addEventListener("input", function(){
+
+    const value = parseInt(this.value || 0);
+
+    rechargeBtn.disabled =
+        !this.value || parseInt(this.value) < 100;
+
+    rechargeBtn.disabled =
+        !value || value < 100 || value > 50000;
+
+});
+
+</script>
+
+{% endblock %}

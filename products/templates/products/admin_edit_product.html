@@ -51,7 +51,26 @@
                 </p>
             </div>
         </div>
+        {% if messages %}
+<div class="mb-6 space-y-3">
+    {% for message in messages %}
+        <div class="p-4 rounded-xl text-[11px] font-black uppercase tracking-widest
+            {% if message.tags == 'error' %}
+                bg-red-500/10 text-red-400 border border-red-500/20
+            {% elif message.tags == 'success' %}
+                bg-gold/10 text-gold border border-gold/20
+            {% else %}
+                bg-white/5 text-white/70 border border-white/10
+            {% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
         <form method="POST" enctype="multipart/form-data" id="product-form">
+            <div id="errorBox"
+     class="hidden mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] font-black uppercase tracking-widest">
+</div>
             {% csrf_token %}
             <div class="grid grid-cols-12 gap-8 items-start">
                 <div class="col-span-8 space-y-8">
@@ -140,7 +159,7 @@
                                 </button>
                             </div>
                             <div id="variant-container" class="space-y-4">
-                                {% for variant in product.variants.all %}
+                                {% for variant in product.variants.all|dictsort:"size_ml" %}
                                     <div class="variant-row p-6 rounded-2xl grid grid-cols-12 gap-4 items-end relative group">
                                         <input type="hidden" name="variant_id[]" value="{{ variant.id }}">
                                             <input type="hidden" name="v_stock_original[]" value="{{ variant.stock }}">
@@ -303,7 +322,7 @@
             const rows = container.getElementsByClassName('variant-row');
             
             if (rows.length >= 4) {
-                alert("Maximum 4 sizes allowed.");
+                showError("Maximum 4 sizes allowed.");
                 return;
             }
 
@@ -546,7 +565,7 @@ document.getElementById("product-form").addEventListener("submit", function(e) {
 
     if (validImages < 4) {
         e.preventDefault();
-        alert("Minimum 4 product images are required.");
+        showError("Minimum 4 product images are required.");
         return false;
     }
 });
@@ -564,5 +583,14 @@ function preventNegative(input) {
     });
 }
 document.querySelectorAll('input[type="number"]').forEach(preventNegative);
+function showError(message) {
+    const box = document.getElementById("errorBox");
+    box.innerText = message;
+    box.classList.remove("hidden");
+
+    setTimeout(() => {
+        box.classList.add("hidden");
+    }, 4000);
+}
                     </script>
                 {% endblock %}

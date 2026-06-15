@@ -9,10 +9,13 @@ class Order(models.Model):
         ("PENDING", "Pending"),
         ("CONFIRMED", "Confirmed"),
         ("SHIPPED", "Shipped"),
+        ("OUT_FOR_DELIVERY", "Out For Delivery"),
         ("DELIVERED", "Delivered"),
         ("CANCELLED", "Cancelled"),
+        # return system
         ("RETURN_REQUESTED", "Return Requested"),
         ("RETURNED", "Returned"),
+        ("RETURN_REJECTED", "Return Rejected"),
     )
 
     PAYMENT_STATUS = (
@@ -60,6 +63,24 @@ class Order(models.Model):
 
     return_reason = models.TextField(blank=True, null=True)
 
+    # NEW: Gateway Tracking
+    razorpay_order_id = models.CharField(max_length=100, blank=True, null=True)
+
+    razorpay_payment_id = models.CharField(max_length=100, blank=True, null=True)
+
+    razorpay_signature = models.CharField(max_length=255, blank=True, null=True)
+
+    # Coupon Reference
+    applied_coupon = models.ForeignKey(
+        "coupons.Coupon", on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    # NEW: frozen discount amount from the coupon at the time of order placement.
+    # Stored separately from `discount` (which is the item-level MRP discount)
+    # so invoices/order history always show the correct coupon discount even
+    # if the coupon is later edited, deactivated, or deleted.
+    coupon_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     updated_at = models.DateTimeField(auto_now=True)
@@ -78,7 +99,9 @@ class OrderItem(models.Model):
     ITEM_STATUS = (
         ("ACTIVE", "Active"),
         ("CANCELLED", "Cancelled"),
+        ("RETURN_REQUESTED", "Return Requested"),
         ("RETURNED", "Returned"),
+        ("RETURN_REJECTED", "Return Rejected"),
     )
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
@@ -102,6 +125,8 @@ class OrderItem(models.Model):
     return_reason = models.TextField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    admin_return_note = models.TextField(blank=True, null=True)
 
     def __str__(self):
 

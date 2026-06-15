@@ -281,13 +281,17 @@
                                             <!-- PRODUCT INFO -->
                                             <div class="space-y-3 flex-grow">
                                                 <div class="space-y-1">
-                                                    <h3 class="text-xl font-medium tracking-tight text-slate-200 leading-tight uppercase group-hover:text-white transition-colors duration-500">
-                                                        {{ product.name }}
-                                                    </h3>
-                                                    <div class="flex items-baseline gap-2">
-                                                        <p class="text-lg font-black text-primary tracking-tighter">₹{{ product.min_price|default:"0" }}</p>
-                                                    </div>
-                                                </div>
+    <h3 class="text-xl font-medium tracking-tight text-slate-200 leading-tight uppercase group-hover:text-white transition-colors duration-500">
+        {{ product.name }}
+    </h3>
+    <div class="flex items-baseline gap-3 flex-wrap">
+        <p class="text-lg font-black text-primary tracking-tighter">₹{{ product.display_offer_price }}</p>
+        {% if product.has_offer %}
+            <p class="text-xs text-slate-600 line-through font-light">₹{{ product.display_min_price }}</p>
+            <span class="text-[8px] font-black uppercase tracking-[0.2em] text-primary/70 bg-primary/10 px-2 py-0.5 rounded-full">Offer</span>
+        {% endif %}
+    </div>
+</div>
                                                 <!-- NOTES -->
                                                 <div class="pt-2 border-t border-white/5">
                                                     <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-medium leading-relaxed group-hover:text-slate-300 transition-colors duration-700">

@@ -51,6 +51,10 @@ INSTALLED_APPS = [
     'checkout',
     'orders',
     'management',
+    'coupons',
+    'wallets.apps.WalletsConfig',
+    'reviews',
+    'offers',
     #apps
 
     # google
@@ -94,6 +98,9 @@ ACCOUNT_SIGNUP_FIELDS = ["email", "username"]
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_UNIQUE_EMAIL = True
 
+#online
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

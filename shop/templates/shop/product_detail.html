@@ -208,10 +208,10 @@ h1 {
                                       class="text-2xl text-slate-700 line-through decoration-primary/40 font-light {% if not offer_price or offer_price >= min_price %}hidden{% endif %}">
                                     ₹{{ min_price }}
                                 </span>
-                                <span id="exclusive-badge"
-                                      class="bg-primary/10 text-primary text-[8px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.2em] self-center {% if not offer_price or offer_price >= min_price %}hidden{% endif %}">
-                                    Exclusive Reserve
-                                </span>
+                               <span id="exclusive-badge"
+      class="bg-primary/10 text-primary text-[8px] font-black px-3 py-1.5 rounded-full uppercase tracking-[0.2em] self-center {% if not offer_price or offer_price >= min_price %}hidden{% endif %}">
+    Offer
+</span>
                             </div>
                             <p class="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-medium leading-relaxed max-w-sm">
                                 {{ product.description }}
@@ -262,9 +262,10 @@ h1 {
                                             class="bg-[#1a1a1a] border border-white/5 rounded-2xl p-4 text-[10px] font-black uppercase tracking-widest text-primary focus:outline-none focus:border-primary/50 transition-all">
                                         {% for variant in variants %}
                                             <option value="{{ variant.id }}"
-                                                    data-price="{{ variant.price }}"
-                                                    data-offer="{{ variant.offer_price }}"
-                                                    data-stock="{{ variant.stock }}">{{ variant.size }}</option>
+         original_price="{{ variant.original_price }}"
+        effective_price="{{ variant.effective_price }}"
+        offer_label="{{ variant.offer_label|default:'' }}"
+        data-stock="{{ variant.stock }}">{{ variant.size }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
@@ -318,34 +319,112 @@ h1 {
                 </div>
             </div>
             <section class="mt-32 border-t border-white/5 pt-20">
-                <div class="flex items-baseline justify-between mb-12">
-                    <h3 class="text-2xl font-extralight uppercase tracking-widest text-white">
-                        User <span class="text-primary italic font-black">Reviews</span>
-                    </h3>
-                    <button class="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-all">
-                        Write a Review
-                    </button>
-                </div>
-                {% if product.reviews.all %}
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {% for review in product.reviews.all %}
-                            <div class="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5">
-                                <div class="flex justify-between mb-4">
-                                    <span class="text-[10px] font-black text-primary uppercase">{{ review.user.username }}</span>
-                                    <span class="text-[9px] text-slate-600 uppercase">{{ review.created_at|date:"M d, Y" }}</span>
-                                </div>
-                                <p class="text-xs text-slate-400 leading-relaxed italic">"{{ review.comment }}"</p>
+    <div class="flex items-baseline justify-between mb-12">
+        <h3 class="text-2xl font-extralight uppercase tracking-widest text-white">
+            User <span class="text-primary italic font-black">Reviews</span>
+        </h3>
+        {% if can_review %}
+            <button onclick="openReviewModal()"
+                    class="text-[10px] font-black uppercase tracking-widest text-primary border-b border-primary/20 pb-1 hover:text-white transition-all">
+                Write a Review
+            </button>
+        {% elif user.is_authenticated %}
+            <span class="text-[10px] uppercase tracking-widest text-white/20 italic">Purchase to review</span>
+        {% else %}
+            <a href="{% url 'user_login' %}"
+               class="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary transition-all">
+                Login to Review
+            </a>
+        {% endif %}
+    </div>
+
+    {% if reviews %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {% for review in reviews %}
+                <div class="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <span class="text-[10px] font-black text-primary uppercase block mb-2">
+                                {{ review.user.username }}
+                            </span>
+                            <div class="flex gap-1">
+                                {% for i in "12345" %}
+                                    <span class="text-sm {% if forloop.counter <= review.rating %}text-yellow-400{% else %}text-white/15{% endif %}">★</span>
+                                {% endfor %}
                             </div>
-                        {% endfor %}
+                        </div>
+                        <span class="text-[9px] text-slate-600 uppercase">{{ review.created_at|date:"M d, Y" }}</span>
                     </div>
-                {% else %}
-                    <div class="py-20 text-center border border-dashed border-white/5 rounded-[3rem]">
-                        <span class="material-symbols-outlined text-4xl text-slate-800 mb-4">chat_bubble_outline</span>
-                        <p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600">No Reviews Yet</p>
-                        <p class="text-[9px] text-slate-700 mt-2">Be the first to share your olfactory journey.</p>
-                    </div>
-                {% endif %}
-            </section>
+                    {% if review.title %}
+                        <p class="text-white text-sm font-semibold mb-2">{{ review.title }}</p>
+                    {% endif %}
+                    <p class="text-xs text-slate-400 leading-relaxed italic">"{{ review.comment }}"</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="py-20 text-center border border-dashed border-white/5 rounded-[3rem]">
+            <span class="material-symbols-outlined text-4xl text-slate-800 mb-4">chat_bubble_outline</span>
+            <p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600">No Reviews Yet</p>
+            <p class="text-[9px] text-slate-700 mt-2">Be the first to share your olfactory journey.</p>
+        </div>
+    {% endif %}
+</section>
+
+{% if can_review %}
+<div id="reviewModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center"
+     style="background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);">
+    <div id="reviewModalBox"
+         class="apple-card rounded-[2.5rem] p-12 max-w-lg w-full mx-6"
+         style="transition:all 0.4s ease;transform:translateY(24px);opacity:0;">
+
+        <div class="w-12 h-px mb-8" style="background:linear-gradient(to right,#D4AF37,transparent)"></div>
+        <p class="text-[10px] uppercase tracking-[0.5em] text-white/25 mb-2">Share Your Experience</p>
+        <h2 class="text-3xl font-extralight tracking-tight text-white mb-8">{{ product.name }}</h2>
+
+        <form action="{% url 'reviews:submit_review' product.id %}" method="POST">
+            {% csrf_token %}
+
+            <div class="mb-8">
+                <p class="text-[9px] uppercase tracking-[0.3em] text-white/40 mb-4">Your Rating</p>
+                <div class="flex gap-3" id="star-group">
+                    {% for i in "12345" %}
+                        <button type="button"
+                                onclick="setRating({{ forloop.counter }})"
+                                class="star-btn text-3xl text-white/15 hover:text-yellow-400 transition-colors duration-200"
+                                data-value="{{ forloop.counter }}">★</button>
+                    {% endfor %}
+                </div>
+                <input type="hidden" name="rating" id="rating-input" required>
+            </div>
+
+            <input type="text"
+                   name="title"
+                   placeholder="Review title (optional)"
+                   class="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-4 outline-none text-white placeholder:text-white/20 text-sm mb-4 focus:border-primary/40 transition-colors">
+
+            <textarea name="comment"
+                      rows="4"
+                      required
+                      placeholder="Describe your olfactory experience..."
+                      class="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-4 outline-none resize-none text-white placeholder:text-white/20 text-sm focus:border-primary/40 transition-colors"></textarea>
+
+            <div class="flex gap-4 mt-8">
+                <button type="submit"
+                        class="flex-1 py-4 rounded-2xl bg-primary text-black font-black uppercase tracking-[0.2em] text-[10px] hover:bg-yellow-300 transition-all">
+                    Submit Review
+                </button>
+                <button type="button"
+                        onclick="closeReviewModal()"
+                        class="flex-1 py-4 rounded-2xl border border-white/10 bg-white/[0.03] text-white/60 font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-white/[0.06] transition-all">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
             <section class="mt-40 pb-40">
                 <div class="flex items-end justify-between mb-16 px-4">
                     <div class="space-y-4">
@@ -432,8 +511,10 @@ function updateVariantDetails() {
     if (!selector) return;
 
     const selectedOption = selector.options[selector.selectedIndex];
-    const price = selectedOption.getAttribute('data-price');
-    const offerPrice = selectedOption.getAttribute('data-offer');
+    const price = selectedOption.getAttribute('original_price');
+    const offerPrice = selectedOption.getAttribute('effective_price');
+    const offerLabel = selectedOption.getAttribute('offer_label');
+
     const stock = parseInt(selectedOption.getAttribute('data-stock'));
 
     // --- ADD THESE 3 LINES ---
@@ -466,11 +547,21 @@ htmx.ajax(
     }
     // 1. Update Pricing (Same as before)
     if (offerPrice && offerPrice !== "None" && parseFloat(offerPrice) < parseFloat(price)) {
-        displayPrice.innerText = `₹${offerPrice}`;
-        displayOldPrice.innerText = `₹${price}`;
-        displayOldPrice.classList.remove('hidden');
-        if(badge) badge.classList.remove('hidden');
-    } else {
+
+    displayPrice.innerText = `₹${offerPrice}`;
+    displayOldPrice.innerText = `₹${price}`;
+    displayOldPrice.classList.remove('hidden');
+
+    if (badge) {
+        badge.classList.remove('hidden');
+
+        if (offerLabel && offerLabel.trim() !== "") {
+            badge.innerText = offerLabel;
+        } else {
+            badge.innerText = "Offer";
+        }
+    }
+} else {
         displayPrice.innerText = `₹${price}`;
         displayOldPrice.classList.add('hidden');
         if(badge) badge.classList.add('hidden');
@@ -593,6 +684,47 @@ if (buyNowBtn) {
 
         window.location.href =
             `/checkout/buy-now/${variantId}/?quantity=${quantity}&next=${encodeURIComponent(returnUrl)}`;
+    });
+}
+
+// REVIEW MODAL
+function openReviewModal() {
+    const modal = document.getElementById('reviewModal');
+    const box = document.getElementById('reviewModalBox');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        box.style.transform = 'translateY(0)';
+        box.style.opacity = '1';
+    }, 10);
+}
+
+function closeReviewModal() {
+    const modal = document.getElementById('reviewModal');
+    const box = document.getElementById('reviewModalBox');
+    if (!modal) return;
+    box.style.transform = 'translateY(24px)';
+    box.style.opacity = '0';
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 350);
+}
+
+const reviewModal = document.getElementById('reviewModal');
+if (reviewModal) {
+    reviewModal.addEventListener('click', function(e) {
+        if (e.target === this) closeReviewModal();
+    });
+}
+
+function setRating(value) {
+    document.getElementById('rating-input').value = value;
+    document.querySelectorAll('#star-group .star-btn').forEach(btn => {
+        const v = parseInt(btn.getAttribute('data-value'));
+        btn.classList.toggle('text-yellow-400', v <= value);
+        btn.classList.toggle('text-white/15', v > value);
     });
 }
     </script>

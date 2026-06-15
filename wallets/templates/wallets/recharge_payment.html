@@ -1,0 +1,237 @@
+{% extends 'users/index.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Montserrat:wght@300;400;500;600;700&display=swap');
+:root { --gold: #D4AF37; --soft-border: rgba(255,255,255,0.07); }
+.glass-panel {
+    background: linear-gradient(180deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.02) 100%);
+    backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px);
+    border: 1px solid var(--soft-border);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.02) inset, 0 25px 80px rgba(0,0,0,0.45);
+}
+.luxury-btn { position:relative; overflow:hidden; transition:all .45s cubic-bezier(.23,1,.32,1); }
+.luxury-btn::before {
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(120deg,transparent 20%,rgba(255,255,255,0.18),transparent 80%);
+    transform:translateX(-120%); transition:1s;
+}
+.luxury-btn:hover::before { transform:translateX(120%); }
+.luxury-btn:hover { transform:translateY(-3px); box-shadow:0 18px 40px rgba(0,0,0,.35); }
+.floating-blur { position:absolute; border-radius:999px; filter:blur(120px); pointer-events:none; }
+.gold-glow { position:absolute; width:500px; height:500px; border-radius:999px;
+    background:radial-gradient(circle,rgba(212,175,55,0.08),transparent 70%);
+    filter:blur(50px); pointer-events:none; }
+.amount-chip { border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.03);
+    transition:all .3s ease; cursor:pointer; color:rgba(255,255,255,0.6); }
+.amount-chip:hover, .amount-chip.active {
+    border-color:rgba(212,175,55,0.45); background:rgba(212,175,55,0.10); color:#D4AF37; }
+.amount-chip.active { box-shadow:0 0 20px rgba(212,175,55,0.12); }
+.luxury-input { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08);
+    transition:.3s ease; color:white; }
+.luxury-input:focus { border-color:rgba(212,175,55,0.35);
+    box-shadow:0 0 0 4px rgba(212,175,55,0.08); outline:none; }
+.soft-divider { border-color:rgba(255,255,255,0.08); }
+@keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+.fade-up { animation:fadeUp .7s cubic-bezier(.23,1,.32,1) both; }
+.delay-1{animation-delay:.1s} .delay-2{animation-delay:.2s} .delay-3{animation-delay:.3s}
+@keyframes goldPulse {
+    0%,100%{box-shadow:0 0 0 0 rgba(212,175,55,0.4)}
+    50%{box-shadow:0 0 0 14px rgba(212,175,55,0)}
+}
+#rzp-button:not(:disabled) { animation:goldPulse 2.5s ease infinite; }
+</style>
+
+<div class="min-h-screen bg-black text-white relative overflow-hidden" style="font-family:'Montserrat',sans-serif;">
+
+    <div class="floating-blur top-0 left-[-120px] w-[420px] h-[420px] bg-white/[0.03]"></div>
+    <div class="floating-blur bottom-0 right-[-120px] w-[500px] h-[500px] bg-yellow-400/[0.04]"></div>
+    <div class="gold-glow top-[10%] right-[5%]"></div>
+
+    <div class="relative z-10 max-w-4xl mx-auto px-6 lg:px-10 py-16">
+
+        <!-- HEADER -->
+        <div class="fade-up mb-14">
+            <p class="text-[10px] uppercase tracking-[0.55em] text-white/25 font-bold mb-5">Wallet</p>
+            <h1 class="text-5xl md:text-6xl font-light tracking-tight leading-none"
+                style="font-family:'Cormorant Garamond',serif;">Recharge Wallet</h1>
+            <div class="mt-5 w-16 h-px" style="background:linear-gradient(to right,#D4AF37,transparent)"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
+
+            <!-- LEFT -->
+            <div class="lg:col-span-3 space-y-8">
+                <div class="glass-panel rounded-[2.5rem] p-8 fade-up delay-1">
+                    <p class="text-[10px] uppercase tracking-[0.4em] text-white/30 mb-6">Select Amount</p>
+                    <div class="grid grid-cols-3 gap-3 mb-8">
+                        <button type="button" onclick="selectChip(this,100)"  class="amount-chip rounded-2xl py-4 text-center font-semibold text-sm">₹100</button>
+                        <button type="button" onclick="selectChip(this,500)"  class="amount-chip rounded-2xl py-4 text-center font-semibold text-sm">₹500</button>
+                        <button type="button" onclick="selectChip(this,1000)" class="amount-chip rounded-2xl py-4 text-center font-semibold text-sm">₹1000</button>
+                        <button type="button" onclick="selectChip(this,2000)" class="amount-chip rounded-2xl py-4 text-center font-semibold text-sm">₹2000</button>
+                        <button type="button" onclick="selectChip(this,5000)" class="amount-chip rounded-2xl py-4 text-center font-semibold text-sm">₹5000</button>
+                    </div>
+                    <div>
+                        <p class="text-[10px] uppercase tracking-[0.4em] text-white/30 mb-3">Custom Amount</p>
+                        <div class="relative">
+                            <span class="absolute left-5 top-1/2 -translate-y-1/2 text-white/40 text-lg">₹</span>
+                            <input id="customAmount" type="number" min="100" max="50000"
+                                   placeholder="Enter amount (₹100 – ₹50,000)"
+                                   oninput="onCustomInput(this)"
+                                   class="luxury-input w-full rounded-2xl pl-10 pr-5 py-4 placeholder:text-white/20 text-sm">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fade-up delay-2">
+                    <button id="rzp-button" disabled
+                            class="luxury-btn w-full py-5 rounded-2xl font-bold tracking-[0.15em] uppercase text-sm
+                                   bg-[#D4AF37] text-black
+                                   disabled:opacity-30 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none">
+                        Proceed to Payment
+                    </button>
+                    <p class="text-center text-white/20 text-xs mt-4 tracking-wide">
+                        Secured by Razorpay · 256-bit SSL encryption
+                    </p>
+                </div>
+            </div>
+
+            <!-- RIGHT -->
+            <div class="lg:col-span-2 fade-up delay-3">
+                <div class="sticky top-28 glass-panel rounded-[2.5rem] p-8">
+                    <p class="text-[10px] uppercase tracking-[0.4em] text-white/30 mb-8">Payment Summary</p>
+                    <div class="space-y-5 mb-8">
+                        <div class="flex justify-between items-center">
+                            <p class="text-white/40 text-sm">Recharge Amount</p>
+                            <p id="summaryAmount" class="font-semibold text-white">—</p>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <p class="text-white/40 text-sm">Charges</p>
+                            <p class="text-green-400 text-sm font-medium">Free</p>
+                        </div>
+                    </div>
+                    <div class="pt-6 border-t soft-divider flex justify-between items-end">
+                        <p class="text-[10px] uppercase tracking-[0.35em] text-white/25">Total Payable</p>
+                        <h3 id="summaryTotal" class="text-4xl font-light tracking-tight"
+                            style="font-family:'Cormorant Garamond',serif;color:#D4AF37;">—</h3>
+                    </div>
+                    <div class="mt-10 flex items-center gap-4 p-5 rounded-2xl border border-white/5 bg-white/[0.02]">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                             style="background:rgba(212,175,55,0.12);">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                                 viewBox="0 0 24 24" stroke="#D4AF37" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M21 12V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-5m0 0h-4a2 2 0 000 4h4v-4z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-xs text-white/30 uppercase tracking-[0.25em]">Instant Credit</p>
+                            <p class="text-sm text-white/60 mt-0.5">Balance added immediately</p>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form — submitted by Razorpay handler -->
+<form id="payment-form" method="POST" action="{% url 'wallet_payment_success' %}">
+    {% csrf_token %}
+    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+    <input type="hidden" name="razorpay_order_id"   id="razorpay_order_id">
+    <input type="hidden" name="razorpay_signature"  id="razorpay_signature">
+    <input type="hidden" name="amount" value="{{ amount }}">
+</form>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+
+    var selectedAmount = {{ amount|default:0 }};
+
+function selectChip(btn, amount) {
+    document.querySelectorAll('.amount-chip').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('customAmount').value = '';
+    setAmount(amount);
+}
+
+function onCustomInput(input) {
+    document.querySelectorAll('.amount-chip').forEach(b => b.classList.remove('active'));
+    var val = parseInt(input.value);
+    setAmount((val >= 100 && val <= 50000) ? val : 0);
+}
+
+function setAmount(amount) {
+    selectedAmount = amount;
+    document.getElementById('summaryAmount').textContent = amount >= 100 ? '₹' + amount : '—';
+    document.getElementById('summaryTotal').textContent  = amount >= 100 ? '₹' + amount : '—';
+    document.getElementById('rzp-button').disabled = amount < 100;
+}
+
+setAmount({{ amount|default:0 }});
+
+document.getElementById("rzp-button").onclick = async function(e) {
+    e.preventDefault();
+
+    const res = await fetch("{% url 'create_wallet_order' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ amount: selectedAmount })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+        alert(data.error || "Could not create order. Please try again.");
+        return;
+    }
+
+    var options = {
+        "key":         data.key,
+        "amount":      data.amount_paise,
+        "currency":    "INR",
+        "name":        "Scentora",
+        "description": "Wallet Recharge",
+        "order_id":    data.order_id,
+        "theme":       { "color": "#D4AF37" },
+
+        "config": {
+            "display": {
+                "preferences": {
+                    "show_default_blocks": true
+                }
+            }
+        },
+
+        "callback_url": "http://127.0.0.1:8000/wallet/payment-success/",
+        "redirect": true,
+
+        "prefill": {
+            "name":  "{{ request.user.get_full_name }}",
+            "email": "{{ request.user.email }}"
+        },
+        "handler": function(response) {
+            document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
+            document.getElementById("razorpay_order_id").value   = response.razorpay_order_id;
+            document.getElementById("razorpay_signature").value  = response.razorpay_signature;
+            document.getElementById("payment-form").submit();
+        },
+
+        "modal": {
+            "ondismiss": function() {
+                window.location.href = "{% url 'wallet' %}";
+            }
+        },
+    };
+
+    new Razorpay(options).open();
+};
+</script>
+
+{% endblock %}

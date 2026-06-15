@@ -71,16 +71,60 @@
     <span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">Product Registry</span>
 {% endblock %}
 {% block content %}
-    {% if messages %}
-        <div class="mb-6 space-y-2">
-            {% for message in messages %}
-                <div class="p-4 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center justify-between {% if message.tags == 'error' %} bg-red-500/10 text-red-500 border border-red-500/20 {% else %} bg-gold/10 text-gold border border-gold/20 {% endif %}">
-                    <span>{{ message }}</span>
-                    <button type="button" onclick="this.parentElement.remove()" class="text-lg">&times;</button>
+    {% if messages or form.errors %}
+    <div class="mb-6 space-y-3">
+
+        {# Django messages (success / error / info) #}
+        {% for message in messages %}
+            <div class="p-4 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-start justify-between
+                {% if message.tags == 'error' %}
+                    bg-red-500/10 text-red-400 border border-red-500/20
+                {% elif message.tags == 'success' %}
+                    bg-gold/10 text-gold border border-gold/20
+                {% else %}
+                    bg-white/5 text-white/70 border border-white/10
+                {% endif %}">
+
+                <div class="flex-1">
+                    {{ message }}
                 </div>
-            {% endfor %}
-        </div>
-    {% endif %}
+
+                <button type="button"
+                        onclick="this.parentElement.remove()"
+                        class="ml-4 text-lg text-white/30 hover:text-white">
+                    &times;
+                </button>
+            </div>
+        {% endfor %}
+
+        {# FORM FIELD ERRORS (IMPORTANT ADDITION) #}
+        {% if form.errors %}
+            <div class="p-5 rounded-xl bg-red-500/5 border border-red-500/20">
+
+                <p class="text-[10px] font-black uppercase tracking-[3px] text-red-400 mb-3">
+                    Validation Errors
+                </p>
+
+                <ul class="space-y-2">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <li class="text-[11px] text-red-300 flex items-start gap-2">
+                                <i class="bi bi-x-circle mt-[2px]"></i>
+                                <span>
+                                    {% if field != '__all__' %}
+                                        <span class="text-red-400 font-bold">{{ field }}:</span>
+                                    {% endif %}
+                                    {{ error }}
+                                </span>
+                            </li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+    </div>
+{% endif %}
     <div class="animate__animated animate__fadeIn">
         <div class="flex items-center justify-between mb-10">
             <div>

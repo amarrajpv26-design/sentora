@@ -1,0 +1,220 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <style>
+    .luxury-shimmer {
+        background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 4s linear infinite;
+    }
+    @keyframes shimmer { to { background-position: 200% center; } }
+    .glass-panel { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    .luxury-input { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); color: white; transition: all 0.3s ease; }
+    .luxury-input:focus { border-color: #f4b41a; box-shadow: 0 0 15px rgba(244, 180, 26, 0.1); outline: none; }
+    .field-error { color: #f87171; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; font-weight: 700; }
+    </style>
+{% endblock %}
+
+{% block breadcrumb %}
+    <span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">
+        {% if is_edit %}Edit Coupon{% else %}New Coupon{% endif %}
+    </span>
+{% endblock %}
+
+{% block content %}
+    <div class="animate__animated animate__fadeIn max-w-4xl">
+
+        <div class="mb-10">
+            <h2 class="text-4xl font-extralight text-white tracking-tighter">
+                {% if is_edit %}
+                    Edit <span class="font-black luxury-shimmer">{{ coupon.code }}</span>
+                {% else %}
+                    New <span class="font-black luxury-shimmer">Coupon</span>
+                {% endif %}
+            </h2>
+            <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">
+                Define discount rules, validity, and usage limits.
+            </p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-[2px] rounded-xl flex items-center gap-3">
+                    <i class="bi bi-info-circle"></i> {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" class="glass-panel rounded-[32px] p-8 lg:p-10 space-y-8">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <div>
+    <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">
+        Coupon Code
+    </label>
+
+    <div class="flex gap-2">
+        {{ form.code }}
+
+        <button
+            type="button"
+            id="generate-coupon-btn"
+            class="px-4 rounded-xl bg-gold text-black font-bold text-xs uppercase whitespace-nowrap">
+            Generate
+        </button>
+    </div>
+
+    {% if form.code.errors %}
+        <p class="field-error">{{ form.code.errors.0 }}</p>
+    {% endif %}
+</div>
+
+                <div>
+                    <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Description (shown to customers)</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}<p class="field-error">{{ form.description.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 p-5 rounded-2xl border border-white/10 bg-white/[0.02]">
+                {{ form.is_fixed }}
+                <div>
+                    <p class="text-sm font-bold text-white">Flat ₹ Discount</p>
+                    <p class="text-[11px] text-white/40">Enable for a fixed rupee discount. Leave off for a percentage discount.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <div>
+                    <label id="discount-label" class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Discount Percentage (%)</label>
+                    {{ form.discount }}
+                    {% if form.discount.errors %}<p class="field-error">{{ form.discount.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div id="max-discount-wrapper">
+                    <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Maximum Discount Cap (₹)</label>
+                    {{ form.max_discount_amount }}
+                    <p class="text-[10px] text-white/30 mt-2">Caps the discount on percentage coupons. Required for percentage type.</p>
+                    {% if form.max_discount_amount.errors %}<p class="field-error">{{ form.max_discount_amount.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <div>
+                    <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Minimum Purchase (₹)</label>
+                    {{ form.min_purchase }}
+                    <p class="text-[10px] text-white/30 mt-2">Cart subtotal must reach this amount to apply the coupon. 0 = no minimum.</p>
+                    {% if form.min_purchase.errors %}<p class="field-error">{{ form.min_purchase.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="flex items-center gap-4 p-5 rounded-2xl border border-white/10 bg-white/[0.02] h-fit self-end">
+                    {{ form.active }}
+                    <div>
+                        <p class="text-sm font-bold text-white">Active</p>
+                        <p class="text-[11px] text-white/40">Inactive coupons are hidden from customers and cannot be applied.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <div>
+                    <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Valid From</label>
+                    {{ form.valid_from }}
+                    {% if form.valid_from.errors %}<p class="field-error">{{ form.valid_from.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Valid To</label>
+                    {{ form.valid_to }}
+                    {% if form.valid_to.errors %}<p class="field-error">{{ form.valid_to.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <div>
+                    <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Total Usage Limit</label>
+                    {{ form.usage_limit }}
+                    <p class="text-[10px] text-white/30 mt-2">Maximum total redemptions across all customers. 0 = unlimited.</p>
+                    {% if form.usage_limit.errors %}<p class="field-error">{{ form.usage_limit.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Usage Limit Per Customer</label>
+                    {{ form.usage_limit_per_user }}
+                    <p class="text-[10px] text-white/30 mt-2">How many times one customer can use this coupon. 0 = unlimited.</p>
+                    {% if form.usage_limit_per_user.errors %}<p class="field-error">{{ form.usage_limit_per_user.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                <a href="{% url 'coupons:admin_coupon_list' %}"
+                   class="flex-1 h-14 rounded-2xl border border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/[0.06] hover:text-white transition-all duration-300 font-semibold flex items-center justify-center">
+                    Cancel
+                </a>
+                <button type="submit"
+                        class="flex-1 h-14 rounded-2xl bg-gold text-black font-black hover:scale-[1.02] transition-all duration-300 text-sm uppercase tracking-wider">
+                    {% if is_edit %}Save Changes{% else %}Create Coupon{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Apply luxury-input styling to Django-rendered widgets
+        document.querySelectorAll('input[type="text"], input[type="number"], input[type="datetime-local"]').forEach(el => {
+            el.classList.add('luxury-input', 'w-full', 'h-12', 'px-5', 'rounded-xl', 'text-sm');
+        });
+        document.querySelectorAll('input[type="checkbox"]').forEach(el => {
+            el.classList.add('w-5', 'h-5', 'rounded', 'border-white/20', 'bg-black', 'accent-white');
+        });
+
+        // Uppercase coupon code as the user types
+        const codeInput = document.getElementById('id_code');
+        codeInput.addEventListener('input', function (e) {
+            e.target.value = e.target.value.toUpperCase().replace(/\s+/g, '');
+        });
+
+        // Toggle percentage vs fixed UI
+        const isFixedCheckbox = document.getElementById('id_is_fixed');
+        const discountLabel = document.getElementById('discount-label');
+        const maxDiscountWrapper = document.getElementById('max-discount-wrapper');
+        const maxDiscountInput = document.getElementById('id_max_discount_amount');
+        const discountInput = document.getElementById('id_discount');
+
+        function updateDiscountTypeUI() {
+            if (isFixedCheckbox.checked) {
+                discountLabel.innerText = 'Discount Amount (₹)';
+                maxDiscountWrapper.classList.add('hidden');
+                maxDiscountInput.removeAttribute('required');
+                discountInput.removeAttribute('max');
+            } else {
+                discountLabel.innerText = 'Discount Percentage (%)';
+                maxDiscountWrapper.classList.remove('hidden');
+                maxDiscountInput.setAttribute('required', 'required');
+                discountInput.setAttribute('max', '100');
+            }
+        }
+
+        isFixedCheckbox.addEventListener('change', updateDiscountTypeUI);
+        updateDiscountTypeUI();
+        const generateBtn = document.getElementById('generate-coupon-btn');
+
+generateBtn.addEventListener('click', () => {
+    const prefix = "SCENT";
+    const randomPart = Math.random()
+        .toString(36)
+        .substring(2, 8)
+        .toUpperCase();
+
+    codeInput.value = `${prefix}${randomPart}`;
+});
+    </script>
+{% endblock %}

@@ -29,7 +29,11 @@ urlpatterns = [
     path("cart/", include("cart.urls")),
     path("checkout/", include("checkout.urls")),
     path("orders/", include("orders.urls")),
-    path('management/', include('management.urls', namespace='management')),
+    path("management/", include("management.urls", namespace="management")),
+    path("wallet/", include("wallets.urls")),
+    path("reviews/", include("reviews.urls", namespace="reviews")),
+    path("offers/", include("offers.urls",namespace="offers")),
+    path("coupons/", include("coupons.urls", namespace="coupons")),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

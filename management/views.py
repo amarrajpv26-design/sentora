@@ -7,6 +7,8 @@ from orders.models import Order
 from products.models import ProductVariant
 from django.db import transaction
 from orders.views import recalculate_order_totals
+from orders.models import Order, OrderItem
+from wallets.models import Wallet, WalletTransaction
 
 
 @staff_member_required(login_url="user_login")
@@ -52,62 +54,78 @@ def admin_order_detail(request, order_id):
 @staff_member_required(login_url="user_login")
 @transaction.atomic
 def change_order_status(request, order_id):
-    if request.method == "POST":
-        order = get_object_or_404(Order, order_id=order_id)
-        new_status = request.POST.get("order_status")
-        old_status = order.order_status
-        valid_statuses = dict(Order.ORDER_STATUS)
 
-        if new_status not in valid_statuses:
-            messages.error(request, "Invalid order status.")
-            return redirect("management:admin_orders_list")
+    if request.method != "POST":
+        return redirect("management:admin_orders_list")
 
-        if new_status in ["CANCELLED", "RETURNED"] and old_status not in [
-            "CANCELLED",
-            "RETURNED",
-        ]:
-            for item in order.items.all():
-                if item.item_status == "ACTIVE":
-                    if item.product_variant:
-                        ProductVariant.objects.filter(
-                            id=item.product_variant.id
-                        ).update(stock=F("stock") + item.quantity)
-                    item.item_status = new_status
-                    item.save()
+    order = get_object_or_404(Order, order_id=order_id)
 
-            recalculate_order_totals(order)
+    new_status = request.POST.get("order_status")
+    old_status = order.order_status
 
-        elif old_status in ["CANCELLED", "RETURNED"] and new_status in [
-            "PENDING",
-            "PROCESSING",
-            "SHIPPED",
-            "CONFIRMED",
-            "DELIVERED",
-        ]:
-            for item in order.items.all():
-                if item.product_variant:
-                    if item.product_variant.stock < item.quantity:
-                        messages.error(
-                            request, f"Not enough stock for {item.product_name}"
-                        )
-                        return redirect(
-                            "management:admin_order_detail", order_id=order.order_id
-                        )
+    # -----------------------------
+    # 1. ALLOWED STATUS FLOW RULES
+    # -----------------------------
+    ALLOWED_TRANSITIONS = {
+        "PENDING": ["CONFIRMED", "CANCELLED"],
+        "CONFIRMED": ["SHIPPED", "CANCELLED"],
+        "SHIPPED": ["OUT_FOR_DELIVERY"],
+        "OUT_FOR_DELIVERY": ["DELIVERED"],
+        "DELIVERED": ["RETURN_REQUESTED"],
+        "RETURN_REQUESTED": [],  # handled via item approval
+        "RETURNED": [],
+        "CANCELLED": [],
+    }
 
-            for item in order.items.all():
+    if new_status not in dict(Order.ORDER_STATUS):
+        messages.error(request, "Invalid status selected.")
+        return redirect("management:admin_order_detail", order_id=order.order_id)
+
+    # -----------------------------
+    # 2. BLOCK INVALID TRANSITIONS
+    # -----------------------------
+    if new_status not in ALLOWED_TRANSITIONS.get(old_status, []):
+        messages.error(request, f"Cannot change from {old_status} to {new_status}.")
+        return redirect("management:admin_order_detail", order_id=order.order_id)
+
+    # -----------------------------
+    # 3. CANCEL ORDER → RESTOCK ITEMS
+    # -----------------------------
+    if new_status == "CANCELLED":
+
+        for item in order.items.select_related("product_variant").all():
+
+            if item.item_status == "ACTIVE" and item.product_variant:
+
                 ProductVariant.objects.filter(id=item.product_variant.id).update(
-                    stock=F("stock") - item.quantity
+                    stock=F("stock") + item.quantity
                 )
-                item.item_status = "ACTIVE"
+
+                item.item_status = "CANCELLED"
                 item.save()
 
-            recalculate_order_totals(order)
+        recalculate_order_totals(order)
 
-        order.order_status = new_status
-        order.save()
-        messages.success(
-            request, f"Order status updated to {order.get_order_status_display()}."
-        )
+    # -----------------------------
+    # 4. NORMAL STATUS UPDATE
+    # -----------------------------
+    order.order_status = new_status
+    if new_status == "DELIVERED":
+        if order.payment_method == "COD":
+            order.payment_status = "PAID"
+    elif new_status in ("CONFIRMED", "SHIPPED", "OUT_FOR_DELIVERY"):
+        order.items.exclude(
+            item_status__in=[
+                "CANCELLED",
+                "RETURN_REQUESTED",
+                "RETURNED",
+                "RETURN_REJECTED",
+            ]
+        ).update(item_status="ACTIVE")
+
+    order.save()
+
+    messages.success(request, f"Order updated to {order.get_order_status_display()}.")
 
     return redirect("management:admin_order_detail", order_id=order.order_id)
 
@@ -158,6 +176,24 @@ def admin_inventory_list(request):
     return render(request, "management/inventory_list.html", context)
 
 
+def sync_order_status(order):
+    items = order.items.all()
+
+    if items.filter(item_status="RETURN_REQUESTED").exists():
+        order.order_status = "RETURN_REQUESTED"
+
+    elif items.filter(item_status="RETURNED").count() == items.count():
+        order.order_status = "RETURNED"
+
+    elif items.filter(item_status="CANCELLED").count() == items.count():
+        order.order_status = "CANCELLED"
+
+    elif items.filter(item_status="ACTIVE").exists():
+        order.order_status = "CONFIRMED"
+
+    order.save()
+
+
 @staff_member_required(login_url="user_login")
 def update_variant_stock(request, variant_id):
     """Updates stock inventory levels instantly via dashboard inputs"""
@@ -192,45 +228,355 @@ def update_variant_stock(request, variant_id):
 @transaction.atomic
 def handle_item_status_change(request, item_id):
 
-    if request.method == "POST":
+    if request.method != "POST":
+        return redirect("management:admin_orders_list")
 
-        from orders.models import OrderItem
+    item = get_object_or_404(OrderItem, id=item_id)
+    new_status = request.POST.get("item_status")
+    old_status = item.item_status
 
-        item = get_object_or_404(OrderItem, id=item_id)
-        new_status = request.POST.get("item_status")
-        old_status = item.item_status
+    # BLOCK invalid manual return workflow changes
+    if old_status == "RETURN_REQUESTED":
+        messages.error(
+            request, "Return requests must be handled via Approve / Reject actions."
+        )
+        return redirect("management:admin_order_detail", item.order.order_id)
 
-        if new_status != old_status:
-            if new_status in ["CANCELLED", "RETURNED"] and old_status == "ACTIVE":
-                if item.product_variant:
-                    ProductVariant.objects.filter(id=item.product_variant.id).update(
-                        stock=F("stock") + item.quantity
-                    )
-                    messages.success(
-                        request,
-                        f"Restocked {item.quantity} units for variant {item.product_name}.",
-                    )
+    if new_status == old_status:
+        return redirect("management:admin_order_detail", item.order.order_id)
 
-            elif old_status in ["CANCELLED", "RETURNED"] and new_status == "ACTIVE":
-                if item.product_variant:
-                    variant = item.product_variant
-                    if variant.stock >= item.quantity:
-                        ProductVariant.objects.filter(id=variant.id).update(
-                            stock=F("stock") - item.quantity
-                        )
-                    else:
-                        messages.error(
-                            request,
-                            f"Insufficient stock available to re-activate this item.",
-                        )
-                        return redirect(
-                            request.META.get(
-                                "HTTP_REFERER", "management:admin_orders_list"
-                            )
-                        )
+    # -------------------------
+    # CANCEL ITEM
+    # -------------------------
+    if new_status == "CANCELLED" and old_status == "ACTIVE":
 
-            item.item_status = new_status
+        if item.product_variant:
+            ProductVariant.objects.filter(id=item.product_variant.id).update(
+                stock=F("stock") + item.quantity
+            )
+
+        item.item_status = "CANCELLED"
+        item.save()
+
+        messages.success(request, "Item cancelled successfully.")
+        return redirect("management:admin_order_detail", item.order.order_id)
+
+    # -------------------------
+    # RE-ACTIVATE ITEM (optional safe recovery)
+    # -------------------------
+    if new_status == "ACTIVE" and old_status == "CANCELLED":
+
+        variant = item.product_variant
+
+        if variant and variant.stock < item.quantity:
+            messages.error(request, "Insufficient stock to reactivate item.")
+            return redirect("management:admin_order_detail", item.order.order_id)
+
+        if variant:
+            ProductVariant.objects.filter(id=variant.id).update(
+                stock=F("stock") - item.quantity
+            )
+
+        item.item_status = "ACTIVE"
+        item.save()
+
+        messages.success(request, "Item reactivated successfully.")
+        return redirect("management:admin_order_detail", item.order.order_id)
+
+    messages.error(request, "Invalid item status transition.")
+    return redirect("management:admin_order_detail", item.order.order_id)
+
+
+@staff_member_required
+def admin_return_requests(request):
+    # 1. Base query: Capture ALL items that belong to a return process workflow
+    return_statuses = ["RETURN_REQUESTED", "RETURNED", "RETURN_REJECTED"]
+    items = (
+        OrderItem.objects.filter(item_status__in=return_statuses)
+        .select_related("order", "order__user", "product_variant")
+        .order_by("-created_at")
+    )
+
+    # 2. Extract and Handle Filters
+    search_query = request.GET.get("search", "").strip()
+    status_filter = request.GET.get("status", "").strip()
+
+    if search_query:
+        items = items.filter(
+            Q(order__order_id__icontains=search_query)
+            | Q(product_name__icontains=search_query)
+            | Q(order__full_name__icontains=search_query)
+            | Q(order__user__email__icontains=search_query)
+        )
+
+    if status_filter:
+        items = items.filter(item_status=status_filter)
+
+    # 3. Add Pagination (8 entries per page matches your theme standard)
+    paginator = Paginator(items, 8)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # 4. Generate explicit Return Choices dynamically for your template's select box
+    # This filters down OrderItem choices specifically to your valid return workflows
+    return_status_choices = [
+        ("RETURN_REQUESTED", "Return Requested"),
+        ("RETURNED", "Returned (Approved)"),
+        ("RETURN_REJECTED", "Return Rejected"),
+    ]
+
+    context = {
+        "items": page_obj,  # This passes the paginated object to the table loop
+        "search_query": search_query,
+        "status_filter": status_filter,
+        "status_choices": return_status_choices,
+    }
+
+    return render(request, "management/return_requests.html", context)
+
+
+@staff_member_required
+@transaction.atomic
+def approve_return_item(request, item_id):
+    item = get_object_or_404(OrderItem, id=item_id)
+
+    if item.item_status != "RETURN_REQUESTED":
+        messages.error(request, "Invalid return request state.")
+        return redirect("management:admin_return_request_detail", item_id=item.id)
+
+    note = request.POST.get("admin_note", "")
+
+    item.item_status = "RETURNED"
+    item.admin_return_note = note
+    item.save()
+
+    variant = item.product_variant
+    if variant:
+        variant.stock += item.quantity
+        variant.save()
+
+    wallet, created = Wallet.objects.get_or_create(user=item.order.user)
+
+    # Check remaining non-returned active products to update complete parent order state
+    remaining_items = item.order.items.exclude(
+        item_status__in=["RETURNED", "CANCELLED"]
+    )
+
+    if not remaining_items.exists():
+        item.order.order_status = "RETURNED"
+        item.order.payment_status = "REFUNDED"
+        item.order.save()
+
+    wallet.balance += item.subtotal
+    wallet.save()
+
+    WalletTransaction.objects.create(
+        wallet=wallet,
+        amount=item.subtotal,
+        transaction_type="CREDIT",
+        purpose="REFUND",
+        order_id=item.order.order_id,
+        description=f"Refund for returned item: {item.product_name}",
+    )
+
+    messages.success(
+        request,
+        f"Return tracking item #{item.id} approved successfully. Funds returned to user wallet.",
+    )
+    return redirect("management:admin_return_request_detail", item_id=item.id)
+
+
+@staff_member_required
+@transaction.atomic
+def reject_return_item(request, item_id):
+    item = get_object_or_404(OrderItem, id=item_id)
+
+    if item.item_status != "RETURN_REQUESTED":
+        messages.error(request, "Invalid return request state.")
+        return redirect("management:admin_return_request_detail", item_id=item.id)
+
+    note = request.POST.get("admin_note", "")
+    if not note.strip():
+        messages.error(
+            request, "Rejection note is required to refuse an execution request."
+        )
+        return redirect("management:admin_return_request_detail", item_id=item.id)
+
+    item.item_status = "RETURN_REJECTED"
+    item.admin_return_note = note
+    item.save()
+
+    messages.success(request, "Return request has been safely rejected and logged.")
+
+    order = item.order
+    pending_requests = order.items.filter(item_status="RETURN_REQUESTED")
+    if not pending_requests.exists():
+        # Fall back gracefully to original standard delivery state
+        order.order_status = "DELIVERED"
+        order.save()
+
+    return redirect("management:admin_return_request_detail", item_id=item.id)
+
+
+# In your views.py, look at this specific function and change it:
+@staff_member_required
+def admin_return_request_detail(request, item_id):
+    # CHANGE item_status="RETURN_REQUESTED" to an __in lookup or remove the raw state requirement
+    item = get_object_or_404(
+        OrderItem.objects.select_related("order", "order__user", "product_variant"),
+        id=item_id,
+        item_status__in=["RETURN_REQUESTED", "RETURNED", "RETURN_REJECTED"],
+    )
+
+    return render(
+        request,
+        "management/return_request_detail.html",
+        {
+            "item": item,
+            "order": item.order,
+        },
+    )
+
+
+@staff_member_required
+@transaction.atomic
+def approve_full_return(request, order_id):
+
+    order = get_object_or_404(Order, order_id=order_id)
+
+    if order.order_status != "RETURN_REQUESTED":
+        messages.error(request, "Invalid return state.")
+        return redirect("management:admin_order_detail", order_id=order_id)
+
+    total_refund = 0
+
+    for item in order.items.all():
+
+        if item.item_status == "RETURN_REQUESTED":
+
+            item.item_status = "RETURNED"
             item.save()
-            messages.success(request, f"Item status updated successfully.")
 
-    return redirect(request.META.get("HTTP_REFERER", "management:admin_orders_list"))
+            if item.product_variant:
+                ProductVariant.objects.filter(id=item.product_variant.id).update(
+                    stock=F("stock") + item.quantity
+                )
+
+            total_refund += item.subtotal
+
+    wallet, _ = Wallet.objects.get_or_create(user=order.user)
+    wallet.balance += total_refund
+    wallet.save()
+
+    WalletTransaction.objects.create(
+        wallet=wallet,
+        amount=total_refund,
+        transaction_type="CREDIT",
+        purpose="FULL_ORDER_REFUND",
+        order_id=order.order_id,
+        description="Full order return refund",
+    )
+
+    order.order_status = "RETURNED"
+    order.payment_status = "REFUNDED"
+    order.save()
+
+    messages.success(request, "Full order return approved.")
+
+    return redirect("management:admin_order_detail", order_id=order_id)
+
+
+@staff_member_required
+@transaction.atomic
+def reject_full_return(request, order_id):
+
+    order = get_object_or_404(Order, order_id=order_id)
+
+    if order.order_status != "RETURN_REQUESTED":
+        messages.error(request, "Invalid return state.")
+        return redirect("management:admin_order_detail", order_id=order_id)
+
+    order.order_status = "DELIVERED"
+
+    for item in order.items.filter(item_status="RETURN_REQUESTED"):
+        item.item_status = "RETURN_REJECTED"
+        item.save()
+
+    order.save()
+
+    messages.success(request, "Full order return rejected.")
+
+    return redirect("management:admin_order_detail", order_id=order_id)
+
+
+def admin_transactions_list(request):
+    qs = WalletTransaction.objects.select_related("wallet__user").order_by(
+        "-created_at"
+    )
+
+    search = request.GET.get("search", "").strip()
+    type_filter = request.GET.get("transaction_type", "")
+    purpose_filter = request.GET.get("purpose", "")
+
+    if search:
+        qs = qs.filter(
+            Q(wallet__user__email__icontains=search)
+            | Q(wallet__user__username__icontains=search)
+            | Q(razorpay_payment_id__icontains=search)
+            | Q(order_id__icontains=search)
+        )
+
+    if type_filter:
+        qs = qs.filter(transaction_type=type_filter)
+
+    if purpose_filter == "RECHARGE":
+        qs = qs.filter(purpose="RECHARGE")
+    elif purpose_filter == "PURCHASE":
+        qs = qs.filter(purpose="PURCHASE")
+    elif purpose_filter == "ADMIN_ADJUST":
+        qs = qs.filter(purpose="ADMIN_ADJUST")
+    elif purpose_filter == "REFUND_ORDER":
+        qs = qs.filter(purpose="REFUND", description__icontains="cancellation of")
+    elif purpose_filter == "REFUND_ITEM":
+        qs = qs.filter(purpose="REFUND", description__icontains="item cancellation")
+    elif purpose_filter == "REFUND_RETURN":
+        qs = qs.filter(purpose="REFUND", description__icontains="returned")
+
+    paginator = Paginator(qs, 10)
+    page = paginator.get_page(request.GET.get("page"))
+
+    # Custom purpose choices for dropdown — replaces model choices
+    purpose_choices = [
+        ("RECHARGE", "Wallet Recharge"),
+        ("PURCHASE", "Order Payment"),
+        ("REFUND_ORDER", "Order Cancel Refund"),
+        ("REFUND_ITEM", "Item Cancel Refund"),
+        ("REFUND_RETURN", "Return Refund"),
+        ("ADMIN_ADJUST", "Admin Adjustment"),
+    ]
+
+    return render(
+        request,
+        "management/admin_transactions_list.html",
+        {
+            "transactions": page,
+            "search_query": search,
+            "type_filter": type_filter,
+            "purpose_filter": purpose_filter,
+            "type_choices": WalletTransaction.TRANSACTION_TYPE,
+            "purpose_choices": purpose_choices,
+        },
+    )
+
+
+def admin_transaction_detail(request, pk):
+    txn = get_object_or_404(
+        WalletTransaction.objects.select_related("wallet__user"), pk=pk
+    )
+    return render(
+        request,
+        "management/admin_transaction_detail.html",
+        {
+            "txn": txn,
+        },
+    )

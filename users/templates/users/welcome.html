@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html class="dark" lang="en">
     <head>
@@ -41,25 +42,96 @@
 .group:hover .hover-reveal {
     filter: grayscale(0%) brightness(1.1);
     transform: scale(1.05);
+    .animate-toast {
+    animation: slideIn 0.4s ease forwards;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.toast-message {
+    transition: all 0.3s ease;
+}
 }
         </style>
     </head>
     <body class="bg-background-dark text-slate-100 antialiased">
+        <!-- Toast Container -->
+<div id="toast-container"
+     class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 w-96">
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="toast-message
+                        {% if message.tags == 'success' %}
+                            bg-green-500/10 border-green-500 text-green-400
+                        {% elif message.tags == 'error' %}
+                            bg-red-500/10 border-red-500 text-red-400
+                        {% elif message.tags == 'warning' %}
+                            bg-yellow-500/10 border-yellow-500 text-yellow-400
+                        {% else %}
+                            bg-blue-500/10 border-blue-500 text-blue-400
+                        {% endif %}
+                        border backdrop-blur-md px-5 py-4 rounded-xl shadow-xl
+                        animate-toast">
+
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium">
+                        {{ message }}
+                    </span>
+
+                    <button onclick="this.parentElement.parentElement.remove()"
+                            class="ml-4 text-lg opacity-70 hover:opacity-100">
+                        ×
+                    </button>
+                </div>
+
+            </div>
+        {% endfor %}
+    {% endif %}
+
+</div>
+
         <header class="sticky top-0 z-50 w-full border-b border-neutral-border bg-background-dark/90 backdrop-blur-md">
-            <div class="max-w-[1440px] mx-auto px-8 lg:px-12 py-5 flex items-center justify-between">
-                <div class="flex items-center gap-16">
+<div class="w-full px-10 lg:px-16 py-5 flex items-center justify-between">
+                    <div class="flex items-center gap-16">
                     <a class="flex items-center gap-2 group" href="#">
                         <span class="material-symbols-outlined text-primary text-3xl transition-transform group-hover:rotate-12">fluid</span>
                         <h1 class="text-2xl font-extrabold tracking-tighter uppercase">Scentora</h1>
                     </a>
-                    <nav class="hidden lg:flex items-center gap-10">
-                        <a class="text-xs font-bold uppercase tracking-widest text-primary"
-                           href="#">Home</a>
-                        <a class="text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors"
-                           href="#">Shop</a>
-                        <a class="text-xs font-bold uppercase tracking-widest hover:text-primary transition-colors"
-                           href="#">Categories</a>
-                    </nav>
+                    <nav class="hidden lg:flex items-center">
+    <div class="flex items-center gap-1 px-2 py-2 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-xl">
+
+        <a href="{% url 'home' %}"
+           class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300">
+            Home
+        </a>
+
+        <a href="{% url 'shop:product_list' %}"
+           class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300">
+            Shop
+        </a>
+
+        <a href="{% url 'shop:brand_list' %}"
+           class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300">
+            Brands
+        </a>
+
+        <a href="{% url 'shop:category_list' %}"
+           class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300">
+            Category
+        </a>
+
+    </div>
+</nav>
                 </div>
                 <div class="flex items-center gap-6">
                     <div class="hidden md:flex items-center bg-neutral-dark border border-neutral-border rounded-full px-4 py-2 group focus-within:border-primary transition-all">
@@ -124,23 +196,21 @@
         <main>
             <section class="relative h-[85vh] w-full overflow-hidden bg-black">
                 <div id="hero-carousel"
-                     class="absolute inset-0 z-0 flex transition-transform duration-[1200ms] cubic-bezier(0.4, 0, 0.2, 1)">
-                    <div class="min-w-full h-full relative">
-                        <img alt="Luxury Gold"
-                             class="w-full h-full object-cover"
-                             src="https://images.unsplash.com/photo-1544468266-6a8948003cd7?q=80&w=1174&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
-                    </div>
-                    <div class="min-w-full h-full relative">
-                        <img alt="Modern Noir"
-                             class="w-full h-full object-cover"
-                             src="https://images.unsplash.com/photo-1611255680915-114e3414c085?q=80&w=1172&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
-                    </div>
-                    <div class="min-w-full h-full relative">
-                        <img alt="Glass Essence"
-                             class="w-full h-full object-cover"
-                             src="https://images.unsplash.com/photo-1602070945737-067cfd04174c?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" />
-                    </div>
-                </div>
+     class="absolute inset-0 z-0 flex transition-transform duration-[1200ms]">
+
+{% for category in hero_categories %}
+<div class="min-w-full h-full relative">
+    <img
+        src="{{ category.category_image.url }}"
+        alt="{{ category.name }}"
+        class="w-full h-full object-cover"
+    >
+</div>
+{% endfor %}
+
+</div>
+
+                
                 <div class="absolute inset-0 z-10 hero-gradient"></div>
                 <div class="relative z-20 h-full max-w-[1440px] mx-auto px-8 lg:px-12 flex items-center">
                     <div class="max-w-2xl space-y-8">
@@ -158,7 +228,10 @@
                         </p>
                         <div class="flex flex-wrap gap-6 pt-4">
                             <button class="bg-primary text-background-dark font-black uppercase tracking-widest text-[11px] px-12 py-5 rounded-sm hover:brightness-110 transition-all">
-                                Shop Now
+                                <a href="{% url 'shop:product_list' %}"
+   class="bg-primary text-background-dark font-black uppercase tracking-widest text-[11px] px-12 py-5 rounded-sm hover:brightness-110 transition-all">
+    Shop Now
+</a>
                             </button>
                             <button class="border border-white/20 text-white font-bold uppercase tracking-widest text-[11px] px-12 py-5 rounded-sm hover:bg-white hover:text-black transition-all">
                                 The Collection
@@ -167,37 +240,66 @@
                     </div>
                 </div>
                 <div id="carousel-dots"
-                     class="absolute bottom-10 right-12 z-30 flex gap-3">
-                    <div class="w-1.5 h-1.5 rounded-full bg-primary cursor-pointer transition-all duration-500 scale-125"
-                         onclick="goToSlide(0)"></div>
-                    <div class="w-1.5 h-1.5 rounded-full bg-white/20 cursor-pointer transition-all duration-500"
-                         onclick="goToSlide(1)"></div>
-                    <div class="w-1.5 h-1.5 rounded-full bg-white/20 cursor-pointer transition-all duration-500"
-                         onclick="goToSlide(2)"></div>
-                </div>
+     class="absolute bottom-10 right-12 z-30 flex gap-3">
+
+    {% for image in hero_images %}
+    <div
+        class="w-1.5 h-1.5 rounded-full {% if forloop.first %}bg-primary scale-125{% else %}bg-white/20{% endif %} cursor-pointer transition-all duration-500"
+        onclick="goToSlide({{ forloop.counter0 }})">
+    </div>
+    {% endfor %}
+
+</div>
+                
             </section>
             <script>
-        let currentSlide = 0;
-        const slides = document.querySelectorAll('#hero-carousel > div');
-        const dots = document.querySelectorAll('.z-30 > div');
+document.addEventListener('DOMContentLoaded', function () {
 
-        function goToSlide(n) {
-            currentSlide = n;
-            document.getElementById('hero-carousel').style.transform = `translateX(-${n * 100}%)`;
-            
-            // Update dots
-            dots.forEach((dot, index) => {
-                dot.classList.toggle('bg-primary', index === n);
-                dot.classList.toggle('bg-white/20', index !== n);
-            });
-        }
+    let currentSlide = 0;
 
-        // Auto-play every 5 seconds
+    const carousel = document.getElementById('hero-carousel');
+    const slides = document.querySelectorAll('#hero-carousel > div');
+    const dots = document.querySelectorAll('#carousel-dots > div');
+
+    function goToSlide(n) {
+
+        if (!carousel || slides.length === 0) return;
+
+        currentSlide = n;
+
+        carousel.style.transform =
+            `translateX(-${n * 100}%)`;
+
+        dots.forEach((dot, index) => {
+
+            if (index === n) {
+                dot.classList.add('bg-primary');
+                dot.classList.remove('bg-white/20');
+            } else {
+                dot.classList.remove('bg-primary');
+                dot.classList.add('bg-white/20');
+            }
+
+        });
+    }
+
+    window.goToSlide = goToSlide;
+
+    if (slides.length > 1) {
+
         setInterval(() => {
-            currentSlide = (currentSlide + 1) % slides.length;
+
+            currentSlide =
+                (currentSlide + 1) % slides.length;
+
             goToSlide(currentSlide);
+
         }, 5000);
-            </script>
+
+    }
+
+});
+</script>
             <section class="bg-neutral-dark border-b border-neutral-border py-16">
                 <div class="max-w-[1440px] mx-auto px-8 lg:px-12">
                     <div class="grid grid-cols-2 lg:grid-cols-4 gap-12">
@@ -244,96 +346,91 @@
                        href="#">View Gallery</a>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-                    <div class="group space-y-6">
-                        <div class="relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-sm">
-                            <img class="w-full h-full object-cover hover-reveal"
-                                 src="https://www.myperfumeshop.in/cdn/shop/products/lancome-tresor-midnight-rose-leau-de-parfum-perfume-cologne-943209.jpg?v=1704917875&width=1200" />
-                            <button class="absolute top-4 right-4 p-2 bg-black/40 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span class="material-symbols-outlined text-sm">favorite</span>
-                            </button>
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-[10px] text-primary font-bold uppercase tracking-widest">Noir Series</p>
-                            <h3 class="text-lg font-bold tracking-tight">Midnight Rose</h3>
-                            <p class="text-slate-500 text-sm font-light">$210.00</p>
-                        </div>
-                    </div>
-                    <div class="group space-y-6 lg:translate-y-12">
-                        <div class="relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-sm">
-                            <img class="w-full h-full object-cover hover-reveal"
-                                 src="https://bellavitaorganic.com/cdn/shop/files/OUDGold-04_1c7adc0f-fab0-414b-b717-746089a3b5fd.jpg?v=1767772699&width=1000" />
-                            <button class="absolute top-4 right-4 p-2 bg-black/40 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span class="material-symbols-outlined text-sm">favorite</span>
-                            </button>
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-[10px] text-primary font-bold uppercase tracking-widest">Royal Collection</p>
-                            <h3 class="text-lg font-bold tracking-tight">Golden Oud</h3>
-                            <p class="text-slate-500 text-sm font-light">$185.00</p>
-                        </div>
-                    </div>
-                    <div class="group space-y-6">
-                        <div class="relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-sm">
-                            <img class="w-full h-full object-cover hover-reveal"
-                                 src="https://www.perfumeclique.ca/cdn/shop/files/AzureBreeze_2_1800x1800.png?v=1747684438" />
-                            <button class="absolute top-4 right-4 p-2 bg-black/40 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span class="material-symbols-outlined text-sm">favorite</span>
-                            </button>
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-[10px] text-primary font-bold uppercase tracking-widest">Elements</p>
-                            <h3 class="text-lg font-bold tracking-tight">Azure Breeze</h3>
-                            <p class="text-slate-500 text-sm font-light">$145.00</p>
-                        </div>
-                    </div>
-                    <div class="group space-y-6 lg:translate-y-12">
-                        <div class="relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-sm">
-                            <img class="w-full h-full object-cover hover-reveal"
-                                 src="https://www.kyt-mv.com/web/image/product.product/48642/image_1024/KYT%20PERFUME%20VELVET%20MUSK%20%28DIAMOND%29%20%28OIL-6ML%29?unique=6a696ae" />
-                            <button class="absolute top-4 right-4 p-2 bg-black/40 backdrop-blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span class="material-symbols-outlined text-sm">favorite</span>
-                            </button>
-                        </div>
-                        <div class="space-y-1">
-                            <p class="text-[10px] text-primary font-bold uppercase tracking-widest">Private Blend</p>
-                            <h3 class="text-lg font-bold tracking-tight">Velvet Musk</h3>
-                            <p class="text-slate-500 text-sm font-light">$290.00</p>
-                        </div>
-                    </div>
-                </div>
+
+    {% for product in featured_products %}
+
+    <div class="group space-y-6">
+
+        <div class="relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-sm">
+
+            {% with image=product.images.first %}
+            {% if image %}
+            <img
+                src="{{ image.image.url }}"
+                alt="{{ product.name }}"
+                class="w-full h-full object-cover hover-reveal"
+            >
+            {% endif %}
+            {% endwith %}
+
+            
+
+        </div>
+
+        <div class="space-y-1">
+
+            {% if product.brand %}
+            <p class="text-[10px] text-primary font-bold uppercase tracking-widest">
+                {{ product.brand.name }}
+            </p>
+            {% endif %}
+
+            <h3 class="text-lg font-bold tracking-tight">
+                {{ product.name }}
+            </h3>
+
+            {% with variant=product.variants.first %}
+            {% if variant %}
+            <p class="text-slate-500 text-sm font-light">
+                ₹{{ variant.get_price }}
+            </p>
+            {% endif %}
+            {% endwith %}
+
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+</div>
+                
             </section>
             <section class="py-32 bg-[#050505]">
                 <div class="max-w-[1440px] mx-auto px-8 lg:px-12">
                     <h2 class="text-center text-xs font-bold uppercase tracking-[0.5em] text-slate-500 mb-16">The Departments</h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <a class="group relative h-[600px] overflow-hidden" href="#">
-                            <img class="w-full h-full object-cover hover-reveal"
-                                 src="https://assets.myntassets.com/w_360,q_50,,dpr_2,fl_progressive,f_webp/assets/images/2026/JANUARY/22/foUx9mlZ_b8ce87725d264dbfbbec9db71458c188.jpg" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
-                            <div class="absolute bottom-10 left-10 space-y-2">
-                                <h3 class="text-2xl font-bold tracking-tight">For Him</h3>
-                                <p class="text-primary text-[10px] font-bold uppercase tracking-widest">Explore Collection</p>
-                            </div>
-                        </a>
-                        <a class="group relative h-[600px] overflow-hidden" href="#">
-                            <img class="w-full h-full object-cover hover-reveal"
-                                 src="https://www.frenchessence.com/cdn/shop/files/30ML-CHARM-2.jpg?v=1758783530&width=1445" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
-                            <div class="absolute bottom-10 left-10 space-y-2">
-                                <h3 class="text-2xl font-bold tracking-tight">For Her</h3>
-                                <p class="text-primary text-[10px] font-bold uppercase tracking-widest">Explore Collection</p>
-                            </div>
-                        </a>
-                        <a class="group relative h-[600px] overflow-hidden" href="#">
-                            <img class="w-full h-full object-cover hover-reveal"
-                                 src="https://images-static.nykaa.com/media/catalog/product/4/d/4d1e177NISAR00000110ab_ab1.jpg?tr=w-500" />
-                            <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
-                            <div class="absolute bottom-10 left-10 space-y-2">
-                                <h3 class="text-2xl font-bold tracking-tight">Unisex</h3>
-                                <p class="text-primary text-[10px] font-bold uppercase tracking-widest">Explore Collection</p>
-                            </div>
-                        </a>
-                    </div>
+
+    {% for category in categories %}
+
+    <a class="group relative h-[600px] overflow-hidden"
+      href="{% url 'shop:category_list' %}">
+
+        {% if category.category_image %}
+        <img
+            src="{{ category.category_image.url }}"
+            alt="{{ category.name }}"
+            class="w-full h-full object-cover hover-reveal"
+        >
+        {% endif %}
+
+        <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
+
+        <div class="absolute bottom-10 left-10 space-y-2">
+            <h3 class="text-2xl font-bold tracking-tight">
+                {{ category.name }}
+            </h3>
+
+            <p class="text-primary text-[10px] font-bold uppercase tracking-widest">
+                Explore Collection
+            </p>
+        </div>
+
+    </a>
+
+    {% endfor %}
+
+</div>
                 </div>
             </section>
             <section class="py-32">
@@ -425,5 +522,24 @@
                 </div>
             </div>
         </footer>
+        <script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const toasts = document.querySelectorAll('.toast-message');
+
+    toasts.forEach((toast) => {
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+
+        }, 4000);
+    });
+
+});
+</script>
     </body>
 </html>

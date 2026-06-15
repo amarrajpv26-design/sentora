@@ -267,41 +267,68 @@
                                 </p>
                             </div>
 
-                            <div class="space-y-5">
+                            <div class="mt-6 border border-white/10 rounded-[2rem] bg-white/[0.02] p-6">
+                                <p class="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-4 font-bold">
+                                    Select Payment Method
+                                </p>
 
-                                <label class="block cursor-pointer group">
-                                    <input type="radio" name="payment_method" value="COD" checked class="hidden peer" />
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-                                    <div class="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] backdrop-blur-2xl p-6 sm:p-7 peer-checked:border-white peer-checked:bg-white/[0.08] transition-all duration-500 hover:bg-white/[0.06] hover:border-white/20 hover:-translate-y-1 shadow-[0_15px_60px_rgba(0,0,0,0.35)]">
-
-                                        <div class="absolute inset-0 opacity-0 peer-checked:opacity-100 transition duration-500 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.08),transparent_45%)]"></div>
-
-                                        <div class="relative flex items-center justify-between gap-6">
-
-                                            <div class="flex items-center gap-5">
-
-                                                <div class="w-14 h-14 rounded-2xl border border-white/10 bg-white/[0.06] flex items-center justify-center text-2xl shadow-inner">
-                                                    💵
-                                                </div>
-
-                                                <div>
-                                                    <h3 class="font-black text-xl tracking-tight">
-                                                        Cash on Delivery
-                                                    </h3>
-
-                                                    <p class="text-sm text-white/45 mt-2 leading-relaxed">
-                                                        Pay securely after your order arrives at your doorstep.
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div class="w-7 h-7 rounded-full border border-white flex items-center justify-center bg-white/5">
-                                                <div class="w-3 h-3 rounded-full bg-white shadow-[0_0_20px_rgba(255,255,255,0.7)]"></div>
-                                            </div>
+                                    <!-- COD -->
+                                    <label class="relative flex items-center gap-4 p-4 rounded-2xl border border-white/10 bg-white/[0.02] cursor-pointer hover:bg-white/[0.05] transition-all duration-300">
+                                        <input
+                                            type="radio"
+                                            name="payment_method"
+                                            value="COD"
+                                            checked
+                                            class="w-5 h-5 rounded border-white/20 bg-black accent-white"
+                                        >
+                                        <div>
+                                            <p class="text-sm font-semibold text-white/90">COD</p>
+                                            <p class="text-[11px] text-white/40">Pay on delivery</p>
                                         </div>
-                                    </div>
-                                </label>
+                                    </label>
 
+                                    <!-- ONLINE -->
+                                    <label class="relative flex items-center gap-4 p-4 rounded-2xl border border-white/10 bg-white/[0.02] cursor-pointer hover:bg-white/[0.05] transition-all duration-300">
+                                        <input
+                                            type="radio"
+                                            name="payment_method"
+                                            value="ONLINE"
+                                            class="w-5 h-5 rounded border-white/20 bg-black accent-white"
+                                        >
+                                        <div>
+                                            <p class="text-sm font-semibold text-white/90">Online</p>
+                                            <p class="text-[11px] text-white/40">Cards or UPI</p>
+                                        </div>
+                                    </label>
+
+                                    <!-- WALLET -->
+                                    <label class="relative flex items-center gap-4 p-4 rounded-2xl border border-white/10 bg-white/[0.02] cursor-pointer hover:bg-white/[0.05] transition-all duration-300">
+                                        <input
+                                            type="radio"
+                                            name="payment_method"
+                                            value="WALLET"
+                                            class="w-5 h-5 rounded border-white/20 bg-black accent-white"
+                                        >
+                                        <div>
+                                            <p class="text-sm font-semibold text-white/90">Wallet</p>
+                                            {% if wallet_sufficient %}
+                                            <p class="text-[11px] text-green-400 font-medium">
+                                                Balance: ₹{{ wallet_balance }}
+                                                ✓ Sufficient Balance
+                                            </p>
+                                            {% else %}
+                                            <p class="text-[11px] text-red-400 font-medium">
+                                                Balance: ₹{{ wallet_balance }}<br>
+                                                Need ₹{{ wallet_shortfall }} more<br>
+                                                ✗ Insufficient Balance
+                                            </p>
+                                            {% endif %}
+                                        </div>
+                                    </label>
+
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -431,45 +458,73 @@
                                 {% with mrp=mrp|add:item.mrp_total %}{% endwith %}
                                 {% endfor %}
 
+                                <!-- Coupon Section -->
+                                <div class="mb-6">
+                                    {% if coupon %}
+                                    <div id="coupon-applied-banner" class="p-4 rounded-2xl border border-green-500/20 bg-green-500/10 flex items-center justify-between gap-4">
+                                        <div class="min-w-0">
+                                            <p class="text-green-400 font-bold font-mono tracking-wider text-sm truncate">{{ coupon.code }}</p>
+                                            <p class="text-green-400/70 text-xs mt-1">Coupon applied — you saved ₹{{ coupon_discount }}</p>
+                                        </div>
+                                        <button type="button" id="remove-coupon-btn"
+                                                class="text-red-400 text-[11px] font-bold uppercase tracking-wider hover:text-red-300 transition-colors shrink-0">
+                                            Remove
+                                        </button>
+                                    </div>
+                                    {% else %}
+                                    <div class="flex gap-3">
+                                        <input
+                                            type="text"
+                                            id="coupon-code-input"
+                                            placeholder="Enter Coupon Code"
+                                            class="flex-1 h-12 rounded-xl bg-white/[0.04] border border-white/10 px-4 text-white outline-none uppercase placeholder:normal-case placeholder:text-white/30"
+                                        >
+                                        <button type="button" id="apply-coupon-btn"
+                                                class="px-5 rounded-xl bg-white text-black font-semibold text-sm hover:bg-white/90 transition-colors">
+                                            Apply
+                                        </button>
+                                    </div>
+                                    <button type="button" id="view-coupons-btn"
+                                            class="mt-3 text-xs uppercase tracking-[0.25em] text-white/40 hover:text-primary transition-colors flex items-center gap-2">
+                                        <span>🎟</span> View Available Coupons
+                                    </button>
+                                    {% endif %}
+
+                                    <p id="coupon-message" class="text-xs mt-3 hidden"></p>
+                                </div>
+
                                 <div class="space-y-5">
 
                                     <!-- MRP -->
                                     <div class="flex items-center justify-between py-1">
                                         <p class="text-white/50">MRP Total</p>
-
-                                        <p class="font-semibold text-white/80">
-                                            ₹{{ mrp_total }}
-                                        </p>
+                                        <p class="font-semibold text-white/80">₹{{ mrp_total }}</p>
                                     </div>
 
                                     <!-- Discount -->
                                     <div class="flex items-center justify-between py-1">
                                         <p class="text-white/50">Discount</p>
-
-                                        <p class="font-bold text-green-400">
-                                            - ₹{{ discount }}
-                                        </p>
+                                        <p class="font-bold text-green-400">- ₹{{ discount }}</p>
                                     </div>
 
                                     <!-- Subtotal -->
                                     <div class="flex items-center justify-between py-1">
                                         <p class="text-white/50">Subtotal</p>
-
-                                        <p class="font-semibold text-white/80">
-                                            ₹{{ subtotal }}
-                                        </p>
+                                        <p class="font-semibold text-white/80">₹{{ subtotal }}</p>
                                     </div>
+
+                                    {% if coupon_discount > 0 %}
+                                    <div class="flex items-center justify-between py-1">
+                                        <p class="text-white/50">Coupon Discount</p>
+                                        <p class="font-bold text-green-400">- ₹{{ coupon_discount }}</p>
+                                    </div>
+                                    {% endif %}
 
                                     <!-- Shipping -->
                                     <div class="flex items-center justify-between py-1">
                                         <p class="text-white/50">Shipping</p>
-
                                         <p class="font-semibold text-white/80">
-                                            {% if shipping == 0 %}
-                                            Free
-                                            {% else %}
-                                            ₹{{ shipping }}
-                                            {% endif %}
+                                            {% if shipping == 0 %}Free{% else %}₹{{ shipping }}{% endif %}
                                         </p>
                                     </div>
 
@@ -479,17 +534,12 @@
                                         <div class="absolute inset-0 bg-gradient-to-r from-white/[0.04] to-transparent"></div>
 
                                         <div class="relative flex items-end justify-between gap-5">
-
                                             <div>
                                                 <p class="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3">
                                                     Grand Total
                                                 </p>
-
-                                                <h3 class="text-white/70">
-                                                    Inclusive of all taxes
-                                                </h3>
+                                                <h3 class="text-white/70">Inclusive of all taxes</h3>
                                             </div>
-
                                             <h3 class="text-4xl sm:text-5xl font-black tracking-tight">
                                                 ₹{{ final_total }}
                                             </h3>
@@ -506,9 +556,7 @@
 
                                     <span class="relative flex items-center justify-center gap-3">
                                         <span>Place Order</span>
-                                        <span class="group-hover:translate-x-1 transition duration-300">
-                                            →
-                                        </span>
+                                        <span class="group-hover:translate-x-1 transition duration-300">→</span>
                                     </span>
                                 </button>
                             </div>
@@ -533,13 +581,10 @@
         <div class="relative flex items-center justify-between px-5 py-4 border-b border-white/10">
 
             <div>
-                <p id="modalSubHeading"
-                   class="text-[9px] uppercase tracking-[0.45em] text-primary font-black">
+                <p id="modalSubHeading" class="text-[9px] uppercase tracking-[0.45em] text-primary font-black">
                     SHIPPING ADDRESS
                 </p>
-
-                <h2 id="modalHeading"
-                    class="text-3xl font-black tracking-tight mt-3">
+                <h2 id="modalHeading" class="text-3xl font-black tracking-tight mt-3">
                     Add Address
                 </h2>
             </div>
@@ -551,109 +596,58 @@
             </button>
         </div>
 
-        <form id="addressForm"
-      method="POST"
-      action="{% url 'add_address' %}"
-      class="relative p-5">
+        <form id="addressForm" method="POST" action="{% url 'add_address' %}" class="relative p-5">
             <input type="hidden" name="next" value="{{ request.path }}" />
             {% csrf_token %}
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
                 <div>
-                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
-                        Full Name
-                    </label>
-
-                    <input type="text"
-                           name="full_name"
-                           id="full_name"
-                           required
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">Full Name</label>
+                    <input type="text" name="full_name" id="full_name" required
                            class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
                 </div>
 
                 <div>
-                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
-                        Phone Number
-                    </label>
-
-                    <input type="text"
-                           name="phone_number"
-                           id="phone_number"
-                           maxlength="10"
-                           required
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">Phone Number</label>
+                    <input type="text" name="phone_number" id="phone_number" maxlength="10" required
                            class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
-                        Address Line 1
-                    </label>
-
-                    <input type="text"
-                           name="address_line_1"
-                           id="address_line_1"
-                           required
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">Address Line 1</label>
+                    <input type="text" name="address_line_1" id="address_line_1" required
                            class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
                 </div>
 
                 <div class="md:col-span-2">
-                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
-                        Apartment / Suite
-                    </label>
-
-                    <input type="text"
-                           name="address_line_2"
-                           id="address_line_2"
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">Apartment / Suite</label>
+                    <input type="text" name="address_line_2" id="address_line_2"
                            class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
                 </div>
 
                 <div>
-                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
-                        City
-                    </label>
-
-                    <input type="text"
-                           name="city"
-                           id="city"
-                           required
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">City</label>
+                    <input type="text" name="city" id="city" required
                            class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
                 </div>
 
                 <div>
-                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
-                        State
-                    </label>
-
-                    <input type="text"
-                           name="state"
-                           id="state"
-                           required
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">State</label>
+                    <input type="text" name="state" id="state" required
                            class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
                 </div>
 
                 <div>
-                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
-                        Pincode
-                    </label>
-
-                    <input type="text"
-                           name="pincode"
-                           id="pincode"
-                           maxlength="6"
-                           required
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">Pincode</label>
+                    <input type="text" name="pincode" id="pincode" maxlength="6" required
                            class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
                 </div>
 
                 <div>
-                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">
-                        Address Type
-                    </label>
-
-                    <select name="address_type"
-                            id="address_type"
+                    <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">Address Type</label>
+                    <select name="address_type" id="address_type"
                             class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-sm text-white outline-none focus:border-primary transition-all duration-300 shadow-inner">
-
                         <option value="HOME">Home</option>
                         <option value="WORK">Work</option>
                         <option value="OTHER">Other</option>
@@ -662,40 +656,66 @@
             </div>
 
             <div class="flex items-center gap-4 mt-7 p-4 rounded-2xl border border-white/10 bg-white/[0.03]">
-
-                <input type="checkbox"
-                       name="is_default"
-                       id="is_default"
+                <input type="checkbox" name="is_default" id="is_default"
                        class="w-5 h-5 rounded border-white/20 bg-black accent-white" />
-
-                <label for="is_default"
-                       class="text-sm text-white/70 font-medium">
-                    Set as default address
-                </label>
+                <label for="is_default" class="text-sm text-white/70 font-medium">Set as default address</label>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-4 mt-8">
-
-                <button type="button"
-                        onclick="closeAddressModal()"
+                <button type="button" onclick="closeAddressModal()"
                         class="flex-1 h-14 rounded-2xl border border-white/10 bg-white/[0.03] text-white/70 hover:bg-white/[0.06] hover:text-white transition-all duration-300 font-semibold">
                     Cancel
                 </button>
-
-                <button type="submit"
-                        id="modalSubmitBtn"
+                <button type="submit" id="modalSubmitBtn"
                         class="group relative overflow-hidden flex-1 h-14 rounded-2xl bg-white text-black font-black hover:scale-[1.02] transition-all duration-500 shadow-[0_20px_60px_rgba(255,255,255,0.15)]">
-
                     <span class="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent translate-x-[-120%] group-hover:translate-x-[120%] transition duration-1000"></span>
-
-                    <span class="relative">
-                        Save Address
-                    </span>
+                    <span class="relative">Save Address</span>
                 </button>
             </div>
         </form>
     </div>
 </div>
+
+<!-- AVAILABLE COUPONS MODAL -->
+<div id="couponsModal"
+     class="hidden fixed inset-0 z-[120] bg-black/80 backdrop-blur-2xl grid place-items-center p-4">
+
+    <div class="relative w-full max-w-lg rounded-[2rem] border border-white/10 bg-[#090909]/95 backdrop-blur-3xl shadow-[0_30px_100px_rgba(0,0,0,0.65)] overflow-hidden max-h-[85vh] flex flex-col">
+
+        <div class="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-transparent pointer-events-none"></div>
+
+        <div class="relative flex items-center justify-between px-6 py-5 border-b border-white/10">
+            <div>
+                <p class="text-[9px] uppercase tracking-[0.45em] text-primary font-black">SAVINGS</p>
+                <h2 class="text-2xl font-black tracking-tight mt-2">Available Coupons</h2>
+            </div>
+
+            <button type="button"
+                    onclick="closeCouponsModal()"
+                    class="group w-11 h-11 rounded-2xl border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-white/50 hover:text-white transition-all duration-300 flex items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.35)] hover:rotate-90">
+                ✕
+            </button>
+        </div>
+
+        <div id="coupons-modal-banner" class="hidden relative px-6 pt-4 text-xs text-amber-400/80"></div>
+
+        <div id="coupons-modal-body" class="relative px-6 py-5 space-y-4 overflow-y-auto">
+            <p class="text-white/40 text-sm text-center py-10">Loading coupons...</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     Hidden form for Razorpay payment submission
+     Placed OUTSIDE address modal, at page root
+     ═══════════════════════════════════════════ -->
+<form id="rzp-hidden-form" method="POST" action="{% url 'payment_verify' %}">
+    {% csrf_token %}
+    <input type="hidden" name="order_id"            id="rzp_order_id_val">
+    <input type="hidden" name="razorpay_payment_id" id="rzp_payment_id">
+    <input type="hidden" name="razorpay_order_id"   id="rzp_order_id">
+    <input type="hidden" name="razorpay_signature"  id="rzp_signature">
+</form>
 
 <script>
     const modal = document.getElementById("addressModal");
@@ -773,41 +793,227 @@
         const state = document.getElementById("state").value.trim();
         const pincode = pincodeInput.value.trim();
 
-        if (fullName.length < 3) {
-            alert("Full name must contain at least 3 characters");
-            e.preventDefault();
+        if (fullName.length < 3) { alert("Full name must contain at least 3 characters"); e.preventDefault(); return; }
+        if (!/^[6-9]\d{9}$/.test(phone)) { alert("Enter a valid 10 digit phone number"); e.preventDefault(); return; }
+        if (address1.length < 5) { alert("Address is too short"); e.preventDefault(); return; }
+        if (city.length < 2) { alert("Enter a valid city"); e.preventDefault(); return; }
+        if (state.length < 2) { alert("Enter a valid state"); e.preventDefault(); return; }
+        if (!/^\d{6}$/.test(pincode)) { alert("Pincode must be 6 digits"); e.preventDefault(); return; }
+    });
+
+    // ---------------- Coupon: apply / remove (AJAX) ----------------
+    const couponMessage = document.getElementById("coupon-message");
+    const couponSubtotal = "{{ subtotal }}";
+
+    function showCouponMessage(text, isError) {
+        if (!couponMessage) return;
+        couponMessage.textContent = text;
+        couponMessage.classList.remove("hidden", "text-red-400", "text-green-400");
+        couponMessage.classList.add(isError ? "text-red-400" : "text-green-400");
+    }
+
+    async function applyCoupon(code) {
+        if (!code) {
+            showCouponMessage("Please enter a coupon code.", true);
             return;
         }
 
-        if (!/^[6-9]\d{9}$/.test(phone)) {
-            alert("Enter a valid 10 digit phone number");
-            e.preventDefault();
-            return;
-        }
+        try {
+            const response = await fetch("{% url 'apply_coupon' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+                body: `coupon_code=${encodeURIComponent(code)}&subtotal=${encodeURIComponent(couponSubtotal)}`,
+            });
 
-        if (address1.length < 5) {
-            alert("Address is too short");
-            e.preventDefault();
-            return;
-        }
+            const data = await response.json();
 
-        if (city.length < 2) {
-            alert("Enter a valid city");
-            e.preventDefault();
-            return;
+            if (data.success) {
+                window.location.reload();
+            } else {
+                showCouponMessage(data.message, true);
+            }
+        } catch (err) {
+            showCouponMessage("Something went wrong. Please try again.", true);
         }
+    }
 
-        if (state.length < 2) {
-            alert("Enter a valid state");
-            e.preventDefault();
-            return;
-        }
+    const applyCouponBtn = document.getElementById("apply-coupon-btn");
+    const couponCodeInput = document.getElementById("coupon-code-input");
 
-        if (!/^\d{6}$/.test(pincode)) {
-            alert("Pincode must be 6 digits");
-            e.preventDefault();
-            return;
+    if (applyCouponBtn && couponCodeInput) {
+        applyCouponBtn.addEventListener("click", () => applyCoupon(couponCodeInput.value.trim()));
+
+        couponCodeInput.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                applyCoupon(couponCodeInput.value.trim());
+            }
+        });
+
+        couponCodeInput.addEventListener("input", function(e) {
+            e.target.value = e.target.value.toUpperCase();
+        });
+    }
+
+    const removeCouponBtn = document.getElementById("remove-coupon-btn");
+    if (removeCouponBtn) {
+        removeCouponBtn.addEventListener("click", async function() {
+            try {
+                const response = await fetch("{% url 'remove_coupon' %}", {
+                    method: "POST",
+                    headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    showCouponMessage(data.message, true);
+                }
+            } catch (err) {
+                showCouponMessage("Something went wrong. Please try again.", true);
+            }
+        });
+    }
+
+    // ---------------- Available Coupons Modal ----------------
+    const couponsModal = document.getElementById("couponsModal");
+    const couponsModalBody = document.getElementById("coupons-modal-body");
+    const couponsModalBanner = document.getElementById("coupons-modal-banner");
+    const viewCouponsBtn = document.getElementById("view-coupons-btn");
+
+    function closeCouponsModal() {
+        couponsModal.classList.add("hidden");
+        couponsModal.classList.remove("flex");
+        document.body.style.overflow = "auto";
+    }
+
+    if (viewCouponsBtn) {
+        viewCouponsBtn.addEventListener("click", async function() {
+            couponsModal.classList.remove("hidden");
+            couponsModal.classList.add("flex");
+            document.body.style.overflow = "hidden";
+            couponsModalBanner.classList.add("hidden");
+            couponsModalBody.innerHTML = '<p class="text-white/40 text-sm text-center py-10">Loading coupons...</p>';
+
+            try {
+                const response = await fetch(`{% url 'get_available_coupons' %}?subtotal=${encodeURIComponent(couponSubtotal)}`);
+                const data = await response.json();
+
+                if (!data.success || data.coupons.length === 0) {
+                    couponsModalBody.innerHTML = '<p class="text-white/40 text-sm text-center py-10">No coupons available right now.</p>';
+                    return;
+                }
+
+                if (data.has_applied_coupon) {
+                    couponsModalBanner.textContent = "Remove your current coupon to apply a different one.";
+                    couponsModalBanner.classList.remove("hidden");
+                }
+
+                couponsModalBody.innerHTML = data.coupons.map(function(c) {
+                    const canApply = c.eligible && !data.has_applied_coupon;
+                    const minPurchase = parseFloat(c.min_purchase) > 0
+                        ? `<p class="text-white/30 text-[11px] mt-1">Min. order ₹${c.min_purchase}</p>`
+                        : "";
+                    const lockedNote = !c.eligible
+                        ? `<p class="text-amber-400/70 text-[11px] mt-3">Add ₹${c.shortfall} more to unlock this coupon</p>`
+                        : "";
+                    const description = c.description
+                        ? `<p class="text-white/50 text-xs mt-1">${c.description}</p>`
+                        : "";
+
+                    return `
+                        <div class="relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="min-w-0">
+                                    <p class="font-mono font-black text-white tracking-wider text-base">${c.code}</p>
+                                    ${description}
+                                    <p class="text-primary text-sm font-bold mt-2">${c.discount_label}</p>
+                                    ${minPurchase}
+                                </div>
+                                <button type="button"
+                                        class="shrink-0 px-4 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all ${canApply ? 'bg-white text-black hover:bg-white/90' : 'bg-white/5 text-white/30 cursor-not-allowed'}"
+                                        ${canApply ? `onclick="applyCoupon('${c.code}'); closeCouponsModal();"` : "disabled"}>
+                                    ${c.eligible ? 'Apply' : 'Locked'}
+                                </button>
+                            </div>
+                            ${lockedNote}
+                        </div>
+                    `;
+                }).join("");
+            } catch (err) {
+                couponsModalBody.innerHTML = '<p class="text-red-400 text-sm text-center py-10">Failed to load coupons.</p>';
+            }
+        });
+    }
+
+    couponsModal.addEventListener("click", function(e) {
+        if (e.target === couponsModal) closeCouponsModal();
+    });
+
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape" && !couponsModal.classList.contains("hidden")) {
+            closeCouponsModal();
         }
     });
+
+    {% if trigger_payment %}
+const rzpScript = document.createElement('script');
+rzpScript.src = 'https://checkout.razorpay.com/v1/checkout.js';
+
+rzpScript.onload = function() {
+    const options = {
+        key: "{{ razorpay_key_id }}",
+        amount: "{{ razorpay_amount }}",
+        currency: "INR",
+        name: "Scentora",
+        description: "Luxury Fragrance Purchase",
+        order_id: "{{ razorpay_order_id }}",
+
+        // For card/UPI-in-modal: handler fires and submits hidden form
+        handler: function(response) {
+            document.getElementById("rzp_order_id_val").value = "{{ order.order_id }}";
+            document.getElementById("rzp_payment_id").value   = response.razorpay_payment_id;
+            document.getElementById("rzp_order_id").value     = response.razorpay_order_id;
+            document.getElementById("rzp_signature").value    = response.razorpay_signature;
+            document.getElementById("rzp-hidden-form").submit();
+        },
+
+        // For netbanking/UPI-redirect: Razorpay POSTs back here after bank redirect
+        callback_url: "http://127.0.0.1:8000/checkout/payment/verify/?order_id={{ order.order_id }}",
+        redirect: true,
+
+        prefill: {
+            name: "{{ order.full_name }}",
+            contact: "{{ order.phone_number }}"
+        },
+
+        theme: {
+            color: "#090909"
+        },
+
+        modal: {
+            ondismiss: function() {
+                window.location.href = "/checkout/payment/failed/?order_id={{ order.order_id }}";
+            }
+        }
+    };
+
+    const rzp = new Razorpay(options);
+
+    rzp.on('payment.failed', function(response) {
+        window.location.href = "/checkout/payment/failed/?order_id={{ order.order_id }}";
+    });
+
+    rzp.open();
+};
+
+document.head.appendChild(rzpScript);
+{% endif %}
 </script>
+
 {% endblock %}

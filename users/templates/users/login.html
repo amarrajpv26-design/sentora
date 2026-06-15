@@ -1,31 +1,11 @@
-<!DOCTYPE html>
-<html class="dark" lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-        <title>Scentora | Luxury Access</title>
-        <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+{% extends 'users/index.html' %}
+{% load socialaccount %}
+
+{% block content %}
         <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&family=Manrope:wght@200;300;400;600&display=swap"
               rel="stylesheet" />
         <link rel="stylesheet"
               href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
-        <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#ecb613",
-                        "background-dark": "#000000",
-                    },
-                    fontFamily: {
-                        "display": ["Manrope", "sans-serif"],
-                        "serif": ["Cormorant Garamond", "serif"],
-                    },
-                },
-            },
-        }
-        </script>
         <style>
         @keyframes luxury-entrance {
             0% { letter-spacing: 1.2em; opacity: 0; filter: blur(10px); }
@@ -104,8 +84,7 @@
 }
         input:focus { border-bottom: 1px solid #ecb613 !important; }
         </style>
-    </head>
-    <body class="font-display antialiased min-h-screen flex flex-col">
+
         <header class="w-full border-b border-white/5 px-6 py-8 sticky top-0 z-[100] bg-black/90">
             <div class="max-w-[1440px] mx-auto flex justify-center items-center">
                 <h1 class="header-brand-hover text-2xl font-black tracking-[0.5em] text-white uppercase transition-all cursor-crosshair">
@@ -195,7 +174,6 @@
                                 <span class="flex-shrink mx-6 text-[8px] uppercase tracking-[0.5em] text-slate-700 font-bold">Access Via</span>
                                 <div class="flex-grow border-t border-white/5"></div>
                             </div>
-                            {% load socialaccount %}
                             <div class="grid grid-cols-1 gap-4">
                                 <a href="{% provider_login_url 'google' %}"
                                    class="flex items-center justify-center border border-white/5 hover:border-primary/40 py-4 transition-all group w-full">
@@ -213,12 +191,7 @@
                     </div>
                 </div>
             </main>
-            <footer class="w-full border-t border-white/5 px-6 py-12 lg:px-20 bg-black text-slate-500">
-                <div class="max-w-[1440px] mx-auto flex flex-col items-center gap-6">
-                    <h3 class="text-xl font-bold tracking-[0.3em] text-white uppercase">Scentora</h3>
-                    <p class="text-[9px] uppercase tracking-[0.4em] text-slate-700">© 2026 Scentora. All Rights Reserved.</p>
-                </div>
-            </footer>
+            
             <script>
     function togglePassword() {
         const input = document.getElementById('password-input');
@@ -233,5 +206,4 @@
         }
     }
             </script>
-        </body>
-    </html>
+{% endblock %}

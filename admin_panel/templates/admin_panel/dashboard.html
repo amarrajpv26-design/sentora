@@ -61,46 +61,83 @@
                     <div class="p-3 rounded-xl bg-white/[0.03] text-indigo-400">
                         <i class="bi bi-people text-xl"></i>
                     </div>
-                    <span class="px-2 py-1 rounded bg-green-500/10 text-green-400 text-[10px] font-bold">+12%</span>
                 </div>
                 <span class="block text-[10px] text-white/30 uppercase tracking-[3px] font-black">Total Users</span>
-                <span class="text-3xl font-black text-white mt-1 block tracking-tighter">12,543</span>
+                <span class="text-3xl font-black text-white mt-1 block tracking-tighter">{{ total_users }}</span>
             </div>
             <div class="glass-card rounded-[24px] p-6 animate__animated animate__fadeInUp animate__delay-100ms">
                 <div class="flex justify-between items-start mb-6">
                     <div class="p-3 rounded-xl bg-white/[0.03] text-gold">
                         <i class="bi bi-bag text-xl"></i>
                     </div>
-                    <span class="px-2 py-1 rounded bg-green-500/10 text-green-400 text-[10px] font-bold">+8%</span>
                 </div>
                 <span class="block text-[10px] text-white/30 uppercase tracking-[3px] font-black">Total Orders</span>
-                <span class="text-3xl font-black text-white mt-1 block tracking-tighter">8,421</span>
+                <span class="text-3xl font-black text-white mt-1 block tracking-tighter">{{ total_orders }}</span>
             </div>
             <div class="glass-card rounded-[24px] p-6 animate__animated animate__fadeInUp animate__delay-200ms">
                 <div class="flex justify-between items-start mb-6">
                     <div class="p-3 rounded-xl bg-white/[0.03] text-emerald-400">
                         <i class="bi bi-currency-dollar text-xl"></i>
                     </div>
-                    <span class="px-2 py-1 rounded bg-green-500/10 text-green-400 text-[10px] font-bold">+24%</span>
                 </div>
                 <span class="block text-[10px] text-white/30 uppercase tracking-[3px] font-black">Total Revenue</span>
-                <span class="text-3xl font-black text-white mt-1 block tracking-tighter">$245,000</span>
+                <span class="text-3xl font-black text-white mt-1 block tracking-tighter">₹{{ total_revenue|floatformat:2 }}</span>
             </div>
             <div class="glass-card rounded-[24px] p-6 animate__animated animate__fadeInUp animate__delay-300ms">
                 <div class="flex justify-between items-start mb-6">
                     <div class="p-3 rounded-xl bg-white/[0.03] text-purple-400">
                         <i class="bi bi-box-seam text-xl"></i>
                     </div>
-                    <span class="px-2 py-1 rounded bg-white/5 text-white/40 text-[10px] font-bold">Stable</span>
                 </div>
                 <span class="block text-[10px] text-white/30 uppercase tracking-[3px] font-black">Total Products</span>
-                <span class="text-3xl font-black text-white mt-1 block tracking-tighter">1,205</span>
+                <span class="text-3xl font-black text-white mt-1 block tracking-tighter">{{ total_products }}</span>
             </div>
         </div>
         <div class="grid grid-cols-3 gap-8">
             <div class="col-span-2 glass-card rounded-[32px] p-8 animate__animated animate__fadeInLeft">
-                <h3 class="text-lg font-bold text-white tracking-tight">Performance Overview</h3>
-                <p class="text-white/30 text-[11px] uppercase tracking-[2px] mb-8">Detailed look at your sales and order metrics</p>
+<div class="flex items-center justify-between mb-4">
+
+    <div>
+        <h3 class="text-lg font-bold text-white tracking-tight">
+            Performance Overview
+        </h3>
+    </div>
+
+    <div class="flex gap-2">
+
+        <a href="?filter=daily"
+           class="px-3 py-1 rounded-lg text-xs font-bold
+           {% if filter_type == 'daily' %}
+           bg-gold text-black
+           {% else %}
+           bg-white/5 text-white
+           {% endif %}">
+            Daily
+        </a>
+
+        <a href="?filter=monthly"
+           class="px-3 py-1 rounded-lg text-xs font-bold
+           {% if filter_type == 'monthly' %}
+           bg-gold text-black
+           {% else %}
+           bg-white/5 text-white
+           {% endif %}">
+            Monthly
+        </a>
+
+        <a href="?filter=yearly"
+           class="px-3 py-1 rounded-lg text-xs font-bold
+           {% if filter_type == 'yearly' %}
+           bg-gold text-black
+           {% else %}
+           bg-white/5 text-white
+           {% endif %}">
+            Yearly
+        </a>
+
+    </div>
+
+</div>                <p class="text-white/30 text-[11px] uppercase tracking-[2px] mb-8">Detailed look at your sales and order metrics</p>
                 <div class="h-[300px]">
                     <canvas id="performanceChart"></canvas>
                 </div>
@@ -110,27 +147,64 @@
                     <h3 class="text-lg font-bold text-white tracking-tight">Latest Joins</h3>
                     <i class="bi bi-person-plus text-white/20 text-xl"></i>
                 </div>
-                <div class="space-y-6 mb-8">
-                    <div class="flex items-center gap-4 group cursor-pointer">
-                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gold/20 to-transparent flex items-center justify-center border border-white/5 group-hover:border-gold/30 transition-all">
-                            <span class="text-gold font-black text-xs">LE</span>
-                        </div>
-                        <div>
-                            <div class="text-sm font-bold text-white tracking-tight">Lily Evans</div>
-                            <div class="text-[10px] text-white/30 uppercase tracking-[1px]">Joined 5 mins ago</div>
-                        </div>
-                    </div>
-                </div>
-                <button class="w-full py-4 rounded-2xl border border-white/5 bg-white/[0.02] text-[10px] font-black uppercase tracking-[3px] text-white/60 hover:bg-gold hover:text-black hover:border-gold transition-all duration-500">
-                    View All Users
-                </button>
+                <div class="space-y-4 mb-8">
+
+    {% for user in latest_users %}
+    <div class="flex items-center gap-4 group">
+
+        {% if user.profile_image %}
+            <img src="{{ user.profile_image.url }}"
+                 alt="{{ user.username }}"
+                 class="w-12 h-12 rounded-full object-cover border border-white/10 group-hover:border-gold/30 transition-all">
+        {% else %}
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-gold/20 to-transparent flex items-center justify-center border border-white/10 group-hover:border-gold/30 transition-all">
+
+                <span class="text-gold font-black text-xs">
+                    {{ user.first_name|default:user.username|slice:":1"|upper }}
+                </span>
+
+            </div>
+        {% endif %}
+
+        <div class="flex-1">
+
+            <div class="text-sm font-bold text-white">
+                {% if user.get_full_name %}
+                    {{ user.get_full_name }}
+                {% else %}
+                    {{ user.username }}
+                {% endif %}
+            </div>
+
+            <div class="text-[10px] text-white/30 uppercase tracking-[2px]">
+                Joined {{ user.date_joined|timesince }} ago
+            </div>
+
+        </div>
+
+    </div>
+    {% empty %}
+
+    <div class="text-center py-6 text-white/40 text-sm">
+        No users found
+    </div>
+
+    {% endfor %}
+
+</div>
+
+<a href="{% url 'user_management' %}">
+    <button class="w-full py-4 rounded-2xl border border-white/5 bg-white/[0.02] text-[10px] font-black uppercase tracking-[3px] text-white/60 hover:bg-gold hover:text-black hover:border-gold transition-all duration-500">
+        View All Users
+    </button>
+</a>
             </div>
         </div>
-        <div class="grid grid-cols-3 gap-8 pb-10">
+        <div class="grid grid-cols-3 gap-8 pb-10 items-start">
             <div class="col-span-2 glass-card rounded-[32px] overflow-hidden animate__animated animate__fadeInUp">
                 <div class="p-8 border-b border-white/5 flex justify-between items-center">
                     <h3 class="text-lg font-bold text-white tracking-tight">Recent Orders</h3>
-                    <a href="#"
+                    <a href="{% url 'management:admin_orders_list' %}"
                        class="text-gold text-[10px] font-black uppercase tracking-[2px] hover:tracking-[4px] transition-all">View All <i class="bi bi-arrow-right ms-1"></i></a>
                 </div>
                 <div class="overflow-x-auto">
@@ -144,30 +218,218 @@
                                 <th class="px-8 py-5 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Date</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-white/[0.02]">
-                            <tr>
-                                <td class="px-8 py-6 text-xs text-gold font-bold tracking-widest">#ORD-1234</td>
-                                <td class="px-8 py-6 text-sm text-white font-medium">John Doe</td>
-                                <td class="px-8 py-6 text-sm text-white font-black">$120.00</td>
-                                <td class="px-8 py-6">
-                                    <span class="status-pill delivered text-[9px]">DELIVERED</span>
-                                </td>
-                                <td class="px-8 py-6 text-xs text-white/30 italic">Oct 24, 2024</td>
-                            </tr>
-                        </tbody>
+                       <tbody>
+
+{% for order in recent_orders %}
+<tr class="hover:bg-white/[0.02] transition-all duration-300">
+
+    <td class="px-8 py-6">
+        <div class="font-bold text-gold text-xs tracking-wider">
+            {{ order.order_id }}
+        </div>
+    </td>
+
+    <td class="px-8 py-6">
+        <div class="flex items-center gap-3">
+
+            {% if order.user.profile_image %}
+                <img src="{{ order.user.profile_image.url }}"
+                     class="w-8 h-8 rounded-full object-cover border border-white/10">
+            {% else %}
+                <div class="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center">
+                    <span class="text-gold text-[10px] font-bold">
+                        {{ order.user.username|slice:":1"|upper }}
+                    </span>
+                </div>
+            {% endif %}
+
+            <div>
+                <div class="text-sm font-medium text-white">
+                    {{ order.user.username }}
+                </div>
+            </div>
+
+        </div>
+    </td>
+
+    <td class="px-8 py-6">
+        <span class="text-white font-semibold">
+            ₹{{ order.total_amount }}
+        </span>
+    </td>
+
+    <td class="px-8 py-6">
+
+        {% if order.order_status == 'DELIVERED' %}
+            <span class="px-3 py-1 rounded-full text-[10px] font-bold bg-green-500/10 text-green-400 border border-green-500/20">
+                DELIVERED
+            </span>
+
+        {% elif order.order_status == 'PENDING' %}
+            <span class="px-3 py-1 rounded-full text-[10px] font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                PENDING
+            </span>
+
+        {% elif order.order_status == 'CANCELLED' %}
+            <span class="px-3 py-1 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20">
+                CANCELLED
+            </span>
+
+        {% else %}
+             <span class="inline-flex items-center justify-center px-3 py-1.5 rounded-full
+                 text-[10px] font-bold uppercase tracking-[1px]
+                 bg-blue-500/10 text-blue-400 border border-blue-500/20
+                 whitespace-nowrap min-w-[120px]">
+        {{ order.get_order_status_display }}
+    </span>
+        {% endif %}
+
+    </td>
+
+    <td class="px-8 py-6">
+        <div class="text-xs text-white/60">
+            {{ order.created_at|date:"d M Y" }}
+        </div>
+    </td>
+
+</tr>
+{% empty %}
+
+<tr>
+    <td colspan="5" class="text-center py-12 text-white/40">
+        No orders found
+    </td>
+</tr>
+
+{% endfor %}
+
+</tbody>
                     </table>
                 </div>
+                
+                <div class="grid grid-cols-3 gap-6 p-8 border-t border-white/5">
+                    
+
+    <div class="glass-card rounded-[24px] p-6">
+        <h3 class="text-sm font-bold text-white mb-4">Best Selling Products</h3>
+
+        {% for item in best_selling_products %}
+            <div class="flex justify-between py-2 border-b border-white/5">
+                <span class="text-white text-sm">
+                    {{ item.product_variant__product__name }}
+                </span>
+                <span class="text-gold text-sm font-bold">
+                    {{ item.total_sold }}
+                </span>
             </div>
-            <div class="glass-card rounded-[32px] p-8 animate__animated animate__fadeInUp">
-                <h3 class="text-lg font-bold text-white tracking-tight mb-6">Recent Activity</h3>
-                <div class="space-y-6">
-                    <div class="relative pl-6 border-l border-white/5">
-                        <div class="absolute left-[-5px] top-1 w-2 h-2 rounded-full bg-gold"></div>
-                        <p class="text-xs text-white/80 font-medium">Stock Update</p>
-                        <p class="text-[10px] text-white/30 uppercase mt-1">2 hours ago</p>
-                    </div>
-                </div>
+        {% endfor %}
+    </div>
+
+    <div class="glass-card rounded-[24px] p-6">
+        <h3 class="text-sm font-bold text-white mb-4">Best Selling Categories</h3>
+
+        {% for item in best_selling_categories %}
+            <div class="flex justify-between py-2 border-b border-white/5">
+                <span class="text-white text-sm">
+                    {{ item.product_variant__product__categories__name }}
+                </span>
+                <span class="text-gold text-sm font-bold">
+                    {{ item.total_sold }}
+                </span>
             </div>
+        {% endfor %}
+    </div>
+
+    <div class="glass-card rounded-[24px] p-6">
+        <h3 class="text-sm font-bold text-white mb-4">Best Selling Brands</h3>
+
+        {% for item in best_selling_brands %}
+            <div class="flex justify-between py-2 border-b border-white/5">
+                <span class="text-white text-sm">
+                    {{ item.product_variant__product__brand__name }}
+                </span>
+                <span class="text-gold text-sm font-bold">
+                    {{ item.total_sold }}
+                </span>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+            </div>
+            
+            
+            <div class="glass-card rounded-[32px] p-8 animate__animated animate__fadeInUp min-h-[700px]">
+               <div class="flex items-center justify-between mb-6">
+    <h3 class="text-lg font-bold text-white tracking-tight">
+        Recent Activity
+    </h3>
+
+    <span class="px-2 py-1 rounded-full bg-gold/10 text-gold text-[9px] font-bold uppercase tracking-[2px]">
+        Live Feed
+    </span>
+</div>
+
+<div class="space-y-4">
+    {% for activity in activities %}
+
+    <div class="group flex items-start gap-4 p-4 rounded-2xl bg-white/[0.02] border border-white/[0.04] hover:border-gold/20 hover:bg-white/[0.04] transition-all duration-300">
+
+        <div class="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center">
+
+            {% if activity.icon == "bag" %}
+                <i class="bi bi-bag text-gold text-sm"></i>
+
+            {% elif activity.icon == "truck" %}
+                <i class="bi bi-truck text-green-400 text-sm"></i>
+
+            {% elif activity.icon == "x-circle" %}
+                <i class="bi bi-x-circle text-red-400 text-sm"></i>
+
+            {% elif activity.icon == "arrow-counterclockwise" %}
+                <i class="bi bi-arrow-counterclockwise text-orange-400 text-sm"></i>
+
+            {% elif activity.icon == "person-plus" %}
+                <i class="bi bi-person-plus text-indigo-400 text-sm"></i>
+
+            {% elif activity.icon == "exclamation-triangle" %}
+                <i class="bi bi-exclamation-triangle text-yellow-400 text-sm"></i>
+            {% endif %}
+
+        </div>
+
+        <div class="flex-1">
+
+            <div class="flex justify-between items-start">
+
+                <h4 class="text-sm font-semibold text-white">
+                    {{ activity.title }}
+                </h4>
+
+                <span class="text-[9px] uppercase tracking-[2px] text-white/25">
+                    {{ activity.time|timesince }} ago
+                </span>
+
+            </div>
+
+            <p class="text-xs text-white/45 mt-1">
+                {{ activity.subtitle }}
+            </p>
+
+        </div>
+
+    </div>
+
+    {% empty %}
+
+    <div class="text-center py-10 text-white/40">
+        No recent activity
+    </div>
+
+    {% endfor %}
+
+</div>
         </div>
     </div>
 {% endblock %}
@@ -184,10 +446,10 @@
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            labels: {{ chart_labels|safe }},
             datasets: [{
                 label: 'Sales',
-                data: [30, 45, 32, 70, 40, 85, 60],
+                data: {{ chart_data|safe }},
                 borderColor: '#f4b41a',
                 borderWidth: 3,
                 tension: 0.4,
@@ -200,20 +462,60 @@
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { 
-                    grid: { color: 'rgba(255,255,255,0.02)' },
-                    ticks: { color: 'rgba(255,255,255,0.2)', font: { size: 10 } }
-                },
-                x: { 
-                    grid: { display: false }, 
-                    ticks: { color: 'rgba(255,255,255,0.2)', font: { size: 10, weight: 'bold' } } 
+    responsive: true,
+    maintainAspectRatio: false,
+
+    layout: {
+        padding: {
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0
+        }
+    },
+
+    plugins: {
+        legend: {
+            display: false
+        }
+    },
+
+    scales: {
+        y: {
+    beginAtZero: true,
+
+    grid: {
+        color: 'rgba(255,255,255,0.03)',
+        drawBorder: false
+    },
+
+    ticks: {
+        color: 'rgba(255,255,255,0.25)',
+        font: {
+            size: 11
+        },
+
+        callback: function(value) {
+            return '₹' + value.toLocaleString('en-IN');
+        }
+    }
+},
+
+        x: {
+            grid: {
+                display: false
+            },
+
+            ticks: {
+                color: 'rgba(255,255,255,0.2)',
+                font: {
+                    size: 10,
+                    weight: 'bold'
                 }
             }
         }
+    }
+}
     });
     </script>
 {% endblock %}

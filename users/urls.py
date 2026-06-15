@@ -55,4 +55,5 @@ urlpatterns = [
     path('profile/email/verify-otp/', views.verify_email_change, name='verify_email_otp'),
     path('profile/email/update/', views.final_email_update_view, name='final_email_update_view'),
     path('profile/email/verify-new/', views.verify_new_email_otp, name='verify_new_email'),
+    
 ]

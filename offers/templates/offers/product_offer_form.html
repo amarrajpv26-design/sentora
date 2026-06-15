@@ -1,0 +1,106 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+{% block breadcrumb %}Offers / {{ title }}{% endblock %}
+
+{% block extra_css %}
+{% include "offers/_form_styles.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-8">
+
+  <!-- Header -->
+  <div class="flex items-center gap-4">
+    <a href="{% url 'offers:dashboard' %}"
+       class="w-9 h-9 flex items-center justify-center rounded-xl border border-white/10 text-white/40 hover:text-white hover:border-white/20 transition-all">
+      <i class="bi bi-arrow-left text-sm"></i>
+    </a>
+    <div>
+      <p class="text-[10px] text-gold/50 uppercase tracking-[4px] font-black mb-1">Offers / Product</p>
+      <h1 class="text-2xl font-black tracking-tight text-white">{{ title }}</h1>
+    </div>
+  </div>
+
+  <!-- Form Card -->
+  <form method="POST" class="bg-white/[0.02] border border-white/5 rounded-2xl p-8 space-y-6">
+    {% csrf_token %}
+
+    <!-- Non-field errors -->
+    {% if form.non_field_errors %}
+    <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-sm text-red-400">
+      {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Name -->
+    <div class="form-field">
+      <label for="{{ form.name.id_for_label }}">Offer Name</label>
+      {{ form.name }}
+      {{ form.name.errors }}
+    </div>
+
+    <!-- Description -->
+    <div class="form-field">
+      <label for="{{ form.description.id_for_label }}">Description <span class="normal-case text-white/20 tracking-normal font-normal">(optional)</span></label>
+      {{ form.description }}
+      {{ form.description.errors }}
+    </div>
+
+    <!-- Product -->
+    <div class="form-field">
+      <label for="{{ form.product.id_for_label }}">Product</label>
+      {{ form.product }}
+      {{ form.product.errors }}
+    </div>
+
+    <!-- Discount Type + Value -->
+    <div class="grid grid-cols-2 gap-4">
+      <div class="form-field">
+        <label for="{{ form.discount_type.id_for_label }}">Discount Type</label>
+        {{ form.discount_type }}
+        {{ form.discount_type.errors }}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.discount_value.id_for_label }}">Discount Value</label>
+        {{ form.discount_value }}
+        {{ form.discount_value.errors }}
+      </div>
+    </div>
+
+    <!-- Dates -->
+    <div class="grid grid-cols-2 gap-4">
+      <div class="form-field">
+        <label for="{{ form.start_date.id_for_label }}">Start Date & Time</label>
+        {{ form.start_date }}
+        {{ form.start_date.errors }}
+      </div>
+      <div class="form-field">
+        <label for="{{ form.end_date.id_for_label }}">End Date & Time</label>
+        {{ form.end_date }}
+        {{ form.end_date.errors }}
+      </div>
+    </div>
+
+    <!-- Active Toggle -->
+    <div class="flex items-center gap-3 pt-2">
+      {{ form.is_active }}
+      <label for="{{ form.is_active.id_for_label }}"
+             class="text-xs text-white/50 uppercase tracking-widest font-bold cursor-pointer">
+        Activate offer immediately
+      </label>
+    </div>
+
+    <!-- Submit -->
+    <div class="flex items-center gap-4 pt-2 border-t border-white/5">
+      <button type="submit"
+              class="px-6 py-3 bg-gold text-black text-xs font-black uppercase tracking-widest rounded-xl hover:bg-gold/90 transition-all">
+        {% if offer %}Update Offer{% else %}Create Offer{% endif %}
+      </button>
+      <a href="{% url 'offers:dashboard' %}"
+         class="px-6 py-3 text-white/40 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

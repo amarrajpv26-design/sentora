@@ -104,11 +104,28 @@
                    class="nav-item group {% if 'inventory' in request.path %}active{% endif %}">
                     <i class="bi bi-box-seam nav-icon"></i> Inventory
                 </a>
-                <a href="#" class="nav-item group"><i class="bi bi-arrow-left-right nav-icon"></i> Transactions</a>
-                <a href="#" class="nav-item group"><i class="bi bi-star nav-icon"></i> Reviews</a>
+<a href="{% url 'management:admin_transactions_list' %}" 
+   class="nav-item group {% if 'transactions' in request.path %}active{% endif %}">
+    <i class="bi bi-arrow-left-right nav-icon"></i> Transactions
+</a>
+<a href="{% url 'reviews:admin_review_list' %}" 
+   class="nav-item group {% if 'reviews' in request.path %}active{% endif %}">
+    <i class="bi bi-star nav-icon"></i> Reviews
+</a>
                 <div class="pt-8 pb-2 px-6 text-[9px] text-gold/40 font-black uppercase tracking-[4px]">Marketing</div>
-                <a href="#" class="nav-item group"><i class="bi bi-ticket-perforated nav-icon"></i> Coupons</a>
-                <a href="#" class="nav-item group"><i class="bi bi-arrow-counterclockwise nav-icon"></i> Returns</a>
+<a href="{% url 'coupons:admin_coupon_list' %}"
+   class="nav-item group {% if 'coupons' in request.path %}active{% endif %}">
+    <i class="bi bi-ticket-perforated nav-icon"></i> Coupons
+</a>
+<a href="{% url 'offers:dashboard' %}"
+   class="nav-item group {% if 'offers' in request.path %}active{% endif %}">
+    <i class="bi bi-gift nav-icon"></i> Offers
+</a>
+                <a href="{% url 'management:admin_return_requests' %}"
+   class="nav-item group {% if 'returns' in request.path %}active{% endif %}">
+    <i class="bi bi-arrow-counterclockwise nav-icon"></i>
+    Returns
+</a>
                 <div class="pt-10 pb-2 px-6 text-[9px] text-red-500/40 font-black uppercase tracking-[4px]">System</div>
                 <a href="#" class="nav-item group"><i class="bi bi-gear nav-icon"></i> Settings</a>
                 <a href="{% url 'admin_logout' %}"
