@@ -96,7 +96,7 @@ Scentora/
 ### Clone Repository
 
 ```bash
-git clone [<your-repository-url>](https://github.com/amarrajpv26-design/sentora.git)
+git clone (https://github.com/amarrajpv26-design/sentora.git)
 cd scentora
 ```
 
