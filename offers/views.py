@@ -6,6 +6,9 @@ from django.http import JsonResponse
 from .models import ProductOffer, CategoryOffer, ReferralOffer, ReferralUsage
 from .forms import ProductOfferForm, CategoryOfferForm, ReferralOfferForm
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
+from .utils import get_qualifying_orders, REFERRAL_AUTO_UNLOCK_THRESHOLD
 
 # ──────────────────────────────────────────────
 #  PRODUCT OFFERS
@@ -253,3 +256,33 @@ def referral_signup_redirect(request, token):
         f"You've been referred by {offer.referrer.username}! Sign up to claim your bonus.",
     )
     return redirect("account_signup")
+
+
+@login_required
+def my_referral_view(request):
+    from .utils import maybe_auto_unlock_referral
+    maybe_auto_unlock_referral(request.user)
+    referral_offer = ReferralOffer.objects.filter(referrer=request.user).first()
+
+    progress = None
+    usages = []
+
+    if referral_offer:
+        usages = referral_offer.usages.select_related("referee").order_by("-created_at")
+    else:
+        spent = get_qualifying_orders(request.user).aggregate(
+            total=Sum("total_amount")
+        )["total"] or 0
+        progress = {
+            "spent": spent,
+            "threshold": REFERRAL_AUTO_UNLOCK_THRESHOLD,
+            "remaining": max(REFERRAL_AUTO_UNLOCK_THRESHOLD - spent, 0),
+            "percent": min(int((spent / REFERRAL_AUTO_UNLOCK_THRESHOLD) * 100), 100),
+        }
+
+    return render(
+        request,
+        "offers/my_referrals.html",
+        {"referral_offer": referral_offer, "progress": progress, "usages": usages},
+    )
+

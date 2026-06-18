@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 from decimal import Decimal
 from offers.utils import get_effective_price
+from offers.utils import handle_order_referral_events
 
 
 def get_applied_coupon_discount(request, subtotal):
@@ -518,6 +519,8 @@ def place_order_view(request):
         if "coupon_id" in request.session:
             del request.session["coupon_id"]
 
+        handle_order_referral_events(order)
+
         return redirect("order_success", order_id=order.order_id)
 
     # =====================================================
@@ -562,6 +565,8 @@ def place_order_view(request):
         record_coupon_usage(order)
         if "coupon_id" in request.session:
             del request.session["coupon_id"]
+
+        handle_order_referral_events(order)
 
         return redirect("order_success", order_id=order.order_id)
 
@@ -635,6 +640,8 @@ def payment_verify_view(request):
 
         if "coupon_id" in request.session:
             del request.session["coupon_id"]
+
+        handle_order_referral_events(order)
 
         # 6. Restore session lost during Razorpay bank redirect
         from django.contrib.auth import login as auth_login

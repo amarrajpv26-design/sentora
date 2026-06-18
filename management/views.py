@@ -9,6 +9,13 @@ from django.db import transaction
 from orders.views import recalculate_order_totals
 from orders.models import Order, OrderItem
 from wallets.models import Wallet, WalletTransaction
+from datetime import timedelta
+from django.utils import timezone
+from django.db.models import Sum, Count
+from django.http import HttpResponse
+from openpyxl import Workbook
+from weasyprint import HTML
+from django.template.loader import render_to_string
 
 
 @staff_member_required(login_url="user_login")
@@ -580,3 +587,168 @@ def admin_transaction_detail(request, pk):
             "txn": txn,
         },
     )
+
+
+@staff_member_required(login_url="user_login")
+def sales_report(request):
+
+    report_type = request.GET.get("type", "daily")
+
+    orders = (
+        Order.objects.filter(payment_status="PAID")
+        .exclude(order_status="CANCELLED")
+        .order_by("-created_at")
+    )
+
+    today = timezone.now()
+
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    # -----------------------------
+    # FILTER REPORT TYPE
+    # -----------------------------
+    if report_type == "daily":
+        orders = orders.filter(created_at__date=today.date())
+
+    elif report_type == "weekly":
+        week_start = today - timedelta(days=7)
+        orders = orders.filter(created_at__gte=week_start)
+
+    elif report_type == "yearly":
+        orders = orders.filter(created_at__year=today.year)
+
+    elif report_type == "custom":
+        if start_date and end_date:
+            orders = orders.filter(created_at__date__range=[start_date, end_date])
+
+    # -----------------------------
+    # CALCULATIONS
+    # -----------------------------
+    total_orders = orders.count()
+
+    total_sales = orders.aggregate(total=Sum("total_amount"))["total"] or 0
+
+    total_product_discount = orders.aggregate(total=Sum("discount"))["total"] or 0
+
+    total_coupon_discount = orders.aggregate(total=Sum("coupon_discount"))["total"] or 0
+
+    total_discount = total_product_discount + total_coupon_discount
+
+    net_revenue = total_sales - total_product_discount - total_coupon_discount
+
+    context = {
+        "orders": orders,
+        "report_type": report_type,
+        "start_date": start_date,
+        "end_date": end_date,
+        "total_orders": total_orders,
+        "total_sales": total_sales,
+        "total_product_discount": total_product_discount,
+        "total_coupon_discount": total_coupon_discount,
+        "total_discount": total_discount,
+        "net_revenue": net_revenue,
+    }
+
+    return render(
+        request,
+        "management/sales_report.html",
+        context,
+    )
+
+
+
+def sales_report_pdf(request):
+
+    report_type = request.GET.get("type", "daily")
+
+    orders = (
+        Order.objects.filter(payment_status="PAID")
+        .exclude(order_status="CANCELLED")
+        .order_by("-created_at")
+    )
+
+    today = timezone.now()
+
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    # Apply same filters as sales_report view
+
+    if report_type == "daily":
+        orders = orders.filter(created_at__date=today.date())
+
+    elif report_type == "weekly":
+        week_start = today - timedelta(days=7)
+        orders = orders.filter(created_at__gte=week_start)
+
+    elif report_type == "yearly":
+        orders = orders.filter(created_at__year=today.year)
+
+    elif report_type == "custom":
+        if start_date and end_date:
+            orders = orders.filter(
+                created_at__date__range=[start_date, end_date]
+            )
+
+    # Summary calculations
+
+    total_orders = orders.count()
+
+    total_sales = (
+        orders.aggregate(total=Sum("total_amount"))["total"]
+        or 0
+    )
+
+    total_product_discount = (
+        orders.aggregate(total=Sum("discount"))["total"]
+        or 0
+    )
+
+    total_coupon_discount = (
+        orders.aggregate(total=Sum("coupon_discount"))["total"]
+        or 0
+    )
+
+    total_discount = (
+        total_product_discount +
+        total_coupon_discount
+    )
+
+    net_revenue = (
+        total_sales -
+        total_product_discount -
+        total_coupon_discount
+    )
+
+    context = {
+        "orders": orders,
+        "report_type": report_type.title(),
+        "total_orders": total_orders,
+        "total_sales": total_sales,
+        "total_product_discount": total_product_discount,
+        "total_coupon_discount": total_coupon_discount,
+        "total_discount": total_discount,
+        "net_revenue": net_revenue,
+        "now": timezone.now(),
+    }
+
+    html_string = render_to_string(
+        "management/sales_report_pdf.html",
+        context,
+    )
+
+    pdf = HTML(string=html_string).write_pdf()
+
+    response = HttpResponse(
+        pdf,
+        content_type="application/pdf",
+    )
+
+    response["Content-Disposition"] = (
+        'attachment; filename="sales_report.pdf"'
+    )
+
+    return response
+
+

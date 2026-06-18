@@ -21,11 +21,13 @@ class WalletTransaction(models.Model):
         ("DEBIT", "Debit (Money Out)"),
     )
 
+    # wallets/models.py
     TRANSACTION_PURPOSE = (
         ("REFUND", "Refund for Cancellation/Return"),
         ("PURCHASE", "Order Payment"),
         ("RECHARGE", "Wallet Recharge"),
         ("ADMIN_ADJUST", "Admin Adjustment"),
+        ("REFERRAL_BONUS", "Referral Bonus"),
     )
 
     wallet = models.ForeignKey(

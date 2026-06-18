@@ -536,7 +536,19 @@ body{
                             <p class="text-white/40">Shipping</p>
                             <p class="font-medium">₹{{ order.shipping_charge }}</p>
                         </div>
-                        
+
+                        {% if order.coupon_discount > 0 %}
+                        <div class="summary-row flex justify-between items-center">
+                            <p class="text-white/40">
+                                Coupon Discount
+                                {% if order.applied_coupon %}
+                                <span class="text-white/25 text-xs ml-1">({{ order.applied_coupon.code }})</span>
+                                {% endif %}
+                            </p>
+                            <p class="text-green-400 font-medium">- ₹{{ order.coupon_discount }}</p>
+                        </div>
+                        {% endif %}
+
                         <div class="pt-8 border-t soft-divider flex justify-between items-center">
 
                             <div>

@@ -75,11 +75,21 @@ def home(request):
 
 @never_cache
 def user_signup(request):
+    if request.method == "GET":
+        ref = request.GET.get("ref")
+        if ref:
+            request.session["referral_code_input"] = ref
+
     if request.method == "POST":
         username = request.POST.get("username")
         email = request.POST.get("email")
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
+        referral_input = (
+            request.POST.get("referral_code", "").strip()
+            or request.session.get("referral_code_input", "")
+            or request.session.get("referral_token", "")
+        )
 
         context = {"typed_username": username, "typed_email": email}
 
@@ -105,13 +115,18 @@ def user_signup(request):
                 "password": password,
                 "otp": otp,
                 "otp_created_at": str(timezone.now()),
+                "referral_input": referral_input,
             }
             return redirect("verify_otp")
         except Exception as e:
             messages.error(request, f"Email delivery failed: {e}")
             return render(request, "users/signup.html", context)
 
-    return render(request, "users/signup.html")
+    return render(
+        request,
+        "users/signup.html",
+        {"referral_code_prefill": request.session.get("referral_code_input", "")},
+    )
 
 
 @never_cache
@@ -139,8 +154,14 @@ def verify_otp(request):
                 user.is_active = True
                 user.save()
 
-            if "pending_signup" in request.session:
-                del request.session["pending_signup"]
+            referral_input = signup_data.get("referral_input")
+            if referral_input:
+                from offers.utils import apply_referral_to_new_user
+                apply_referral_to_new_user(user, referral_input)
+
+            for key in ["pending_signup", "referral_code_input", "referral_token"]:
+                if key in request.session:
+                    del request.session[key]
 
             messages.success(request, "Verification successful! Welcome to Secntora.")
             return redirect("user_login")

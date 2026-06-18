@@ -27,6 +27,15 @@ class User(AbstractUser):
     otp_created_at = models.DateTimeField(blank=True, null=True)
     is_verified = models.BooleanField(default=False)
     wallet_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    # users/models.py — add inside the User class
+    referred_by = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="referrals_made",
+        help_text="The user whose referral code/link was used at signup.",
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]
@@ -68,7 +77,7 @@ class Address(models.Model):
             Address.objects.filter(user=self.user, is_default=True).exclude(
                 pk=self.pk
             ).update(is_default=False)
-        
+
         super().save(*args, **kwargs)
 
     def __str__(self):

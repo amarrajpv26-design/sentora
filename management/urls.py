@@ -60,4 +60,14 @@ urlpatterns = [
         views.admin_transaction_detail,
         name="admin_transaction_detail",
     ),
+    path(
+        "sales-report/",
+        views.sales_report,
+        name="sales_report",
+    ),
+    path(
+        "sales-report/pdf/",
+        views.sales_report_pdf,
+        name="sales_report_pdf",
+    ),
 ]

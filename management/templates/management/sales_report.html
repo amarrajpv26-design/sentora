@@ -1,0 +1,249 @@
+{% extends 'admin_panel/base_admin.html' %}
+
+{% block breadcrumb %} <span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">
+Sales Reports </span>
+{% endblock %}
+
+{% block content %}
+
+<div class="animate__animated animate__fadeIn">
+
+
+<div class="mb-10 flex items-center justify-between">
+
+    <div>
+        <h2 class="text-4xl font-extralight text-white tracking-tighter">
+            Revenue <span class="font-black luxury-shimmer">Analytics</span>
+        </h2>
+
+        <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">
+            Track sales performance and financial insights.
+        </p>
+    </div>
+
+    <div class="flex gap-3">
+       <a href="{% url 'management:sales_report_pdf' %}?type={{ report_type }}&start_date={{ start_date }}&end_date={{ end_date }}"
+           class="px-5 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-[10px] font-black uppercase tracking-[2px]">
+            PDF Export
+        </a>
+
+        
+    </div>
+
+</div>
+
+<form method="GET" class="glass-panel rounded-2xl p-6 mb-8">
+
+    <div class="grid grid-cols-4 gap-4">
+
+    <!-- Report Type -->
+    <div>
+        <label class="block text-[10px] text-gold/60 uppercase tracking-[2px] font-bold mb-2">
+            Report Type
+        </label>
+
+        <select
+            id="reportType"
+            name="type"
+            class="w-full bg-[#0a0a0a] border border-white/10 text-white px-4 py-3 rounded-xl focus:border-gold focus:outline-none">
+
+            <option value="daily" {% if report_type == 'daily' %}selected{% endif %}>Daily Report</option>
+            <option value="weekly" {% if report_type == 'weekly' %}selected{% endif %}>Weekly Report</option>
+            <option value="yearly" {% if report_type == 'yearly' %}selected{% endif %}>Yearly Report</option>
+            <option value="custom" {% if report_type == 'custom' %}selected{% endif %}>Custom Range</option>
+
+        </select>
+    </div>
+
+    <!-- Start Date -->
+    <div id="startDateWrapper">
+        <label class="block text-[10px] text-gold/60 uppercase tracking-[2px] font-bold mb-2">
+            Start Date
+        </label>
+
+        <input
+            type="date"
+            name="start_date"
+            value="{{ start_date|default:'' }}"
+            class="w-full bg-[#0a0a0a] border border-white/10 text-white px-4 py-3 rounded-xl focus:border-gold focus:outline-none">
+    </div>
+
+    <!-- End Date -->
+    <div id="endDateWrapper">
+        <label class="block text-[10px] text-gold/60 uppercase tracking-[2px] font-bold mb-2">
+            End Date
+        </label>
+
+        <input
+            type="date"
+            name="end_date"
+            value="{{ end_date|default:'' }}"
+            class="w-full bg-[#0a0a0a] border border-white/10 text-white px-4 py-3 rounded-xl focus:border-gold focus:outline-none">
+    </div>
+
+    <!-- Generate Button -->
+    <div>
+        <label class="block text-[10px] text-transparent mb-2">
+            Generate
+        </label>
+
+        <button
+            type="submit"
+            class="w-full bg-gold text-black rounded-xl font-black uppercase tracking-[2px] py-3">
+            Generate
+        </button>
+    </div>
+
+</div>
+
+</form>
+
+<!-- Statistics -->
+
+<div class="grid grid-cols-5 gap-6 mb-10">
+
+    <div class="glass-panel p-6 rounded-3xl">
+        <div class="text-white/40 text-xs uppercase">Orders</div>
+        <div class="text-3xl font-black text-gold mt-2">
+            {{ total_orders }}
+        </div>
+    </div>
+
+    <div class="glass-panel p-6 rounded-3xl">
+        <div class="text-white/40 text-xs uppercase">Sales</div>
+        <div class="text-3xl font-black text-gold mt-2">
+            ₹{{ total_sales }}
+        </div>
+    </div>
+
+    <div class="glass-panel p-6 rounded-3xl">
+        <div class="text-white/40 text-xs uppercase">Product Discount</div>
+        <div class="text-3xl font-black text-gold mt-2">
+            ₹{{ total_product_discount }}
+        </div>
+    </div>
+
+    <div class="glass-panel p-6 rounded-3xl">
+        <div class="text-white/40 text-xs uppercase">Coupon Discount</div>
+        <div class="text-3xl font-black text-gold mt-2">
+            ₹{{ total_coupon_discount }}
+        </div>
+    </div>
+
+    <div class="glass-panel p-6 rounded-3xl">
+        <div class="text-white/40 text-xs uppercase">Net Revenue</div>
+        <div class="text-3xl font-black text-green-400 mt-2">
+            ₹{{ total_sales }}
+        </div>
+    </div>
+
+</div>
+
+<!-- Orders Table -->
+
+<div class="glass-panel rounded-[32px] overflow-hidden">
+
+    <table class="w-full">
+
+        <thead>
+
+            <tr class="bg-white/[0.02]">
+
+                <th class="px-6 py-5 text-left">Order ID</th>
+                <th class="px-6 py-5 text-left">Customer</th>
+                <th class="px-6 py-5 text-left">Date</th>
+                <th class="px-6 py-5 text-left">Amount</th>
+                <th class="px-6 py-5 text-left">Status</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for order in orders %}
+
+            <tr class="border-b border-white/5">
+
+                <td class="px-6 py-5">
+                    {{ order.order_id }}
+                </td>
+
+                <td class="px-6 py-5">
+                    {{ order.full_name }}
+                </td>
+
+                <td class="px-6 py-5">
+                    {{ order.created_at|date:"d M Y" }}
+                </td>
+
+                <td class="px-6 py-5">
+                    ₹{{ order.total_amount }}
+                </td>
+
+                <td class="px-6 py-5">
+                    {{ order.order_status }}
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+                <td colspan="5"
+                    class="text-center py-20 text-white/30">
+                    No report data available.
+                </td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const reportType = document.getElementById("reportType");
+
+    const startDateWrapper = document.getElementById("startDateWrapper");
+    const endDateWrapper = document.getElementById("endDateWrapper");
+
+    const startDateInput = document.querySelector('input[name="start_date"]');
+    const endDateInput = document.querySelector('input[name="end_date"]');
+
+    function toggleDateFields() {
+
+        if (reportType.value === "custom") {
+
+            startDateWrapper.style.display = "block";
+            endDateWrapper.style.display = "block";
+
+            startDateInput.disabled = false;
+            endDateInput.disabled = false;
+
+        } else {
+
+            startDateWrapper.style.display = "none";
+            endDateWrapper.style.display = "none";
+
+            startDateInput.disabled = true;
+            endDateInput.disabled = true;
+
+            // Optional: clear old values
+            startDateInput.value = "";
+            endDateInput.value = "";
+        }
+    }
+
+    toggleDateFields();
+
+    reportType.addEventListener("change", toggleDateFields);
+
+});
+</script>
+{% endblock %}

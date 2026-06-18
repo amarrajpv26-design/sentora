@@ -2,6 +2,8 @@
 
 from decimal import Decimal
 from django.utils import timezone
+import uuid
+
 
 
 def get_effective_price(variant):
@@ -117,3 +119,108 @@ def apply_referral_offer(referral_offer, referee_user):
     usage.reward_granted = True
     usage.save()
     return True
+
+# offers/utils.py — add below your existing apply_referral_offer()
+
+REFERRAL_AUTO_UNLOCK_THRESHOLD = Decimal("10000.00")
+
+
+def get_qualifying_orders(user):
+    """
+    Orders that count as real, committed purchases for referral/loyalty
+    purposes — excludes cancelled orders and online orders that were
+    never actually paid for.
+    """
+    from orders.models import Order
+
+    return (
+        Order.objects.filter(user=user)
+        .exclude(order_status="CANCELLED")
+        .exclude(payment_method="ONLINE", payment_status__in=["PENDING", "FAILED"])
+    )
+
+
+def apply_referral_to_new_user(new_user, referral_input):
+    """
+    Called once, at signup, with whatever the new user typed/arrived with
+    (a referral_code like 'AMAR50' or a token UUID from the link).
+    Links new_user.referred_by — does NOT grant any reward yet.
+    """
+    from offers.models import ReferralOffer
+
+    if not referral_input:
+        return False
+
+    referral_offer = None
+    try:
+        token = uuid.UUID(referral_input)
+        referral_offer = ReferralOffer.objects.filter(token=token, is_active=True).first()
+    except (ValueError, AttributeError, TypeError):
+        pass
+
+    if not referral_offer:
+        referral_offer = ReferralOffer.objects.filter(
+            referral_code__iexact=referral_input, is_active=True
+        ).first()
+
+    if not referral_offer or referral_offer.is_exhausted:
+        return False
+
+    if referral_offer.referrer_id == new_user.id:
+        return False  # can't refer yourself
+
+    new_user.referred_by = referral_offer.referrer
+    new_user.save(update_fields=["referred_by"])
+    return True
+
+
+def maybe_auto_unlock_referral(user):
+    """
+    Auto-creates a ReferralOffer for `user` (with default reward values)
+    the moment their lifetime qualifying spend crosses ₹10,000.
+    No-ops if they already have one — admin-created or auto-created.
+    """
+    from offers.models import ReferralOffer
+    from django.db.models import Sum
+
+    if ReferralOffer.objects.filter(referrer=user).exists():
+        return None
+
+    total_spent = get_qualifying_orders(user).aggregate(
+        total=Sum("total_amount")
+    )["total"] or Decimal("0.00")
+
+    if total_spent < REFERRAL_AUTO_UNLOCK_THRESHOLD:
+        return None
+
+    return ReferralOffer.objects.create(referrer=user)
+
+
+def grant_referral_reward_if_first_order(order):
+    """
+    If order.user was referred by someone, and this is their first
+    qualifying order, grants the reward to both sides.
+    Safe to call on every successful order: apply_referral_offer() is
+    idempotent, and the "first order" check here prevents re-firing too.
+    """
+    from offers.models import ReferralOffer
+
+    user = order.user
+    if not user.referred_by_id:
+        return False
+
+    if get_qualifying_orders(user).exclude(pk=order.pk).exists():
+        return False  # not their first qualifying order
+
+    try:
+        referral_offer = ReferralOffer.objects.get(referrer_id=user.referred_by_id)
+    except ReferralOffer.DoesNotExist:
+        return False
+
+    return apply_referral_offer(referral_offer, user)
+
+
+def handle_order_referral_events(order):
+    """Single entry point — call this once, right when an order succeeds."""
+    grant_referral_reward_if_first_order(order)
+    maybe_auto_unlock_referral(order.user)

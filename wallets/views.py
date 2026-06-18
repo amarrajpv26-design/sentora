@@ -10,7 +10,7 @@ import razorpay
 from django.conf import settings
 import json
 from django.http import JsonResponse
-
+from django.core.paginator import Paginator
 
 User = get_user_model()
 
@@ -18,13 +18,29 @@ User = get_user_model()
 @login_required
 def wallet_view(request):
     wallet, created = Wallet.objects.get_or_create(user=request.user)
-    transactions = wallet.transactions.all()
+
+    transaction_type = request.GET.get("type", "ALL")
+
+    transactions = wallet.transactions.all().order_by("-created_at")
+
+    if transaction_type == "CREDIT":
+        transactions = transactions.filter(transaction_type="CREDIT")
+
+    elif transaction_type == "DEBIT":
+        transactions = transactions.filter(transaction_type="DEBIT")
+
+    paginator = Paginator(transactions, 10)
+
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     return render(
         request,
         "wallets/wallet.html",
         {
             "wallet": wallet,
-            "transactions": transactions,
+            "page_obj": page_obj,
+            "selected_type": transaction_type,
         },
     )
 
@@ -65,13 +81,13 @@ def wallet_recharge_view(request):
     )
 
     try:
-        razorpay_order = client.order.create({
-            "amount": amount * 100,
-            "currency": "INR",
-            "notes": {
-                "user_id": str(request.user.id)
+        razorpay_order = client.order.create(
+            {
+                "amount": amount * 100,
+                "currency": "INR",
+                "notes": {"user_id": str(request.user.id)},
             }
-        })
+        )
     except Exception:
         messages.error(request, "Payment gateway error. Please try again.")
         return redirect("wallet")
@@ -113,11 +129,13 @@ def wallet_payment_success(request):
     # STEP 1: VERIFY SIGNATURE (UNCHANGED)
     # -----------------------------------------
     try:
-        client.utility.verify_payment_signature({
-            "razorpay_order_id": order_id,
-            "razorpay_payment_id": payment_id,
-            "razorpay_signature": signature,
-        })
+        client.utility.verify_payment_signature(
+            {
+                "razorpay_order_id": order_id,
+                "razorpay_payment_id": payment_id,
+                "razorpay_signature": signature,
+            }
+        )
     except Exception:
         messages.error(request, "Payment verification failed.")
         return redirect("wallet")
@@ -155,7 +173,7 @@ def wallet_payment_success(request):
 
     WalletTransaction.objects.create(
         wallet=wallet,
-        razorpay_payment_id=payment_id,   # IMPORTANT for uniqueness
+        razorpay_payment_id=payment_id,  # IMPORTANT for uniqueness
         amount=amount,
         transaction_type="CREDIT",
         purpose="RECHARGE",
@@ -180,18 +198,24 @@ def create_wallet_order(request):
     if amount < 100 or amount > 50000:
         return JsonResponse({"error": "Amount out of range"}, status=400)
 
-    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+    client = razorpay.Client(
+        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+    )
     try:
-        order = client.order.create({
-            "amount": amount * 100,
-            "currency": "INR",
-            "notes": {"user_id": str(request.user.id)}
-        })
+        order = client.order.create(
+            {
+                "amount": amount * 100,
+                "currency": "INR",
+                "notes": {"user_id": str(request.user.id)},
+            }
+        )
     except Exception:
         return JsonResponse({"error": "Gateway error"}, status=500)
 
-    return JsonResponse({
-        "order_id": order["id"],
-        "amount_paise": amount * 100,
-        "key": settings.RAZORPAY_KEY_ID,
-    })
+    return JsonResponse(
+        {
+            "order_id": order["id"],
+            "amount_paise": amount * 100,
+            "key": settings.RAZORPAY_KEY_ID,
+        }
+    )

@@ -446,6 +446,18 @@ body{
                 </span>
             </div>
 
+            {% if order.coupon_discount > 0 %}
+            <div class="total-row">
+                <span>
+                    Coupon Discount
+                    {% if order.applied_coupon %}({{ order.applied_coupon.code }}){% endif %}
+                </span>
+                <span class="discount">
+                    - ₹{{ order.coupon_discount }}
+                </span>
+            </div>
+            {% endif %}
+
             <div class="grand-total">
                 <span>Total</span>
                 <span>

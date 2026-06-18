@@ -280,7 +280,7 @@ h1 {
                                                    id="qty-input"
                                                    value="1"
                                                    min="1"
-                                                   max="10"
+                                                   max="5"
                                                    readonly
                                                    class="bg-transparent w-12 text-center text-[11px] font-black tracking-widest text-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                                             <button type="button"
@@ -585,7 +585,7 @@ htmx.ajax(
                 buyNowBtn.classList.remove('opacity-20', 'cursor-not-allowed');
                 buyNowBtn.innerText = "Buy Now";
             }
-            if(qtyInput) qtyInput.max = Math.min(stock, 10);
+            if(qtyInput) qtyInput.max = Math.min(stock, 5);
 
         } else {
             // ERROR/UNAVAILABLE STATE: User-Friendly handling

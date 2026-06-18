@@ -9,23 +9,49 @@ from wallets.models import Wallet, WalletTransaction
 from django.template.loader import render_to_string
 
 
+from django.core.paginator import Paginator
+
 @login_required
 def order_list_view(request):
 
     search_query = request.GET.get("q", "")
+    status_filter = request.GET.get("status", "ALL")
 
-    orders = Order.objects.filter(user=request.user)
+    orders = Order.objects.filter(
+        user=request.user
+    ).order_by("-created_at")
 
     if search_query:
+        orders = orders.filter(
+            order_id__icontains=search_query
+        )
 
-        orders = orders.filter(order_id__icontains=search_query)
+    if status_filter != "ALL":
+        orders = orders.filter(
+            order_status=status_filter
+        )
+
+    paginator = Paginator(orders, 5)
+
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    current_page = page_obj.number
+    total_pages = paginator.num_pages
 
     context = {
-        "orders": orders,
+        "page_obj": page_obj,
         "search_query": search_query,
+        "current_page": current_page,
+        "total_pages": total_pages,
+
+        "selected_status": status_filter,
     }
 
-    return render(request, "orders/order_list.html", context)
+    return render(
+        request,
+        "orders/order_list.html",
+        context,
+    )
 
 
 @login_required
@@ -255,9 +281,18 @@ def recalculate_order_totals(order):
     discount = sum(
         (item.price * item.quantity) - item.subtotal for item in active_items
     )
+
+    # Preserve the coupon discount, but never let it exceed the remaining
+    # subtotal (e.g. after cancelling items, a discount that applied to the
+    # original cart may no longer make sense against a smaller total).
+    coupon_discount = order.coupon_discount or 0
+    if coupon_discount > subtotal:
+        coupon_discount = subtotal
+        order.coupon_discount = coupon_discount
+
     order.subtotal = subtotal
     order.discount = discount
-    order.total_amount = subtotal + order.shipping_charge
+    order.total_amount = (subtotal + order.shipping_charge) - coupon_discount
     order.save()
 
 

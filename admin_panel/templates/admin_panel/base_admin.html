@@ -108,6 +108,11 @@
    class="nav-item group {% if 'transactions' in request.path %}active{% endif %}">
     <i class="bi bi-arrow-left-right nav-icon"></i> Transactions
 </a>
+<a href="{% url 'management:sales_report' %}"
+   class="nav-item group">
+    <i class="bi bi-bar-chart-line nav-icon"></i>
+    Reports
+</a>
 <a href="{% url 'reviews:admin_review_list' %}" 
    class="nav-item group {% if 'reviews' in request.path %}active{% endif %}">
     <i class="bi bi-star nav-icon"></i> Reviews
@@ -126,6 +131,7 @@
     <i class="bi bi-arrow-counterclockwise nav-icon"></i>
     Returns
 </a>
+
                 <div class="pt-10 pb-2 px-6 text-[9px] text-red-500/40 font-black uppercase tracking-[4px]">System</div>
                 <a href="#" class="nav-item group"><i class="bi bi-gear nav-icon"></i> Settings</a>
                 <a href="{% url 'admin_logout' %}"
