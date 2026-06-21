@@ -1,0 +1,347 @@
+<!--
+   templates/shop/_catalog_shared.html
+   Shared styles + behaviour for ALL catalog-style listing pages:
+   brand_list.html, archive_collection.html, best_seller.html, new_arrivals.html
+
+   Include this ONCE near the top of the content block on each page, using:
+       include 'shop/_catalog_shared.html'
+
+   Then each page only needs to add its own:
+     - breadcrumb label
+     - hero title / subtitle
+     - grid markup
+     - page-specific bits (toggle pills, toast, date badge, pagination)
+
+   Editing animation timing, colors, blur, hover physics, etc. in ONE
+   place (this file) updates it everywhere automatically.
+-->
+<style>
+:root {
+    --glass: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --primary-glow: rgba(var(--primary-rgb), 0.15);
+    --gold-premium: #ecb613;
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-apple: cubic-bezier(0.25, 1, 0.5, 1);
+    --spring-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* fallback if --primary-rgb isn't defined upstream */
+    --primary-rgb: 236, 182, 19;
+}
+
+body {
+    background: #020202;
+    -webkit-font-smoothing: antialiased;
+    padding-top: 0;
+}
+
+/* =========================
+   BUBBLE ELEMENTS
+========================= */
+.bubble-pill {
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 9999px;
+    transition: all 0.5s var(--ease-apple);
+}
+
+.bubble-pill:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* =========================
+   CATALOG CARDS (brand / archive / best-seller / arrivals all reuse this)
+========================= */
+.catalog-card-container {
+    perspective: 1000px;
+}
+
+.catalog-card-inner {
+    background: #080808;
+    border: 1px solid var(--glass-border);
+    border-radius: 2.25rem;
+    transition: all 0.8s var(--ease-apple);
+    position: relative;
+    overflow: hidden;
+    will-change: transform, border-color, box-shadow;
+}
+
+.catalog-card-inner:hover {
+    border-color: var(--primary-glow);
+    transform: translateY(-10px) scale(1.01);
+    box-shadow: 0 30px 60px -12px rgba(0,0,0,0.5),
+                0 18px 36px -18px rgba(var(--primary-rgb), 0.3);
+}
+
+.catalog-img {
+    transition: transform 1.4s var(--ease-apple), filter 0.8s var(--ease-apple);
+    will-change: transform, filter;
+}
+
+.catalog-card-inner:hover .catalog-img {
+    transform: scale(1.08);
+}
+
+/* =========================
+   SEARCH BAR
+========================= */
+.search-container {
+    background: rgba(15, 15, 15, 0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: 2.5rem;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    transition: all 0.6s var(--ease-apple);
+}
+
+.search-container:focus-within {
+    width: 100%;
+    max-width: 800px;
+    background: rgba(20, 20, 20, 0.8);
+    border-color: var(--primary-glow);
+    box-shadow: 0 0 40px var(--primary-glow);
+}
+
+/* =========================
+   TEXT EFFECTS
+========================= */
+.text-reveal {
+    background: linear-gradient(to bottom, #fff 0%, #666 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* =========================
+   TOGGLE PILLS (used by best_seller; harmless elsewhere if unused)
+========================= */
+.toggle-wrap {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+}
+
+.toggle-pill {
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    border: 1px solid var(--glass-border);
+    background: var(--glass);
+    color: #777;
+    transition: all 0.5s var(--ease-apple);
+}
+
+.toggle-pill:hover {
+    transform: translateY(-2px);
+    border-color: rgba(236, 182, 19, 0.3);
+}
+
+.toggle-pill.active {
+    background: var(--gold-premium);
+    color: #000;
+    border-color: var(--gold-premium);
+}
+
+/* =========================
+   PAGINATION PILLS
+========================= */
+.page-pill {
+    transition: transform 0.4s var(--ease-apple), background 0.4s var(--ease-apple), border-color 0.4s var(--ease-apple);
+}
+.page-pill:hover { transform: translateY(-2px); border-color: rgba(236, 182, 19, 0.3); }
+.page-pill.active {
+    background: var(--gold-premium);
+    color: #000;
+    border-color: var(--gold-premium);
+}
+
+/* =========================
+   LIVE / PULSE DOT (new arrivals "updated continuously" indicator)
+========================= */
+.live-pulse {
+    animation: livePulse 2.6s ease-in-out infinite;
+}
+@keyframes livePulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.25); }
+}
+
+/* =========================
+   TOAST NOTIFICATION (used by archive; harmless elsewhere if unused)
+========================= */
+#catalog-toast {
+    transform: translate(-50%, -20px);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+#catalog-toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+/* =========================
+   ANIMATIONS
+========================= */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.staggered-item {
+    opacity: 0;
+    animation: fadeInUp 1s var(--ease-apple) forwards;
+}
+
+@keyframes breadcrumbFlow {
+    0% { transform: translateX(-150%); opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { transform: translateX(250%); opacity: 0; }
+}
+
+@keyframes shine {
+    0% { left: -120%; }
+    100% { left: 140%; }
+}
+
+/* =========================
+   SCROLL-REVEAL (grid items fade in as you scroll, replaces fixed delays
+   so it still looks right on long / paginated grids)
+========================= */
+.reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 1.2s var(--ease-apple), transform 1.2s var(--ease-apple);
+    will-change: opacity, transform;
+}
+.reveal-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+
+/* =========================
+   LAYOUT / SPACING FIXES
+========================= */
+.min-h-screen {
+    position: relative;
+    z-index: 10;
+}
+
+nav.pt-14 {
+    margin-bottom: 2rem !important;
+}
+
+section {
+    margin-top: 0;
+}
+
+nav, section {
+    transition: transform 0.4s var(--ease-apple);
+}
+</style>
+
+<!-- ============================================================
+     OPTIONAL TOAST — only fires if a card calls triggerCatalogToast()
+     (currently used by archive_collection.html for "vaulted" items)
+     ============================================================ -->
+<div id="catalog-toast"
+     class="fixed top-10 left-1/2 pointer-events-none opacity-0 z-50 min-w-[320px] max-w-md bg-zinc-950/90 backdrop-blur-xl border border-white/10 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4">
+    <div class="w-2 h-2 rounded-full bg-zinc-500 animate-pulse"></div>
+    <p id="catalog-toast-text" class="text-xs text-zinc-300 uppercase tracking-widest font-light leading-relaxed">
+        This essence is currently unavailable or has been archived.
+    </p>
+</div>
+
+<script>
+/* ============================================================
+   SHARED CATALOG BEHAVIOUR
+   - card search filter (works if #catalogSearch + .catalog-name exist)
+   - ESC to clear search
+   - magnetic tilt on .catalog-card-container
+   - scroll reveal for .reveal-on-scroll
+   - toast trigger helper
+   ============================================================ */
+let catalogToastTimeout;
+function triggerCatalogToast(message) {
+    const toast = document.getElementById('catalog-toast');
+    if (!toast) return;
+    if (message) {
+        const textEl = document.getElementById('catalog-toast-text');
+        if (textEl) textEl.textContent = message;
+    }
+    clearTimeout(catalogToastTimeout);
+    toast.classList.add('show');
+    catalogToastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3500);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    /* ---- Search filter ---- */
+    const searchInput = document.getElementById('catalogSearch');
+    const cards = document.querySelectorAll('.catalog-card-container');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const value = e.target.value.toLowerCase();
+            cards.forEach(card => {
+                const nameEl = card.querySelector('.catalog-name');
+                const name = nameEl ? nameEl.innerText.toLowerCase() : '';
+                if (name.includes(value)) {
+                    card.style.display = 'block';
+                    card.style.animation = 'fadeInUp 0.6s var(--ease-apple) forwards';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                cards.forEach(card => { card.style.display = 'block'; });
+                searchInput.blur();
+            }
+        });
+    }
+
+    /* ---- Magnetic card tilt ---- */
+    cards.forEach(card => {
+        const inner = card.querySelector('.catalog-card-inner');
+        if (!inner) return;
+
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = (y - centerY) / 25;
+            const rotateY = (centerX - x) / 25;
+            inner.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-10px)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+            inner.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)';
+        });
+    });
+
+    /* ---- Scroll reveal ---- */
+    const revealEls = document.querySelectorAll('.reveal-on-scroll');
+    if ('IntersectionObserver' in window && revealEls.length) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.05 });
+        revealEls.forEach((el) => observer.observe(el));
+    } else {
+        revealEls.forEach((el) => el.classList.add('is-visible'));
+    }
+});
+</script>

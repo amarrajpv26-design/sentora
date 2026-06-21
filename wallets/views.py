@@ -29,7 +29,7 @@ def wallet_view(request):
     elif transaction_type == "DEBIT":
         transactions = transactions.filter(transaction_type="DEBIT")
 
-    paginator = Paginator(transactions, 10)
+    paginator = Paginator(transactions, 6)
 
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)

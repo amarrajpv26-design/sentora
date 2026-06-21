@@ -17,9 +17,9 @@ urlpatterns = [
         auth_views.PasswordResetView.as_view(
             form_class=ScentoraPasswordResetForm,
             template_name="users/password_reset_form.html",
-            email_template_name="email/password_reset_email.html",  
+            email_template_name="email/password_reset_email.html",
             subject_template_name="email/password_reset_subject.txt",
-            html_email_template_name="email/password_reset_email.html", 
+            html_email_template_name="email/password_reset_email.html",
         ),
         name="password_reset",
     ),
@@ -44,16 +44,49 @@ urlpatterns = [
         ),
         name="password_reset_complete",
     ),
-    path('profile/logout-confirmation/', views.logout_confirmation_view, name='logout_confirmation'),
+    path(
+        "profile/logout-confirmation/",
+        views.logout_confirmation_view,
+        name="logout_confirmation",
+    ),
     path("profile/", views.profile_view, name="profile"),
-    path('profile/password/', views.password_change_view, name='password_change'),
-    path('profile/address/add/', views.add_address_view, name='add_address'),
-    path("profile/address/edit/<int:pk>/", views.edit_address_view, name="edit_address"),
-    path("profile/address/delete/<int:pk>/", views.delete_address_view, name="delete_address"),
-    path('profile/edit/', views.edit_profile_view, name='edit_profile'),
-    path('profile/email/change/', views.change_email_request_view, name='change_email_request'),
-    path('profile/email/verify-otp/', views.verify_email_change, name='verify_email_otp'),
-    path('profile/email/update/', views.final_email_update_view, name='final_email_update_view'),
-    path('profile/email/verify-new/', views.verify_new_email_otp, name='verify_new_email'),
-    
+    path("profile/password/", views.password_change_view, name="password_change"),
+    path("profile/address/add/", views.add_address_view, name="add_address"),
+    path(
+        "profile/address/edit/<int:pk>/", views.edit_address_view, name="edit_address"
+    ),
+    path(
+        "profile/address/delete/<int:pk>/",
+        views.delete_address_view,
+        name="delete_address",
+    ),
+    path("profile/edit/", views.edit_profile_view, name="edit_profile"),
+    path(
+        "profile/email/change/",
+        views.change_email_request_view,
+        name="change_email_request",
+    ),
+    path(
+        "profile/email/verify-otp/", views.verify_email_change, name="verify_email_otp"
+    ),
+    path(
+        "profile/email/update/",
+        views.final_email_update_view,
+        name="final_email_update_view",
+    ),
+    path(
+        "profile/email/verify-new/", views.verify_new_email_otp, name="verify_new_email"
+    ),
+    path("search/", views.search_products, name="search_products"),
+    path("our-story/", views.our_story, name="our_story"),
+    path("philosophy/", views.philosophy, name="philosophy"),
+    path("boutiques/", views.boutiques, name="boutiques"),
+    path("contact/", views.contact, name="contact"),
+    path("shipping-policy/", views.shipping_policy, name="shipping_policy"),
+    path(
+        "return-refund-policy/", views.return_refund_policy, name="return_refund_policy"
+    ),
+    path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
+    path("terms-conditions/", views.terms_conditions, name="terms_conditions"),
+    path("about-scentora/", views.about_scentora, name="about_scentora"),
 ]

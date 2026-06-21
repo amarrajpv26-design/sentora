@@ -126,6 +126,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 'cart.context_processors.cart',
+                'shop.context_processors.global_footer_categories',
             ],
         },
     },

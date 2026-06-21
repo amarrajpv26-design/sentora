@@ -37,6 +37,14 @@
                     Manifest <span class="font-mono font-bold luxury-shimmer">#{{ order.order_id }}</span>
                 </h2>
             </div>
+
+            {% if messages %}
+  {% for message in messages %}
+  <div class="mb-6 p-4 bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-[2px] rounded-xl flex items-center gap-3">
+    <i class="bi bi-shield-check text-sm"></i> {{ message }}
+  </div>
+  {% endfor %}
+  {% endif %}
             
             <div class="flex gap-4 items-center">
 

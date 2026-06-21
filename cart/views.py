@@ -152,9 +152,9 @@ def cart_update(request, variant_id):
             message = "Quantity decreased"
 
         else:
-            cart.remove(variant)
+            
             success = True
-            message = "Item removed from cart"
+            message = "It should have atleast one item"
 
     else:
         success = False

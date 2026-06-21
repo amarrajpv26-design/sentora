@@ -1,0 +1,190 @@
+{% extends "users/index.html" %}
+{% block content %}
+
+<!-- HERO -->
+<section class="py-40 text-center max-w-5xl mx-auto px-8">
+    <p class="text-primary text-[10px] uppercase tracking-[0.4em] mb-6">
+        Delivery Information
+    </p>
+
+    <h1 class="font-serif-display text-6xl leading-tight">
+        Shipping
+        <span class="italic text-primary">Policy</span>
+    </h1>
+
+    <p class="mt-10 text-slate-400 text-lg leading-relaxed max-w-2xl mx-auto">
+        We are committed to delivering every Scentora fragrance with care,
+        precision, and the attention to detail expected from a luxury experience.
+    </p>
+</section>
+
+<!-- POLICY SECTIONS -->
+<section class="py-32 border-t border-neutral-border">
+    <div class="max-w-4xl mx-auto px-8 space-y-20">
+
+        <!-- Processing -->
+        <div>
+            <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                01
+            </p>
+
+            <h2 class="font-serif-display text-3xl mb-6">
+                Order Processing
+            </h2>
+
+            <p class="text-slate-500 leading-relaxed">
+                Orders are typically processed within 1–2 business days after
+                payment confirmation. During promotional periods, holidays,
+                or high-demand seasons, processing times may be slightly longer.
+            </p>
+        </div>
+
+        <!-- Domestic Shipping -->
+        <div>
+            <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                02
+            </p>
+
+            <h2 class="font-serif-display text-3xl mb-6">
+                Domestic Shipping
+            </h2>
+
+            <p class="text-slate-500 leading-relaxed">
+                Standard delivery within India generally takes
+                3–7 business days after dispatch.
+                Delivery times may vary depending on location and courier service availability.
+            </p>
+        </div>
+
+        <!-- International Shipping -->
+        <div>
+            <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                03
+            </p>
+
+            <h2 class="font-serif-display text-3xl mb-6">
+                International Shipping
+            </h2>
+
+            <p class="text-slate-500 leading-relaxed">
+                International orders are expected to arrive within
+                7–14 business days after dispatch. Customs procedures,
+                import regulations, and local delivery networks may
+                affect delivery times.
+            </p>
+        </div>
+
+        <!-- Tracking -->
+        <div>
+            <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                04
+            </p>
+
+            <h2 class="font-serif-display text-3xl mb-6">
+                Order Tracking
+            </h2>
+
+            <p class="text-slate-500 leading-relaxed">
+                Once your order has been shipped, you will receive a
+                confirmation email containing tracking information,
+                allowing you to monitor the progress of your shipment.
+            </p>
+        </div>
+
+        <!-- Shipping Charges -->
+        <div>
+            <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                05
+            </p>
+
+            <h2 class="font-serif-display text-3xl mb-6">
+                Shipping Charges
+            </h2>
+
+            <p class="text-slate-500 leading-relaxed">
+                Shipping fees are calculated during checkout based on
+                delivery location and selected shipping method.
+                Any applicable charges will be clearly displayed before payment.
+            </p>
+        </div>
+
+        <!-- Delays -->
+        <div>
+            <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                06
+            </p>
+
+            <h2 class="font-serif-display text-3xl mb-6">
+                Delivery Delays
+            </h2>
+
+            <p class="text-slate-500 leading-relaxed">
+                While we strive to meet estimated delivery timelines,
+                unforeseen circumstances such as severe weather,
+                transportation disruptions, customs inspections,
+                or courier-related issues may occasionally cause delays.
+            </p>
+        </div>
+
+    </div>
+</section>
+
+<!-- HIGHLIGHTS -->
+<section class="py-32 bg-[#050505] border-y border-neutral-border">
+    <div class="max-w-6xl mx-auto px-8">
+
+        <div class="grid md:grid-cols-3 gap-8">
+
+            <div class="bg-neutral-dark border border-neutral-border rounded-3xl p-8 text-center">
+                <div class="text-primary text-3xl mb-5">✓</div>
+                <h3 class="text-xl font-semibold mb-3">
+                    Secure Packaging
+                </h3>
+                <p class="text-slate-500">
+                    Every fragrance is carefully packaged to ensure safe delivery.
+                </p>
+            </div>
+
+            <div class="bg-neutral-dark border border-neutral-border rounded-3xl p-8 text-center">
+                <div class="text-primary text-3xl mb-5">✓</div>
+                <h3 class="text-xl font-semibold mb-3">
+                    Order Tracking
+                </h3>
+                <p class="text-slate-500">
+                    Track your shipment from dispatch to delivery.
+                </p>
+            </div>
+
+            <div class="bg-neutral-dark border border-neutral-border rounded-3xl p-8 text-center">
+                <div class="text-primary text-3xl mb-5">✓</div>
+                <h3 class="text-xl font-semibold mb-3">
+                    Reliable Delivery
+                </h3>
+                <p class="text-slate-500">
+                    We work with trusted logistics partners to ensure timely delivery.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-28 text-center">
+    <h2 class="font-serif-display text-3xl mb-6">
+        Need Help With Your Order?
+    </h2>
+
+    <p class="text-slate-500 mb-10 max-w-xl mx-auto">
+        If you have questions regarding shipping, delivery status,
+        or order tracking, our support team is ready to assist you.
+    </p>
+
+    <a href="{% url 'contact' %}"
+       class="liquid-btn inline-flex items-center px-10 py-4 bg-primary text-black font-bold uppercase tracking-widest text-[11px] rounded-full">
+        Contact Support
+    </a>
+</section>
+
+{% endblock %}

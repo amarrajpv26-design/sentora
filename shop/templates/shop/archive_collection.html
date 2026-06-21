@@ -36,7 +36,7 @@
                             <div class="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(212,175,55,0.9)]"></div>
                             <div class="absolute w-4 h-4 rounded-full border border-primary/20 animate-ping"></div>
                         </div>
-                        <span class="text-[9px] uppercase tracking-[0.35em] text-white font-medium">Brands</span>
+                        <span class="text-[9px] uppercase tracking-[0.35em] text-white font-medium">The Archive</span>
                     </div>
                     <div class="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-primary/40 blur-[2px]"></div>
                 </div>
@@ -48,12 +48,12 @@
             <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-primary/[0.07] blur-[150px] rounded-full"></div>
             <div class="relative max-w-[1600px] mx-auto px-8 lg:px-14">
                 <h1 class="staggered-item text-[5rem] md:text-[8rem] lg:text-[10rem] font-black tracking-[-0.07em] leading-[0.8] mb-12">
-                    <span class="text-reveal">Iconic.</span>
+                    <span class="text-reveal">The</span>
                     <br>
-                    <span class="font-extralight italic">Collection.</span>
+                    <span class="font-extralight italic">Archive.</span>
                 </h1>
                 <p class="staggered-item [animation-delay:200ms] max-w-xl text-sm text-zinc-500 tracking-widest leading-loose uppercase">
-                    An immersive exploration of heritage, craft, and the houses that define modern perfumery.
+                    A retrospective exhibition of past collections, vault editions, and historical releases.
                 </p>
             </div>
         </section>
@@ -65,7 +65,7 @@
                     <span class="material-symbols-outlined text-zinc-500 group-focus-within:text-primary transition-colors">search</span>
                     <input type="text"
                            id="catalogSearch"
-                           placeholder="Search by House Name..."
+                           placeholder="Search the Vault..."
                            class="w-full bg-transparent border-none text-xs uppercase tracking-[0.3em] pl-6 text-white focus:outline-none focus:ring-0 placeholder:text-zinc-700">
                     <div class="flex items-center space-x-2 text-[8px] text-zinc-600 tracking-widest ml-4">
                         <span>ESC</span>
@@ -76,63 +76,85 @@
 
         <!-- GRID -->
         <section class="mt-32 max-w-[1600px] mx-auto px-8 lg:px-14">
-            {% if brands %}
-                <div id="brandGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-12">
-                    {% for brand in brands %}
+            {% if products %}
+                <div id="archiveGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-12">
+                    {% for product in products %}
                         <div class="catalog-card-container reveal-on-scroll" style="transition-delay: calc({{ forloop.counter }} * 60ms);">
-                            <a href="{% url 'shop:product_list' %}?brand={{ brand.id }}" class="group block">
+                            <!-- Intentionally NOT a link: archived items are unavailable, so clicking
+                                 triggers the shared toast instead of navigating to a product page. -->
+                            <div onclick="triggerCatalogToast()" class="group block cursor-pointer">
                                 <div class="catalog-card-inner">
                                     <div class="relative h-[480px] overflow-hidden m-4 rounded-[2.5rem]">
-                                        {% with first_product=brand.products.all|first %}
-                                            {% with first_image=first_product.images.all|first %}
-                                                {% if first_image %}
-                                                    <img src="{{ first_image.image.url }}"
-                                                         class="w-full h-full object-cover catalog-img"
-                                                         alt="{{ brand.name }}">
-                                                {% else %}
-                                                    <div class="w-full h-full bg-[#111] flex items-center justify-center">
-                                                        <span class="material-symbols-outlined text-zinc-800 text-6xl">blur_on</span>
-                                                    </div>
-                                                {% endif %}
-                                            {% endwith %}
+                                        {% with image=product.images.first %}
+                                            {% if image %}
+                                                <img src="{{ image.image.url }}"
+                                                     class="w-full h-full object-cover catalog-img opacity-60 group-hover:opacity-80 filter grayscale contrast-125 group-hover:grayscale-0"
+                                                     alt="{{ product.name }}">
+                                            {% else %}
+                                                <div class="w-full h-full bg-[#111] flex items-center justify-center">
+                                                    <span class="material-symbols-outlined text-zinc-800 text-6xl">blur_on</span>
+                                                </div>
+                                            {% endif %}
                                         {% endwith %}
+
+                                        <div class="absolute inset-0 bg-gradient-to-t from-[#020202] via-black/20 to-transparent"></div>
+
+                                        <!-- Vaulted badge -->
+                                        <div class="absolute top-5 left-5">
+                                            <span class="text-[9px] uppercase tracking-widest px-3 py-1.5 rounded-full bg-zinc-900 border border-white/5 text-zinc-400">
+                                                Vaulted
+                                            </span>
+                                        </div>
+
+                                        <div class="absolute bottom-6 left-6 right-6">
+                                            <p class="text-[9px] text-zinc-500 uppercase tracking-[0.25em]">
+                                                {{ product.brand.name }}
+                                            </p>
+                                            <h3 class="catalog-name text-2xl font-light tracking-tighter mt-1.5 group-hover:text-white transition-colors duration-500">
+                                                {{ product.name }}
+                                            </h3>
+                                        </div>
                                     </div>
+
                                     <div class="px-10 py-10">
-                                        <div class="flex justify-between items-center mb-6">
-                                            <h2 class="catalog-name text-4xl font-light tracking-tighter group-hover:text-primary transition-colors duration-500">
-                                                {{ brand.name }}
-                                            </h2>
-                                            <div class="w-12 h-12 rounded-full border border-zinc-800 flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all">
-                                                <span class="material-symbols-outlined text-sm text-zinc-500 group-hover:text-black">arrow_outward</span>
+                                        <div class="flex justify-between items-center">
+                                            <div>
+                                                {% if product.has_offer %}
+                                                    <p class="text-zinc-600 line-through text-xs">₹{{ product.display_min_price }}</p>
+                                                    <p class="text-zinc-400 text-xs mt-0.5">₹{{ product.display_offer_price }}</p>
+                                                {% else %}
+                                                    <p class="text-zinc-500 text-xs">₹{{ product.display_min_price }}</p>
+                                                {% endif %}
+                                            </div>
+                                            <div class="w-12 h-12 rounded-full border border-zinc-800 flex items-center justify-center group-hover:bg-zinc-100 group-hover:border-zinc-100 transition-all">
+                                                <span class="text-sm text-zinc-500 group-hover:text-black transition-colors">✕</span>
                                             </div>
                                         </div>
-                                        <p class="text-[10px] uppercase tracking-[0.2em] text-zinc-500 leading-relaxed opacity-60">
-                                            Archive contains curated masterpieces from the house of {{ brand.name }}.
-                                        </p>
                                     </div>
+
                                     <div class="absolute -bottom-20 -right-20 w-40 h-40 bg-primary/10 blur-[60px] opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 </div>
-                            </a>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
 
-                {% if brands.has_other_pages %}
+                {% if products.has_other_pages %}
                     <div class="flex items-center justify-center gap-3 mt-32">
-                        {% if brands.has_previous %}
-                            <a href="?page={{ brands.previous_page_number }}"
+                        {% if products.has_previous %}
+                            <a href="?page={{ products.previous_page_number }}"
                                class="page-pill bubble-pill w-11 h-11 flex items-center justify-center text-zinc-400">
                                 <span class="material-symbols-outlined text-[16px]">chevron_left</span>
                             </a>
                         {% endif %}
-                        {% for num in brands.paginator.page_range %}
+                        {% for num in products.paginator.page_range %}
                             <a href="?page={{ num }}"
-                               class="page-pill bubble-pill w-11 h-11 flex items-center justify-center text-[10px] font-bold {% if num == brands.number %}active{% else %}text-zinc-400{% endif %}">
+                               class="page-pill bubble-pill w-11 h-11 flex items-center justify-center text-[10px] font-bold {% if num == products.number %}active{% else %}text-zinc-400{% endif %}">
                                 {{ num }}
                             </a>
                         {% endfor %}
-                        {% if brands.has_next %}
-                            <a href="?page={{ brands.next_page_number }}"
+                        {% if products.has_next %}
+                            <a href="?page={{ products.next_page_number }}"
                                class="page-pill bubble-pill w-11 h-11 flex items-center justify-center text-zinc-400">
                                 <span class="material-symbols-outlined text-[16px]">chevron_right</span>
                             </a>
@@ -142,7 +164,7 @@
             {% else %}
                 <div class="h-96 flex flex-col items-center justify-center bubble-pill border-dashed">
                     <span class="material-symbols-outlined text-zinc-800 text-5xl mb-6">database_off</span>
-                    <p class="text-[10px] tracking-[0.3em] text-zinc-600 uppercase">The archive is currently offline</p>
+                    <p class="text-[10px] tracking-[0.3em] text-zinc-600 uppercase">The vault is currently empty</p>
                 </div>
             {% endif %}
         </section>

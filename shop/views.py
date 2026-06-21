@@ -9,6 +9,17 @@ from cart.models import Wishlist, WishlistItem
 from reviews.models import Review
 from orders.models import OrderItem
 from offers.utils import get_effective_price
+from django.db.models.functions import Coalesce
+from django.db.models import (
+    Min,
+    Sum,
+    Q,
+    Prefetch,
+    Count,
+    F,
+    DecimalField,
+    ExpressionWrapper,
+)
 
 
 @login_required(login_url="user_login")
@@ -87,9 +98,7 @@ def product_list(request):
             min(base_prices) if base_prices else (product.min_price or 0)
         )
         product.display_offer_price = (
-            min(effective_prices)
-            if effective_prices
-            else product.display_min_price
+            min(effective_prices) if effective_prices else product.display_min_price
         )
         product.has_offer = product.display_offer_price < product.display_min_price
     # ---------------------------------------------------------------
@@ -227,6 +236,47 @@ def brand_list(request):
     return render(request, "shop/brand_list.html", {"brands": brands})
 
 
+@login_required(login_url="user_login")
+def new_arrivals(request):
+
+    products = (
+        Product.objects.filter(is_active=True)
+        .annotate(min_price=Min("variants__price"))
+        .order_by("-created_at")[:9]  # only latest 9
+    )
+
+    for product in products:
+        variants = list(product.variants.filter(is_active=True))
+
+        base_prices = [v.price for v in variants]
+        effective_prices = [get_effective_price(v)[0] for v in variants]
+
+        product.display_min_price = (
+            min(base_prices) if base_prices else (product.min_price or 0)
+        )
+
+        product.display_offer_price = (
+            min(effective_prices) if effective_prices else product.display_min_price
+        )
+
+        product.has_offer = product.display_offer_price < product.display_min_price
+
+    wishlist_variant_ids = set(
+        WishlistItem.objects.filter(wishlist__user=request.user).values_list(
+            "variant_id", flat=True
+        )
+    )
+
+    return render(
+        request,
+        "shop/new_arrivals.html",
+        {
+            "products": products,
+            "wishlist_variant_ids": wishlist_variant_ids,
+        },
+    )
+
+
 def category_list(request):
 
     first_product_qs = Product.objects.prefetch_related("images").order_by("id")
@@ -257,9 +307,7 @@ def category_products(request, slug):
 
         product.display_min_price = min(base_prices) if base_prices else 0
         product.display_offer_price = (
-            min(effective_prices)
-            if effective_prices
-            else product.display_min_price
+            min(effective_prices) if effective_prices else product.display_min_price
         )
         product.has_offer = product.display_offer_price < product.display_min_price
 
@@ -271,3 +319,113 @@ def category_products(request, slug):
             "products": products,
         },
     )
+
+
+@login_required(login_url="user_login")
+def best_sellers(request):
+    # Determine the sorting and filtering mode chosen by the user
+    mode = request.GET.get("mode", "qty")
+    if mode not in ["qty", "orders", "revenue"]:
+        mode = "qty"
+
+    # Only aggregate active items from valid/non-cancelled customer orders
+    valid_items = Q(variants__orderitem__item_status="ACTIVE") & ~Q(
+        variants__orderitem__order__order_status="CANCELLED"
+    )
+
+    # 1. Annotate metrics onto the active products
+    products = Product.objects.filter(is_active=True).annotate(
+        min_price=Min("variants__price"),
+        total_qty_sold=Coalesce(
+            Sum("variants__orderitem__quantity", filter=valid_items), 0
+        ),
+        order_count=Coalesce(
+            Count("variants__orderitem__order", distinct=True, filter=valid_items), 0
+        ),
+        revenue=Coalesce(
+            Sum(
+                ExpressionWrapper(
+                    F("variants__orderitem__quantity")
+                    * F("variants__orderitem__price"),
+                    output_field=DecimalField(),
+                ),
+                filter=valid_items,
+            ),
+            0,
+            output_field=DecimalField(),
+        ),
+    )
+
+    # 2. Apply strict baseline thresholds required for Best Sellers
+    products = products.filter(
+        total_qty_sold__gte=5, order_count__gte=5, revenue__gte=20000
+    )
+
+    # 3. Sort dynamically based on the active mode focus
+    if mode == "orders":
+        products = products.order_by("-order_count", "-created_at")
+    elif mode == "revenue":
+        products = products.order_by("-revenue", "-created_at")
+    else:  # 'qty' is the fallback default
+        products = products.order_by("-total_qty_sold", "-created_at")
+
+    # 4. Fetch the top 10 qualified best sellers
+    products = products[:10]
+
+    # Calculate active pricing profiles and offer states for the top 10 items
+    for product in products:
+        variants = list(product.variants.filter(is_active=True))
+        base_prices = [v.price for v in variants]
+        effective_prices = [get_effective_price(v)[0] for v in variants]
+
+        product.display_min_price = (
+            min(base_prices) if base_prices else (product.min_price or 0)
+        )
+        product.display_offer_price = (
+            min(effective_prices) if effective_prices else product.display_min_price
+        )
+        product.has_offer = product.display_offer_price < product.display_min_price
+
+    context = {
+        "products": products,
+        "mode": mode,
+    }
+    return render(request, "shop/best_sellers.html", context)
+
+
+@login_required(login_url="user_login")
+def archive_collection(request):
+    # Fetch all products that are archived (is_active=False)
+    products = (
+        Product.objects.filter(is_active=False)
+        .annotate(min_price=Min("variants__price"))
+        .order_by("-id")
+    )  # Shows newest additions to archive first
+
+    # Calculate active pricing profiles for the archived pieces
+    for product in products:
+        # Note: We look at all variants for the archive card layout
+        variants = list(product.variants.all())
+        base_prices = [v.price for v in variants]
+        effective_prices = [get_effective_price(v)[0] for v in variants]
+
+        product.display_min_price = (
+            min(base_prices) if base_prices else (product.min_price or 0)
+        )
+        product.display_offer_price = (
+            min(effective_prices) if effective_prices else product.display_min_price
+        )
+        product.has_offer = product.display_offer_price < product.display_min_price
+
+    # Retrieve wishlist profiles for structural synergy with your layout design
+    wishlist_variant_ids = set(
+        WishlistItem.objects.filter(wishlist__user=request.user).values_list(
+            "variant_id", flat=True
+        )
+    )
+
+    context = {
+        "products": products,
+        "wishlist_variant_ids": wishlist_variant_ids,
+    }
+    return render(request, "shop/archive_collection.html", context)

@@ -1,0 +1,201 @@
+{% extends "users/index.html" %}
+{% block content %}
+
+<!-- HERO -->
+<section class="py-40 text-center max-w-5xl mx-auto px-8">
+    <p class="text-primary text-[10px] uppercase tracking-[0.4em] mb-6">
+        Customer Care
+    </p>
+
+    <h1 class="font-serif-display text-6xl leading-tight">
+        Contact
+        <span class="italic text-primary">Us</span>
+    </h1>
+
+    <p class="mt-10 text-slate-400 text-lg leading-relaxed max-w-2xl mx-auto">
+        Whether you have questions about an order, need fragrance recommendations,
+        or simply want to connect with our team, we're here to help.
+    </p>
+</section>
+
+<!-- CONTACT INFO -->
+<section class="py-24 border-t border-neutral-border">
+    <div class="max-w-6xl mx-auto px-8">
+
+        <div class="grid md:grid-cols-3 gap-8">
+
+            <div class="bg-neutral-dark border border-neutral-border rounded-3xl p-8">
+                <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                    Email
+                </p>
+
+                <h3 class="text-xl font-semibold mb-3">
+                    Customer Support
+                </h3>
+
+                <p class="text-slate-500">
+                    support@scentora.com
+                </p>
+            </div>
+
+            <div class="bg-neutral-dark border border-neutral-border rounded-3xl p-8">
+                <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                    Response Time
+                </p>
+
+                <h3 class="text-xl font-semibold mb-3">
+                    Quick Assistance
+                </h3>
+
+                <p class="text-slate-500">
+                    We typically respond within
+                    24–48 business hours.
+                </p>
+            </div>
+
+            <div class="bg-neutral-dark border border-neutral-border rounded-3xl p-8">
+                <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                    Business Hours
+                </p>
+
+                <h3 class="text-xl font-semibold mb-3">
+                    Monday – Friday
+                </h3>
+
+                <p class="text-slate-500">
+                    9:00 AM – 6:00 PM IST
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- CONTACT FORM -->
+<section class="py-32 bg-[#050505] border-y border-neutral-border">
+    <div class="max-w-3xl mx-auto px-8">
+
+        <div class="text-center mb-14">
+            <h2 class="font-serif-display text-4xl mb-4">
+                Send Us a Message
+            </h2>
+
+            <p class="text-slate-500">
+                Our team will get back to you as soon as possible.
+            </p>
+        </div>
+
+        <form class="space-y-6">
+
+            <div>
+                <label class="block text-sm text-slate-400 mb-2">
+                    Full Name
+                </label>
+
+                <input
+                    type="text"
+                    placeholder="Enter your name"
+                    class="w-full bg-neutral-dark border border-neutral-border rounded-xl px-5 py-4 focus:outline-none focus:border-primary"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm text-slate-400 mb-2">
+                    Email Address
+                </label>
+
+                <input
+                    type="email"
+                    placeholder="Enter your email"
+                    class="w-full bg-neutral-dark border border-neutral-border rounded-xl px-5 py-4 focus:outline-none focus:border-primary"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm text-slate-400 mb-2">
+                    Subject
+                </label>
+
+                <input
+                    type="text"
+                    placeholder="How can we help?"
+                    class="w-full bg-neutral-dark border border-neutral-border rounded-xl px-5 py-4 focus:outline-none focus:border-primary"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm text-slate-400 mb-2">
+                    Message
+                </label>
+
+                <textarea
+                    rows="6"
+                    placeholder="Write your message..."
+                    class="w-full bg-neutral-dark border border-neutral-border rounded-xl px-5 py-4 focus:outline-none focus:border-primary"
+                ></textarea>
+            </div>
+
+            <button
+                type="submit"
+                class="liquid-btn px-10 py-4 bg-primary text-black font-bold uppercase tracking-widest text-[11px] rounded-full"
+            >
+                Send Message
+            </button>
+
+        </form>
+
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="py-32">
+    <div class="max-w-4xl mx-auto px-8">
+
+        <div class="text-center mb-16">
+            <h2 class="font-serif-display text-4xl">
+                Frequently Asked Questions
+            </h2>
+        </div>
+
+        <div class="space-y-8">
+
+            <div class="border-b border-neutral-border pb-6">
+                <h3 class="text-xl mb-3">
+                    How long does shipping take?
+                </h3>
+
+                <p class="text-slate-500">
+                    Orders are typically delivered within 3–7 business days,
+                    depending on your location.
+                </p>
+            </div>
+
+            <div class="border-b border-neutral-border pb-6">
+                <h3 class="text-xl mb-3">
+                    Can I return a fragrance?
+                </h3>
+
+                <p class="text-slate-500">
+                    Unopened fragrances may be eligible for return according to
+                    our Return & Refund Policy.
+                </p>
+            </div>
+
+            <div class="border-b border-neutral-border pb-6">
+                <h3 class="text-xl mb-3">
+                    Do you offer fragrance recommendations?
+                </h3>
+
+                <p class="text-slate-500">
+                    Yes. Our team can help you discover scents based on your
+                    preferences and style.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

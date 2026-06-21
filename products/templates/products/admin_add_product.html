@@ -1,111 +1,458 @@
-@login_required(login_url="user_login")
-def product_list(request):
-    products = Product.objects.filter(is_active=True)
-    query = request.GET.get("q", "").strip()
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+{% block extra_css %}
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <style>
+    .glass-panel { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+/* Update this in your <style> section */
+.luxury-input { 
+    background: rgba(0, 0, 0, 0.4); 
+    border: 1px solid rgba(255, 255, 255, 0.05); 
+    color: white; 
+    transition: all 0.3s ease;
+    min-height: 58px; /* Forces it to match the text input height */
+}    .luxury-input:focus { border-color: #f4b41a; box-shadow: 0 0 15px rgba(244, 180, 26, 0.1); outline: none; }
+    
+    .variant-row { background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.03); transition: all 0.3s ease; }
+    .variant-row:hover { border-color: rgba(244, 180, 26, 0.2); background: rgba(255, 255, 255, 0.02); }
 
-    if query:
-        products = products.filter(
-            Q(name__icontains=query)
-            | Q(brand__name__icontains=query)
-            | Q(top_notes__icontains=query)
-        )
+    .image-preview-slot { width: 100%; aspect-ratio: 3/4; background: rgba(0,0,0,0.4); border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+    .image-preview-slot img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .luxury-shimmer { background: linear-gradient(90deg, #fff, #f4b41a, #fff); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite; }
+    @keyframes shimmer { to { background-position: 200% center; } }
+    select.luxury-input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1.5rem center;
+    background-size: 1rem;
+    padding-right: 3rem; /* Make space for the arrow */
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto animate__animated animate__fadeIn pb-20">
+<div class="mb-10 flex justify-between items-end">
+<div>
+<a href="{% url 'admin_product_list' %}" class="group flex items-center gap-3 text-white/50 text-[10px] uppercase tracking-[3px] font-bold mb-4 hover:text-gold transition-all">
+<i class="bi bi-arrow-left"></i> Back to Registry
+</a>
+<h2 class="text-4xl font-extralight text-white tracking-tighter">
+Initialize <span class="font-black luxury-shimmer">New Scent</span>
+</h2>
+</div>
+{% if messages %}
+<div class="fixed top-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md space-y-4 animate__animated animate__fadeInDown">
+{% for message in messages %}
+<div class="glass-panel border-gold/30 p-5 rounded-2xl flex items-center gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+<div class="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold">
+<i class="bi bi-check2-all"></i>
+</div>
+<div class="flex-1">
+<p class="text-[10px] text-white/40 uppercase tracking-[2px] font-black">System Notification</p>
+<p class="text-xs text-white/90 font-bold tracking-wide mt-0.5">{{ message }}</p>
+</div>
+<button onclick="this.parentElement.remove()" class="text-white/20 hover:text-white transition-colors">
+<i class="bi bi-x-lg text-xs"></i>
+</button>
+</div>
+{% endfor %}
+</div>
+{% endif %}
+<p class="text-white/20 text-[9px] uppercase tracking-[4px] font-black mb-1">Product Manifest v1.0</p>
+</div>
+<form method="POST" enctype="multipart/form-data" id="product-form">
+{% csrf_token %}
+<div class="grid grid-cols-12 gap-8 items-start">
+<div class="col-span-8 space-y-8">
+<div class="glass-panel rounded-[32px] p-10 space-y-8">
+<h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-4 border-b border-white/5 pb-4">
+Core Identity
+</h3>
+<div class="grid grid-cols-2 gap-6">
+<div class="col-span-2">
+<label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Scent Name</label>
+<input type="text" name="name" required class="luxury-input py-4 px-6 rounded-xl text-sm w-full font-bold" placeholder="e.g., Midnight Oud">
+</div>
+<div>
+<label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Brand/House</label>
+<input type="text" name="brand_name" list="brand-suggestions" class="luxury-input py-4 px-6 rounded-xl text-sm w-full font-bold" placeholder="e.g., Tom Ford" required>
+<datalist id="brand-suggestions">
+{% for brand in brands %}<option value="{{ brand.name }}">{% endfor %}
+</datalist>
+</div>
+<div>
+<label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Primary Vault</label>
+<select name="category" class="luxury-input py-4 px-6 rounded-xl text-sm w-full appearance-none">
+{% for cat in categories %}<option value="{{ cat.id }}">{{ cat.name }}</option>{% endfor %}
+</select>
+</div>
+</div>
+<div>
+<label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Scent Narrative</label>
+<textarea name="description" rows="4" class="luxury-input py-4 px-6 rounded-xl text-sm w-full" placeholder="Describe the soul of this fragrance..."></textarea>
+</div>
+<div class="pt-6 border-t border-white/5">
+    <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-6">Olfactory Pyramid</h3>
+    <div class="grid grid-cols-3 gap-6">
+        <div>
+            <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Top Notes</label>
+            <input type="text"
+                   name="top_notes"
+                   class="luxury-input py-3 px-4 rounded-lg text-xs w-full"
+                   placeholder="Citrus...">
+        </div>
+        <div>
+            <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Heart Notes</label>
+            <input type="text"
+                   name="heart_notes"
+                   class="luxury-input py-3 px-4 rounded-lg text-xs w-full"
+                   placeholder="Rose...">
+        </div>
+        <div>
+            <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Base Notes</label>
+            <input type="text"
+                   name="base_notes"
+                   class="luxury-input py-3 px-4 rounded-lg text-xs w-full"
+                   placeholder="Amber...">
+        </div>
+    </div>
+</div>
+</div>
+<div class="glass-panel rounded-[32px] p-10">
+    <div class="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
+        <div>
+            <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px]">Product Varient</h3>
+            <p class="text-white/20 text-[8px] uppercase tracking-[2px] mt-1">Manage volumes and pricing</p>
+        </div>
+        <button type="button"
+                id="add-variant-btn"
+                class="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-[2px] text-gold hover:bg-gold hover:text-black transition-all">
+            <i class="bi bi-plus-lg me-1"></i> Add Size
+        </button>
+    </div>
+    <div id="variant-container" class="space-y-4">
+        <div class="variant-row p-6 rounded-2xl grid grid-cols-12 gap-4 items-end relative group animate__animated animate__fadeIn">
+            <div class="col-span-3">
+                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Volume</label>
+                <select name="v_size[]"
+                        required
+                        class="luxury-input py-3 px-4 rounded-lg text-xs w-full font-bold appearance-none">
+                    <option value="" disabled selected>Select Size</option>
+                    <option value="8ml">8ml (Travel)</option>
+                    <option value="20ml">20ml (Discovery)</option>
+                    <option value="50ml">50ml (Signature)</option>
+                    <option value="100ml">100ml (Grand)</option>
+                </select>
+            </div>
+            <div class="col-span-3">
+                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Price (₹)</label>
+                <input type="number"
+                       name="v_price[]"
+                       required
+                       min="0"
+                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full"
+                       placeholder="0.00">
+            </div>
+            <div class="col-span-2">
+                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Offer</label>
+                <input type="number"
+                       name="v_offer[]"
+                       min="0"
+                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full"
+                       placeholder="Sale">
+            </div>
+            <div class="col-span-3">
+                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Stock</label>
+                <input type="number"
+                       name="v_stock[]"
+                       required
+                       min="0"
+                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full"
+                       placeholder="0">
+            </div>
+            <div class="col-span-1 flex justify-center pb-2">
+                <button type="button"
+                        onclick="removeVariantRow(this)"
+                        class="text-white/10 hover:text-red-500 transition-colors">
+                    <i class="bi bi-x-circle text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<div class="col-span-4 sticky top-10 space-y-6">
+    <div class="glass-panel rounded-[32px] p-8">
+        <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-6 border-b border-white/5 pb-4">
+            Visual Gallery (3:4)
+        </h3>
+        <div class="grid grid-cols-2 gap-4" id="gallery-grid">
+            <div class="col-span-2">
+                <div class="image-preview-slot relative group" id="preview-0">
+                    <button type="button"
+                            onclick="removeImage(0)"
+                            class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
+                        <i class="bi bi-x"></i>
+                    </button>
+                    <label for="img-0"
+                           class="cursor-pointer text-center p-4 w-full h-full flex flex-col items-center justify-center">
+                        <i class="bi bi-camera text-2xl text-white/10 block mb-2"></i>
+                        <span class="text-[8px] text-white/20 uppercase font-black tracking-widest">Main Master Image</span>
+                    </label>
+                    <input type="file"
+                           id="img-0"
+                           class="hidden image-input"
+                           accept="image/*"
+                           data-index="0">
+                    <input type="hidden" name="cropped_images[]" id="cropped-0">
+                </div>
+            </div>
+            {% for i in "123" %}
+                <div class="image-preview-slot relative group" id="preview-{{ i }}">
+                    <button type="button"
+                            onclick="removeImage({{ i }})"
+                            class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
+                        <i class="bi bi-x"></i>
+                    </button>
+                    <label for="img-{{ i }}"
+                           class="cursor-pointer text-center w-full h-full flex flex-col items-center justify-center">
+                        <i class="bi bi-plus-lg text-white/10"></i>
+                    </label>
+                    <input type="file"
+                           id="img-{{ i }}"
+                           class="hidden image-input"
+                           accept="image/*"
+                           data-index="{{ i }}">
+                    <input type="hidden" name="cropped_images[]" id="cropped-{{ i }}">
+                </div>
+            {% endfor %}
+        </div>
+        <p class="text-[8px] text-white/20 uppercase tracking-[2px] mt-6 text-center italic">High-res portraits only.</p>
+    </div>
+    <div class="glass-panel rounded-[32px] p-8">
+        <button type="submit"
+                class="w-full py-5 bg-gold text-black rounded-2xl font-black text-[11px] uppercase tracking-[3px] hover:shadow-[0_0_30_rgba(244,180,26,0.3)] transition-all mb-4">
+            Commit to Registry
+        </button>
+        <a href="{% url 'admin_product_list' %}"
+           class="block text-center text-[9px] font-black text-white/20 uppercase tracking-[2px] hover:text-white transition-colors">
+            Discard Draft
+        </a>
+    </div>
+</div>
+<div id="cropper-modal"
+     class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
+    <div class="glass-panel rounded-[32px] p-8 max-w-xl w-full border-gold/20">
+        <h3 class="text-white font-black text-[11px] uppercase tracking-[3px] mb-6">Refine Composition</h3>
+        <div class="max-h-[500px] overflow-hidden rounded-xl bg-black">
+            <img id="image-to-crop" style="max-width: 100%;">
+        </div>
+        <div class="flex justify-end gap-6 mt-8">
+            <button type="button"
+                    id="cancel-crop"
+                    class="text-[10px] text-white/30 uppercase font-black tracking-widest">Cancel</button>
+            <button type="button"
+                    id="apply-crop"
+                    class="px-10 py-3 bg-gold text-black rounded-xl font-black text-[10px] uppercase tracking-widest">
+                Verify Crop
+            </button>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    // Auto-dismiss messages after 5 seconds
+    setTimeout(() => {
+        const alerts = document.querySelectorAll('.animate__fadeInDown');
+        alerts.forEach(alert => {
+            alert.classList.replace('animate__fadeInDown', 'animate__fadeOutUp');
+            setTimeout(() => alert.remove(), 1000);
+        });
+    }, 5000);
 
-    category_id = request.GET.get("category", "").strip()
-    brand_id = request.GET.get("brand", "").strip()
-    min_price = request.GET.get("min_price", "").strip()
-    max_price = request.GET.get("max_price", "").strip()
+    // Logic for Variants (Max 4)
+    const addBtn = document.getElementById('add-variant-btn');
+    if (addBtn) {
+        addBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const container = document.getElementById('variant-container');
+            const rows = container.getElementsByClassName('variant-row');
+            
+            if (rows.length >= 4) {
+                alert("Maximum 4 sizes allowed.");
+                return;
+            }
 
-    if category_id:
-        products = products.filter(categories__id=category_id)
-
-    if brand_id:
-        products = products.filter(brand_id=brand_id)
-
-    if min_price:
-        try:
-            products = products.filter(min_price__gte=float(min_price))
-        except ValueError:
-            pass
-
-    if max_price:
-        try:
-            products = products.filter(min_price__lte=float(max_price))
-        except ValueError:
-            pass
-
-    products = products.distinct()
-
-    sort = request.GET.get("sort", "newest")
-    wishlist_variant_ids = []
-
-    sort_options = {
-        "price_low": "min_price",
-        "price_high": "-min_price",
-        "name_az": "name",
-        "name_za": "-name",
-        "newest": "-created_at",
+            const newRow = rows[0].cloneNode(true);
+            newRow.querySelectorAll('input[type="number"]').forEach(preventNegative);
+            newRow.querySelectorAll('input').forEach(i => i.value = '');
+            newRow.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+            container.appendChild(newRow);
+        });
     }
 
-    products = products.order_by(sort_options.get(sort, "-created_at"))
-
-    paginator = Paginator(products, 12)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-
-    for product in page_obj:
-        variants_data = []
-        variants = product.variants.filter(is_active=True)
-
-        offer_prices = []
-        base_prices = [v.price for v in variants]
-        effective_prices = [get_effective_price(v)[0] for v in variants]
-
-        product.display_min_price = min(base_prices) if base_prices else 0
-
-        for variant in product.variants.filter(is_active=True):
-            effective_price, offer_label = get_effective_price(variant)
-            base_prices.append(variant.price)
-            offer_prices.append(effective_price)
-
-            variants_data.append(
-                {
-                    "id": variant.id,
-                    "size": variant.size,
-                    "stock": variant.stock,
-                    "original_price": variant.price,  # MRP — always the base
-                    "effective_price": effective_price,  # best price after offers
-                    "offer_label": offer_label,  # e.g. "Summer Sale (-20%)"
-                }
-            )
-
-        product.display_min_price = (
-            min(base_prices) if base_prices else product.min_price
-        )
-        product.display_offer_price = (
-            min(effective_prices) if effective_prices else product.min_price
-        )
-
-    wishlist_variant_ids = WishlistItem.objects.filter(
-        wishlist__user=request.user
-    ).values_list("variant_id", flat=True)
-
-    wishlist_product_ids = Product.objects.filter(
-        variants__id__in=wishlist_variant_ids
-    ).values_list("id", flat=True)
-    wishlist_variant_ids = set(wishlist_variant_ids)
-    context = {
-        "products": page_obj,
-        "categories": Category.objects.filter(is_active=True),
-        "brands": Brand.objects.filter(is_active=True),
-        "current_params": request.GET,
-        "query": query,
-        "selected_category": category_id,
-        "selected_brand": brand_id,
-        "selected_min_price": min_price,
-        "selected_max_price": max_price,
-        "wishlist_variant_ids": wishlist_variant_ids,
-        "wishlist_product_ids": wishlist_product_ids,
-        "selected_sort": sort,
+    function removeVariantRow(button) {
+        const rows = document.getElementsByClassName('variant-row');
+        if (rows.length > 1) {
+            button.closest('.variant-row').remove();
+        }
     }
 
-    return render(request, "shop/product_list.html", context)
+    // --- Dynamic Image Gallery Logic ---
+    let cropper;
+    let currentSlotIndex;
+    let nextSlotIndex = 4; // Tracks the ID for the next dynamic slot
+    const modal = document.getElementById('cropper-modal');
+    const imageToCrop = document.getElementById('image-to-crop');
+
+    // Reusable function to open cropper
+    function handleFileSelect(input) {
+        if (!input.files || !input.files[0]) return;
+        currentSlotIndex = input.dataset.index;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            imageToCrop.src = event.target.result;
+            modal.classList.remove('hidden');
+            if (cropper) cropper.destroy();
+            cropper = new Cropper(imageToCrop, { aspectRatio: 3/4, viewMode: 2 });
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+
+    // Attach listener to initial 4 slots
+    function bindInitialInputs() {
+        document.querySelectorAll('.image-input').forEach(input => {
+            input.addEventListener('change', function() { handleFileSelect(this); });
+        });
+    }
+    bindInitialInputs();
+
+    document.getElementById('apply-crop').addEventListener('click', () => {
+        const canvas = cropper.getCroppedCanvas({ width: 600, height: 800 });
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+        const previewBox = document.getElementById(`preview-${currentSlotIndex}`);
+        const fileInput = document.getElementById(`img-${currentSlotIndex}`);
+
+        let previewImg = previewBox.querySelector('img');
+        if (!previewImg) {
+            previewImg = document.createElement('img');
+            previewImg.className = "cursor-pointer absolute inset-0 w-full h-full object-cover z-0";
+            previewBox.appendChild(previewImg);
+        }
+
+        previewImg.src = dataUrl;
+        previewImg.onclick = () => fileInput.click();
+        document.getElementById(`cropped-${currentSlotIndex}`).value = dataUrl;
+
+        // --- Infinite Slot Logic ---
+        // If the slot just filled is the current "last" slot, add a new one
+        const totalSlots = document.querySelectorAll('.image-preview-slot').length;
+        if (parseInt(currentSlotIndex) === totalSlots - 1) {
+            addNewImageSlot(totalSlots);
+        }
+
+        modal.classList.add('hidden');
+        if (cropper) { cropper.destroy(); cropper = null; }
+    });
+
+    // Function to create a new slot
+    function addNewImageSlot(index) {
+        const grid = document.getElementById('gallery-grid');
+        const newSlot = document.createElement('div');
+        newSlot.className = "image-preview-slot relative group animate__animated animate__fadeIn";
+        newSlot.id = `preview-${index}`;
+        
+        newSlot.innerHTML = `
+            <button type="button" onclick="removeImage(${index})" class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
+                <i class="bi bi-x"></i>
+            </button>
+            <label for="img-${index}" class="cursor-pointer text-center w-full h-full flex flex-col items-center justify-center">
+                <i class="bi bi-plus-lg text-white/10"></i>
+            </label>
+            <input type="file" id="img-${index}" class="hidden image-input" accept="image/*" data-index="${index}">
+            <input type="hidden" name="cropped_images[]" id="cropped-${index}">
+        `;
+        
+        grid.appendChild(newSlot);
+        
+        // Bind event to the new input
+        newSlot.querySelector('.image-input').addEventListener('change', function() {
+            handleFileSelect(this);
+        });
+    }
+
+    // Function for the Cross Button (Remove Image)
+    function removeImage(index) {
+    const previewBox = document.getElementById(`preview-${index}`);
+    const img = previewBox.querySelector('img');
+    const hiddenInput = document.getElementById(`cropped-${index}`);
+    const fileInput = document.getElementById(`img-${index}`);
+
+    if (img) img.remove();
+    if (hiddenInput) hiddenInput.value = "";
+    if (fileInput) fileInput.value = "";
+
+    // remove dynamic empty slots
+    if (index >= 4) {
+        previewBox.classList.add('animate__zoomOut');
+        setTimeout(() => {
+            previewBox.remove();
+
+            const emptySlots =
+                [...document.querySelectorAll(".image-preview-slot")]
+                .filter(slot => !slot.querySelector("img"));
+
+            // ensure one empty slot exists
+            if (emptySlots.length === 0) {
+                addNewImageSlot(
+                    document.querySelectorAll(".image-preview-slot").length
+                );
+            }
+        }, 300);
+    }
+}
+    document.getElementById('cancel-crop').addEventListener('click', () => {
+        modal.classList.add('hidden');
+        if (cropper) { cropper.destroy(); cropper = null; }
+        const currentInput = document.getElementById(`img-${currentSlotIndex}`);
+        if (currentInput) currentInput.value = '';
+    });
+
+    document.getElementById("product-form").addEventListener("submit", function(e) {
+    const firstFour = [0, 1, 2, 3];
+    let uploadedCount = 0;
+
+    firstFour.forEach(i => {
+        const value = document.getElementById(`cropped-${i}`)?.value;
+        if (value && value.trim() !== "") {
+            uploadedCount++;
+        }
+    });
+
+    if (uploadedCount < 4) {
+        e.preventDefault();
+        alert("Please upload all 4 required images before submitting.");
+        return false;
+    }
+});
+
+function preventNegative(input) {
+    input.addEventListener("input", () => {
+        if (input.value < 0) {
+            input.value = 0;
+        }
+    });
+
+    input.addEventListener("blur", () => {
+        if (input.value === "" || input.value < 0) {
+            input.value = 0;
+        }
+    });
+}
+document.querySelectorAll('input[type="number"]').forEach(preventNegative);
+</script>
+{% endblock %}

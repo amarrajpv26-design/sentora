@@ -109,7 +109,7 @@
     <i class="bi bi-arrow-left-right nav-icon"></i> Transactions
 </a>
 <a href="{% url 'management:sales_report' %}"
-   class="nav-item group">
+   class="nav-item group {% if 'report' in request.path %}active{% endif %}">
     <i class="bi bi-bar-chart-line nav-icon"></i>
     Reports
 </a>

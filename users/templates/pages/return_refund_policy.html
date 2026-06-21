@@ -1,0 +1,194 @@
+{% extends "users/index.html" %}
+{% block content %}
+
+<!-- HERO -->
+<section class="py-40 text-center max-w-5xl mx-auto px-8">
+    <p class="text-primary text-[10px] uppercase tracking-[0.4em] mb-6">
+        Customer Protection
+    </p>
+
+    <h1 class="font-serif-display text-6xl leading-tight">
+        Return &
+        <span class="italic text-primary">Refund Policy</span>
+    </h1>
+
+    <p class="mt-10 text-slate-400 text-lg leading-relaxed max-w-2xl mx-auto">
+        Your satisfaction is important to us. This policy explains the conditions
+        under which returns, replacements, and refunds may be requested for
+        purchases made through Scentora.
+    </p>
+</section>
+
+<!-- POLICY CONTENT -->
+<section class="py-32 border-t border-neutral-border">
+    <div class="max-w-4xl mx-auto px-8 space-y-20">
+
+        <!-- Returns -->
+        <div>
+            <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                01
+            </p>
+
+            <h2 class="font-serif-display text-3xl mb-6">
+                Return Eligibility
+            </h2>
+
+            <p class="text-slate-500 leading-relaxed">
+                Returns may be requested within 7 days of delivery.
+                To be eligible, products must be unused, unopened,
+                and returned in their original packaging with all
+                accessories and documentation included.
+            </p>
+        </div>
+
+        <!-- Non Returnable -->
+        <div>
+            <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                02
+            </p>
+
+            <h2 class="font-serif-display text-3xl mb-6">
+                Non-Returnable Items
+            </h2>
+
+            <p class="text-slate-500 leading-relaxed">
+                For hygiene, safety, and quality assurance reasons,
+                opened or used fragrance products cannot be returned.
+                Products showing signs of use, damage caused after
+                delivery, or missing original packaging may not qualify
+                for a return or refund.
+            </p>
+        </div>
+
+        <!-- Damaged Products -->
+        <div>
+            <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                03
+            </p>
+
+            <h2 class="font-serif-display text-3xl mb-6">
+                Damaged or Incorrect Orders
+            </h2>
+
+            <p class="text-slate-500 leading-relaxed">
+                If you receive a damaged, defective, or incorrect item,
+                please contact our support team within 48 hours of delivery.
+                Include your order number and clear photographs of the issue
+                so we can assist you promptly.
+            </p>
+        </div>
+
+        <!-- Refunds -->
+        <div>
+            <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                04
+            </p>
+
+            <h2 class="font-serif-display text-3xl mb-6">
+                Refund Process
+            </h2>
+
+            <p class="text-slate-500 leading-relaxed">
+                Once your returned item has been received and inspected,
+                we will notify you regarding the approval status of your refund.
+                Approved refunds will be issued to the original payment method.
+            </p>
+        </div>
+
+        <!-- Refund Timeline -->
+        <div>
+            <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                05
+            </p>
+
+            <h2 class="font-serif-display text-3xl mb-6">
+                Refund Timeline
+            </h2>
+
+            <p class="text-slate-500 leading-relaxed">
+                Refunds are generally processed within 5–7 business days
+                after approval. Depending on your bank or payment provider,
+                it may take additional time for the amount to appear in your account.
+            </p>
+        </div>
+
+        <!-- Cancellation -->
+        <div>
+            <p class="text-primary text-[10px] uppercase tracking-[0.3em] mb-4">
+                06
+            </p>
+
+            <h2 class="font-serif-display text-3xl mb-6">
+                Order Cancellation
+            </h2>
+
+            <p class="text-slate-500 leading-relaxed">
+                Orders may be cancelled before they are shipped.
+                Once an order has been dispatched, cancellation requests
+                may no longer be possible and the standard return policy
+                will apply.
+            </p>
+        </div>
+
+    </div>
+</section>
+
+<!-- HIGHLIGHTS -->
+<section class="py-32 bg-[#050505] border-y border-neutral-border">
+    <div class="max-w-6xl mx-auto px-8">
+
+        <div class="grid md:grid-cols-3 gap-8">
+
+            <div class="bg-neutral-dark border border-neutral-border rounded-3xl p-8 text-center">
+                <div class="text-primary text-3xl mb-5">✓</div>
+                <h3 class="text-xl font-semibold mb-3">
+                    7-Day Returns
+                </h3>
+                <p class="text-slate-500">
+                    Eligible unopened products may be returned within 7 days.
+                </p>
+            </div>
+
+            <div class="bg-neutral-dark border border-neutral-border rounded-3xl p-8 text-center">
+                <div class="text-primary text-3xl mb-5">✓</div>
+                <h3 class="text-xl font-semibold mb-3">
+                    Secure Refunds
+                </h3>
+                <p class="text-slate-500">
+                    Refunds are issued through the original payment method.
+                </p>
+            </div>
+
+            <div class="bg-neutral-dark border border-neutral-border rounded-3xl p-8 text-center">
+                <div class="text-primary text-3xl mb-5">✓</div>
+                <h3 class="text-xl font-semibold mb-3">
+                    Customer Support
+                </h3>
+                <p class="text-slate-500">
+                    Our team is available to help resolve any order issues.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-28 text-center">
+    <h2 class="font-serif-display text-3xl mb-6">
+        Need Assistance?
+    </h2>
+
+    <p class="text-slate-500 mb-10 max-w-xl mx-auto">
+        If you have questions regarding returns, refunds, replacements,
+        or cancellations, please reach out to our support team.
+    </p>
+
+    <a href="{% url 'contact' %}"
+       class="liquid-btn inline-flex items-center px-10 py-4 bg-primary text-black font-bold uppercase tracking-widest text-[11px] rounded-full">
+        Contact Support
+    </a>
+</section>
+
+{% endblock %}

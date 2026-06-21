@@ -1,0 +1,194 @@
+{% extends "users/index.html" %}
+{% block content %}
+
+<!-- HERO -->
+<section class="py-40 text-center max-w-6xl mx-auto px-8">
+    <p class="text-primary text-[10px] uppercase tracking-[0.4em] mb-6">
+        About Scentora
+    </p>
+
+    <h1 class="font-serif-display text-6xl leading-tight">
+        The Art of
+        <span class="italic text-primary">Fragrance</span>
+    </h1>
+
+    <p class="mt-10 text-slate-400 text-lg leading-relaxed max-w-3xl mx-auto">
+        Scentora was created with a simple belief — fragrance should be more than
+        something you wear. It should become part of your story, your memories,
+        and your identity.
+    </p>
+</section>
+
+<!-- STORY -->
+<section class="py-28 border-t border-neutral-border">
+    <div class="max-w-6xl mx-auto px-8">
+
+        <div class="grid lg:grid-cols-2 gap-20 items-center">
+
+            <div>
+                <img
+                    src="https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&w=1200&q=80"
+                    alt="Luxury Perfume"
+                    class="rounded-3xl w-full h-[600px] object-cover"
+                >
+            </div>
+
+            <div>
+                <p class="text-primary uppercase tracking-[0.3em] text-xs mb-4">
+                    Our Beginning
+                </p>
+
+                <h2 class="font-serif-display text-4xl mb-8">
+                    A House Built Around Emotion
+                </h2>
+
+                <p class="text-slate-500 leading-relaxed mb-6">
+                    Scentora was founded to celebrate the emotional power of scent.
+                    Every fragrance has the ability to transport us through time,
+                    evoke memories, and create lasting impressions.
+                </p>
+
+                <p class="text-slate-500 leading-relaxed">
+                    Rather than following trends, we focus on timeless compositions
+                    crafted with exceptional ingredients and artistic vision.
+                    Each creation reflects elegance, authenticity, and individuality.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- VALUES -->
+<section class="py-32 bg-[#050505] border-t border-neutral-border">
+    <div class="max-w-7xl mx-auto px-8">
+
+        <div class="text-center mb-20">
+            <p class="text-primary uppercase tracking-[0.3em] text-xs mb-4">
+                Our Values
+            </p>
+
+            <h2 class="font-serif-display text-5xl">
+                What Defines Scentora
+            </h2>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-10">
+
+            <div class="p-10 border border-neutral-border rounded-3xl">
+                <div class="text-primary text-4xl mb-6">01</div>
+
+                <h3 class="text-2xl font-serif-display mb-4">
+                    Craftsmanship
+                </h3>
+
+                <p class="text-slate-500 leading-relaxed">
+                    Every fragrance is carefully developed with attention to detail,
+                    balance, and artistic expression.
+                </p>
+            </div>
+
+            <div class="p-10 border border-neutral-border rounded-3xl">
+                <div class="text-primary text-4xl mb-6">02</div>
+
+                <h3 class="text-2xl font-serif-display mb-4">
+                    Quality
+                </h3>
+
+                <p class="text-slate-500 leading-relaxed">
+                    We source premium ingredients and prioritize excellence in
+                    every aspect of our collections.
+                </p>
+            </div>
+
+            <div class="p-10 border border-neutral-border rounded-3xl">
+                <div class="text-primary text-4xl mb-6">03</div>
+
+                <h3 class="text-2xl font-serif-display mb-4">
+                    Individuality
+                </h3>
+
+                <p class="text-slate-500 leading-relaxed">
+                    We believe fragrance should express personality rather than
+                    conformity.
+                </p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- MISSION -->
+<section class="py-32 border-t border-neutral-border">
+    <div class="max-w-5xl mx-auto px-8 text-center">
+
+        <p class="text-primary uppercase tracking-[0.3em] text-xs mb-4">
+            Our Mission
+        </p>
+
+        <h2 class="font-serif-display text-5xl mb-10">
+            Creating Meaningful Fragrance Experiences
+        </h2>
+
+        <p class="text-slate-500 leading-relaxed text-lg">
+            Our mission is to bring luxury fragrance closer to people who value
+            quality, creativity, and self-expression. Every bottle is designed to
+            become part of life's most memorable moments.
+        </p>
+
+    </div>
+</section>
+
+<!-- STATS -->
+<section class="py-28 bg-[#050505] border-t border-neutral-border">
+    <div class="max-w-6xl mx-auto px-8">
+
+        <div class="grid md:grid-cols-4 gap-10 text-center">
+
+            <div>
+                <h3 class="font-serif-display text-5xl text-primary">50+</h3>
+                <p class="text-slate-500 mt-3">Luxury Fragrances</p>
+            </div>
+
+            <div>
+                <h3 class="font-serif-display text-5xl text-primary">10K+</h3>
+                <p class="text-slate-500 mt-3">Happy Customers</p>
+            </div>
+
+            <div>
+                <h3 class="font-serif-display text-5xl text-primary">100%</h3>
+                <p class="text-slate-500 mt-3">Authentic Products</p>
+            </div>
+
+            <div>
+                <h3 class="font-serif-display text-5xl text-primary">24/7</h3>
+                <p class="text-slate-500 mt-3">Customer Support</p>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="py-32 text-center border-t border-neutral-border">
+
+    <h2 class="font-serif-display text-5xl mb-8">
+        Discover Your Signature Scent
+    </h2>
+
+    <p class="text-slate-500 max-w-2xl mx-auto leading-relaxed mb-10">
+        Explore our curated fragrance collections and find a scent that reflects
+        your personality and style.
+    </p>
+
+    <a href="{% url 'shop:product_list' %}"
+       class="inline-flex items-center px-10 py-4 bg-primary text-black font-bold uppercase tracking-widest text-[11px] rounded-full hover:scale-105 transition duration-300">
+        Explore Collection
+    </a>
+
+</section>
+
+{% endblock %}

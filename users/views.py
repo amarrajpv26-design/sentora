@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.views.decorators.cache import never_cache
 from .models import User, Address
+from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from .utils import generate_otp, send_otp_email
 from django.utils import timezone
@@ -16,7 +17,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from datetime import date, timedelta
 from wallets.models import Wallet
-from products.models import Product, Category, ProductImage
+from products.models import Product, Category, ProductImage, Brand
 
 
 @never_cache
@@ -30,7 +31,9 @@ def welcome_view(request):
         "images", "variants"
     )
 
-    categories = Category.objects.filter(is_active=True)
+    categories = Category.objects.filter(is_active=True).order_by("id")
+
+    brands = Brand.objects.filter(is_active=True).order_by("id")[:6]
 
     return render(
         request,
@@ -39,6 +42,7 @@ def welcome_view(request):
             "hero_categories": hero_categories,
             "featured_products": featured_products,
             "categories": categories,
+            "brands": brands,
         },
     )
 
@@ -46,31 +50,26 @@ def welcome_view(request):
 @login_required(login_url="welcome")
 @never_cache
 def home(request):
-
     hero_categories = Category.objects.filter(
-        is_active=True,
-        category_image__isnull=False
+        is_active=True, category_image__isnull=False
     )
 
-    featured_products = (
-        Product.objects
-        .filter(is_active=True)
-        .prefetch_related("images", "variants")
+    featured_products = Product.objects.filter(is_active=True).prefetch_related(
+        "images", "variants"
     )
 
     categories = Category.objects.filter(is_active=True)
+    brands = Brand.objects.filter(is_active=True).order_by("id")[:6]
 
     context = {
         "hero_categories": hero_categories,
         "featured_products": featured_products,
         "categories": categories,
+        "brands": brands,
+        # 'private_reserve' and 'limited_edition' are now handled globally!
     }
 
-    return render(
-        request,
-        "users/index.html",
-        context
-    )
+    return render(request, "users/index.html", context)
 
 
 @never_cache
@@ -157,6 +156,7 @@ def verify_otp(request):
             referral_input = signup_data.get("referral_input")
             if referral_input:
                 from offers.utils import apply_referral_to_new_user
+
                 apply_referral_to_new_user(user, referral_input)
 
             for key in ["pending_signup", "referral_code_input", "referral_token"]:
@@ -543,3 +543,72 @@ def verify_new_email_otp(request):
             messages.error(request, "INVALID VERIFICATION CODE.")
 
     return render(request, "users/verify_new_email.html", {"email": new_email})
+
+
+def search_products(request):
+
+    query = request.GET.get("q", "").strip()
+
+    products = Product.objects.none()
+
+    if query:
+
+        products = (
+            Product.objects.filter(
+                Q(name__icontains=query)
+                | Q(description__icontains=query)
+                | Q(top_notes__icontains=query)
+                | Q(heart_notes__icontains=query)
+                | Q(base_notes__icontains=query)
+                | Q(brand__name__icontains=query)
+                | Q(categories__name__icontains=query)
+            )
+            .filter(is_active=True)
+            .distinct()
+        )
+
+    return render(
+        request,
+        "users/search_results.html",
+        {
+            "query": query,
+            "products": products,
+        },
+    )
+
+
+def our_story(request):
+    return render(request, "pages/our_story.html")
+
+
+def philosophy(request):
+    return render(request, "pages/philosophy.html")
+
+
+def boutiques(request):
+    return render(request, "pages/boutiques.html")
+
+
+def contact(request):
+    return render(request, "pages/contact.html")
+
+
+def shipping_policy(request):
+    return render(request, "pages/shipping_policy.html")
+
+
+def return_refund_policy(request):
+    return render(request, "pages/return_refund_policy.html")
+
+
+def privacy_policy(request):
+    return render(request, "pages/privacy_policy.html")
+
+
+def terms_conditions(request):
+    return render(request, "pages/terms_conditions.html")
+
+
+
+def about_scentora(request):
+    return render(request, "pages/about_scentora.html")

@@ -5,7 +5,7 @@
         <meta content="width=device-width, initial-scale=1.0" name="viewport" />
         <title>Scentora | Luxury Fragrances</title>
         <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&display=swap"
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&display=swap"
               rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
               rel="stylesheet" />
@@ -23,28 +23,554 @@
                         "neutral-dark": "#141414",
                         "neutral-border": "#262626"
                     },
-                    fontFamily: { "display": ["Manrope", "sans-serif"] },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"],
+                        "serif-display": ["Fraunces", "serif"]
+                    },
                 },
             },
         }
         </script>
         <style>
-        body { font-family: 'Manrope', sans-serif; }
-        .hero-gradient {
-            background: linear-gradient(to right, #0a0a0a 0%, rgba(10, 10, 10, 0.7) 40%, transparent 100%);
+        :root {
+            /* ---- Liquid glass token system (visual layer only) ---- */
+            --glass-fill: rgba(255, 255, 255, 0.055);
+            --glass-fill-strong: rgba(255, 255, 255, 0.1);
+            --glass-fill-card: rgba(255, 255, 255, 0.035);
+            --glass-border: rgba(255, 255, 255, 0.14);
+            --glass-border-soft: rgba(255, 255, 255, 0.09);
+            --glass-highlight: rgba(255, 255, 255, 0.55);
+            --glow-primary: rgba(236, 182, 19, 0.55);
+            --glow-primary-soft: rgba(236, 182, 19, 0.22);
+            --radius-xl: 2rem;
+            --radius-2xl: 2.75rem;
+            --radius-pill: 9999px;
+            --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --spring-soft: cubic-bezier(0.22, 1, 0.36, 1);
+            --spring-snap: cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .text-glow { text-shadow: 0 0 20px rgba(236, 182, 19, 0.2); }
-        /* Custom smooth transition for the grayscale hover effect */
-        .hover-reveal {
-            filter: grayscale(100%);
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        /* Update your CSS slightly */
-.group:hover .hover-reveal {
-    filter: grayscale(0%) brightness(1.1);
-    transform: scale(1.05);
-}
 
+        * { -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #0a0a0a;
+            background-image:
+                radial-gradient(ellipse 80% 50% at 20% -10%, rgba(236, 182, 19, 0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 90% 10%, rgba(255, 255, 255, 0.04), transparent),
+                radial-gradient(ellipse 50% 40% at 50% 100%, rgba(236, 182, 19, 0.04), transparent);
+            overscroll-behavior-y: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        html { scroll-behavior: smooth; }
+
+        /* ============ LIQUID GLASS SURFACE (base, reusable everywhere) ============ */
+        .glass {
+            background: var(--glass-fill);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid var(--glass-border);
+            box-shadow:
+                inset 0 1px 1px rgba(255, 255, 255, 0.12),
+                inset 0 -1px 1px rgba(0, 0, 0, 0.3),
+                0 8px 32px rgba(0, 0, 0, 0.35);
+            position: relative;
+            isolation: isolate;
+        }
+        .glass::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, var(--glass-highlight) 0%, transparent 30%, transparent 70%, rgba(255,255,255,0.08) 100%);
+            opacity: 0.18;
+            pointer-events: none;
+            mix-blend-mode: overlay;
+        }
+
+        /* Lighter-weight glass for cards/panels (less border glare, more depth) */
+        .glass-panel {
+            background: var(--glass-fill-card);
+            -webkit-backdrop-filter: blur(18px) saturate(150%);
+            backdrop-filter: blur(18px) saturate(150%);
+            border: 1px solid var(--glass-border-soft);
+            box-shadow:
+                inset 0 1px 1px rgba(255, 255, 255, 0.08),
+                0 20px 50px -12px rgba(0, 0, 0, 0.55);
+            position: relative;
+            isolation: isolate;
+        }
+        .glass-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: linear-gradient(135deg, rgba(255,255,255,0.35) 0%, transparent 35%, transparent 75%, rgba(255,255,255,0.05) 100%);
+            opacity: 0.14;
+            pointer-events: none;
+            mix-blend-mode: overlay;
+        }
+
+        /* ============ HEADER — full glass pill bar, shrinks + tightens on scroll ============ */
+        #app-header {
+            transition: padding 0.5s var(--spring-soft), background-color 0.5s var(--spring-soft);
+        }
+        #app-header .header-glass-bar {
+            background: var(--glass-fill);
+            -webkit-backdrop-filter: blur(26px) saturate(180%);
+            backdrop-filter: blur(26px) saturate(180%);
+            border-bottom: 1px solid var(--glass-border-soft);
+            box-shadow: inset 0 -1px 0 rgba(255,255,255,0.05), 0 8px 32px rgba(0,0,0,0.3);
+            transition: padding 0.5s var(--spring-soft), background 0.5s var(--spring-soft);
+        }
+        #app-header.py-1 .header-glass-bar {
+            background: rgba(10, 10, 10, 0.75);
+            box-shadow: inset 0 -1px 0 rgba(255,255,255,0.06), 0 12px 40px rgba(0,0,0,0.5);
+        }
+
+        .nav-dock {
+            background: var(--glass-fill);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-pill);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.12),
+                0 4px 24px rgba(0,0,0,0.4);
+        }
+        .nav-pill {
+            border-radius: var(--radius-pill);
+            transition: color 0.4s var(--spring-soft), transform 0.5s var(--spring);
+            will-change: transform;
+        }
+        .nav-pill:hover {
+            transform: translateY(-2px) scale(1.06);
+        }
+        .nav-pill .pill-underline {
+            transition: width 0.5s var(--spring), opacity 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        /* ============ ICON BUBBLES (wishlist/cart/profile) ============ */
+        .icon-bubble {
+            border-radius: var(--radius-pill);
+            transition: transform 0.55s var(--spring), background 0.4s var(--spring-soft), box-shadow 0.45s var(--spring-soft);
+            will-change: transform;
+        }
+        .icon-bubble:hover {
+            transform: translateY(-3px) scale(1.14);
+            background: var(--glass-fill-strong);
+            box-shadow: 0 8px 20px rgba(236, 182, 19, 0.18), inset 0 1px 0 rgba(255,255,255,0.15);
+        }
+        .icon-bubble:active {
+            transform: scale(0.92);
+            transition: transform 0.15s var(--spring-snap);
+        }
+        .badge-pop {
+            transition: transform 0.5s var(--spring), box-shadow 0.4s ease;
+            box-shadow: 0 0 0 0 rgba(236,182,19,0.6), 0 2px 8px rgba(236,182,19,0.45);
+        }
+        .badge-pop.bump {
+            animation: badgeBump 0.6s var(--spring);
+        }
+        @keyframes badgeBump {
+            0% { transform: scale(1); }
+            35% { transform: scale(1.6); box-shadow: 0 0 0 8px rgba(236,182,19,0); }
+            100% { transform: scale(1); }
+        }
+
+        .profile-avatar-ring {
+            transition: border-color 0.4s var(--spring-soft), transform 0.55s var(--spring), box-shadow 0.5s var(--spring-soft);
+        }
+        a:hover .profile-avatar-ring {
+            transform: scale(1.08) rotate(4deg);
+            box-shadow: 0 0 0 4px rgba(236, 182, 19, 0.14), 0 6px 18px rgba(236, 182, 19, 0.25);
+        }
+        .presence-dot {
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
+            animation: presencePulse 2.4s ease-in-out infinite;
+        }
+        @keyframes presencePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55); }
+            50% { box-shadow: 0 0 0 5px rgba(34, 197, 94, 0); }
+        }
+
+        /* ============ SEARCH GLASS CAPSULE ============ */
+        .search-capsule {
+            border-radius: var(--radius-pill) !important;
+            background: var(--glass-fill) !important;
+            border: 1px solid var(--glass-border-soft) !important;
+            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px);
+            transition: box-shadow 0.5s var(--spring-soft), border-color 0.5s var(--spring-soft), transform 0.5s var(--spring-soft), background 0.4s ease;
+        }
+        .search-capsule:hover {
+            border-color: rgba(236, 182, 19, 0.3) !important;
+        }
+        .search-capsule:focus-within {
+            box-shadow: 0 0 0 1px rgba(236, 182, 19, 0.4), 0 0 24px rgba(236, 182, 19, 0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+            transform: scale(1.015);
+            background: var(--glass-fill-strong) !important;
+        }
+        .search-capsule input::placeholder { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .search-capsule:focus-within input::placeholder { opacity: 0.5; transform: translateX(2px); }
+
+        /* ============ HERO ============ */
+        #hero-section { perspective: 1400px; }
+        #hero-carousel > div {
+            transition: transform 1.2s var(--spring-soft);
+        }
+        #hero-carousel img {
+            transform: scale(1.08);
+            transition: transform 8s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform;
+        }
+        .hero-slide-active img { transform: scale(1); }
+
+        /* Was referenced but never defined — readable scrim over hero imagery */
+        .hero-gradient {
+            background:
+                linear-gradient(90deg, rgba(10,10,10,0.92) 0%, rgba(10,10,10,0.65) 38%, rgba(10,10,10,0.15) 65%, transparent 85%),
+                linear-gradient(180deg, rgba(10,10,10,0.35) 0%, transparent 30%, transparent 70%, rgba(10,10,10,0.55) 100%);
+        }
+
+        .hero-eyebrow-line {
+            transform-origin: left center;
+            animation: lineGrow 1.1s var(--spring-soft) 0.15s both;
+        }
+        @keyframes lineGrow {
+            from { transform: scaleX(0); opacity: 0; }
+            to { transform: scaleX(1); opacity: 1; }
+        }
+        .hero-reveal-up {
+            opacity: 0;
+            transform: translateY(28px);
+            animation: heroRise 1s var(--spring-soft) both;
+        }
+        .hero-reveal-up.d1 { animation-delay: 0.05s; }
+        .hero-reveal-up.d2 { animation-delay: 0.22s; }
+        .hero-reveal-up.d3 { animation-delay: 0.4s; }
+        .hero-reveal-up.d4 { animation-delay: 0.58s; }
+        @keyframes heroRise {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Liquid blob that follows pointer inside hero (signature element) */
+        .liquid-blob {
+            position: absolute;
+            width: 480px;
+            height: 480px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, rgba(236, 182, 19, 0.35), rgba(236, 182, 19, 0.05) 60%, transparent 75%);
+            filter: blur(40px);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            transition: left 1.4s var(--spring-soft), top 1.4s var(--spring-soft), opacity 0.6s ease;
+            opacity: 0;
+            z-index: 5;
+            mix-blend-mode: screen;
+        }
+        #hero-section:hover .liquid-blob { opacity: 1; }
+
+        /* Floating glass chips that drift gently inside the hero (signature element) */
+        .hero-float-chip {
+            position: absolute;
+            border-radius: var(--radius-pill);
+            background: var(--glass-fill);
+            border: 1px solid var(--glass-border-soft);
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.1);
+            animation: chipDrift 7s var(--spring-soft) infinite;
+            pointer-events: none;
+        }
+        @keyframes chipDrift {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-14px); }
+        }
+
+        /* ============ MAGNETIC LIQUID BUTTON (Shop Now etc) ============ */
+        .liquid-btn {
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius-pill);
+            transition: transform 0.5s var(--spring), box-shadow 0.5s var(--spring-soft);
+            will-change: transform;
+            box-shadow: 0 6px 20px rgba(236, 182, 19, 0.25), inset 0 1px 0 rgba(255,255,255,0.4);
+        }
+        .liquid-btn:hover {
+            transform: translateY(-4px) scale(1.04);
+            box-shadow: 0 14px 34px rgba(236, 182, 19, 0.45), inset 0 1px 0 rgba(255,255,255,0.5);
+        }
+        .liquid-btn:active {
+            transform: translateY(-1px) scale(0.97);
+            transition: transform 0.18s var(--spring-snap);
+        }
+        .liquid-btn .btn-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.55);
+            transform: scale(0);
+            opacity: 0.7;
+            pointer-events: none;
+            animation: rippleOut 0.7s var(--spring-soft) forwards;
+        }
+        @keyframes rippleOut {
+            to { transform: scale(1); opacity: 0; }
+        }
+        .liquid-btn .btn-arrow {
+            transition: transform 0.45s var(--spring);
+        }
+        .liquid-btn:hover .btn-arrow {
+            transform: translateX(5px);
+        }
+
+        /* secondary glass capsule button (used generically) */
+        .glass-btn {
+            background: var(--glass-fill);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-pill);
+            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+            transition: transform 0.5s var(--spring), background 0.4s var(--spring-soft), border-color 0.4s var(--spring-soft), box-shadow 0.5s var(--spring-soft);
+        }
+        .glass-btn:hover {
+            transform: translateY(-3px) scale(1.03);
+            background: var(--glass-fill-strong);
+            border-color: rgba(236, 182, 19, 0.35);
+            box-shadow: 0 10px 26px rgba(236, 182, 19, 0.18), inset 0 1px 0 rgba(255,255,255,0.12);
+        }
+        .glass-btn:active { transform: translateY(0) scale(0.96); }
+
+        /* Carousel dots -> liquid pearls */
+        .carousel-dot {
+            transition: width 0.55s var(--spring), background-color 0.45s var(--spring-soft), box-shadow 0.45s ease, transform 0.4s var(--spring);
+        }
+        .carousel-dot:hover { transform: scale(1.4); }
+
+        /* ============ TRUST STRIP — now real glass chips, not flat text ============ */
+        .trust-chip {
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            transition: transform 0.6s var(--spring), border-color 0.5s var(--spring-soft), box-shadow 0.5s var(--spring-soft);
+        }
+        .trust-chip:hover {
+            transform: translateY(-6px);
+            border-color: rgba(236, 182, 19, 0.25);
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), 0 24px 50px -14px rgba(0,0,0,0.6);
+        }
+        .trust-icon-orb {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(236,182,19,0.18), rgba(236,182,19,0.02));
+            border: 1px solid rgba(236, 182, 19, 0.18);
+            transition: transform 0.6s var(--spring), box-shadow 0.5s var(--spring-soft), background 0.4s ease;
+        }
+        .trust-chip:hover .trust-icon-orb {
+            transform: scale(1.12) rotate(-6deg);
+            box-shadow: 0 10px 28px rgba(236, 182, 19, 0.3), inset 0 1px 1px rgba(255,255,255,0.2);
+        }
+
+        /* ============ PRODUCT CARDS — depth + liquid hover, fully rounded glass frame ============ */
+        .product-card {
+            transition: transform 0.6s var(--spring-soft);
+            will-change: transform;
+        }
+        .product-card:hover {
+            transform: translateY(-10px);
+        }
+        .product-card-media {
+            border-radius: var(--radius-xl);
+            transition: box-shadow 0.6s var(--spring-soft), border-color 0.5s var(--spring-soft);
+        }
+        .product-card:hover .product-card-media {
+            box-shadow: 0 24px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(236,182,19,0.15);
+        }
+        /* All product/category/brand imagery stays full color always — no grayscale anywhere */
+        .product-img-clean {
+            transition: transform 0.9s var(--spring-soft), filter 0.5s ease;
+            filter: brightness(0.98);
+        }
+        .group:hover .product-img-clean {
+            transform: scale(1.08);
+            filter: brightness(1.05);
+        }
+        .product-card-shine {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.18) 50%, transparent 65%);
+            transform: translateX(-120%);
+            transition: transform 0.9s var(--spring-soft);
+            pointer-events: none;
+        }
+        .product-card:hover .product-card-shine {
+            transform: translateX(120%);
+        }
+        .product-card h3, .product-card p {
+            transition: transform 0.5s var(--spring-soft), color 0.4s ease;
+        }
+        .product-card:hover h3 {
+            transform: translateX(3px);
+        }
+        .price-glass-tag {
+            display: inline-flex;
+            border-radius: var(--radius-pill);
+            transition: transform 0.5s var(--spring), opacity 0.4s ease;
+        }
+
+        /* ============ DEPARTMENT CARDS — fully rounded, glass-framed ============ */
+        .dept-card {
+            border-radius: var(--radius-2xl);
+            transition: transform 0.7s var(--spring-soft), box-shadow 0.7s var(--spring-soft);
+            will-change: transform;
+        }
+        .dept-card:hover {
+            transform: translateY(-8px) scale(1.015);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+        }
+        .dept-card .dept-label-bar {
+            border-radius: var(--radius-xl);
+        }
+        .dept-card .dept-label {
+            transition: transform 0.55s var(--spring), letter-spacing 0.4s ease;
+        }
+        .dept-card:hover .dept-label {
+            transform: translateX(6px);
+        }
+        .dept-card .dept-cta {
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.5s ease, transform 0.55s var(--spring);
+        }
+        .dept-card:hover .dept-cta {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ============ NEWSLETTER — full glass capsule, not a bare bottom-border ============ */
+        .newsletter-icon-orb {
+            display: inline-flex;
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            background: var(--glass-fill);
+            border: 1px solid var(--glass-border);
+            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 0 0 0 rgba(236,182,19,0.4);
+            animation: floatOrb 5s var(--spring-soft) infinite;
+        }
+        @keyframes floatOrb {
+            0%, 100% { transform: translateY(0) rotate(0deg); box-shadow: 0 0 0 0 rgba(236,182,19,0.25); }
+            50% { transform: translateY(-10px) rotate(3deg); box-shadow: 0 0 30px 4px rgba(236,182,19,0.15); }
+        }
+        .newsletter-form {
+            border-radius: var(--radius-pill) !important;
+            background: var(--glass-fill);
+            border: 1px solid var(--glass-border-soft) !important;
+            padding: 0.4rem 0.4rem 0.4rem 2rem;
+            -webkit-backdrop-filter: blur(18px);
+            backdrop-filter: blur(18px);
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.08), 0 16px 40px -10px rgba(0,0,0,0.5);
+            transition: border-color 0.5s var(--spring-soft), box-shadow 0.5s var(--spring-soft), background 0.4s ease;
+        }
+        .newsletter-form:focus-within {
+            border-color: rgba(236, 182, 19, 0.55) !important;
+            box-shadow: 0 8px 30px rgba(236, 182, 19, 0.18), inset 0 1px 1px rgba(255,255,255,0.1);
+            background: var(--glass-fill-strong);
+        }
+        .newsletter-form button {
+            border-radius: var(--radius-pill);
+            transition: transform 0.45s var(--spring), color 0.3s ease, background 0.3s ease;
+        }
+        .newsletter-form button:hover {
+            transform: scale(1.06);
+            background: rgba(236, 182, 19, 0.12);
+        }
+        .newsletter-form button:active {
+            transform: scale(0.92);
+        }
+
+        /* ============ FOOTER ============ */
+        .footer-link {
+            position: relative;
+            transition: color 0.35s ease, transform 0.4s var(--spring);
+            display: inline-block;
+        }
+        .footer-link:hover { transform: translateX(4px); }
+        .footer-link::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: -3px;
+            width: 0%;
+            height: 1px;
+            background: #ecb613;
+            transition: width 0.4s var(--spring-soft);
+        }
+        .footer-link:hover::after { width: 100%; }
+        .footer-payment-icon {
+            transition: transform 0.5s var(--spring), opacity 0.3s ease;
+        }
+        .footer-payment-icon:hover {
+            transform: translateY(-3px) scale(1.15);
+            opacity: 1 !important;
+        }
+        .footer-logo-icon {
+            transition: transform 0.6s var(--spring);
+        }
+        a:hover .footer-logo-icon { transform: rotate(20deg) scale(1.1); }
+
+        /* ============ SCROLL REVEAL (generic, applied via JS observer) ============ */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.9s var(--spring-soft), transform 0.9s var(--spring-soft);
+        }
+        .reveal-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ============ TOASTS — liquid glass pop ============ */
+        #global-toast-container .toast-item {
+            border-radius: var(--radius-xl) !important;
+            transition: opacity 0.45s var(--spring-soft), transform 0.5s var(--spring), scale 0.5s var(--spring);
+        }
+
+        /* Logo fluid icon ambient float */
+        .brand-fluid-icon {
+            transition: transform 0.6s var(--spring);
+        }
+        .group:hover .brand-fluid-icon {
+            transform: rotate(18deg) scale(1.12);
+        }
+
+        ::selection {
+            background: rgba(236, 182, 19, 0.35);
+        }
+
+        /* Focus visibility kept accessible */
+        a:focus-visible, button:focus-visible, input:focus-visible {
+            outline: 2px solid rgba(236, 182, 19, 0.8);
+            outline-offset: 3px;
+            border-radius: 4px;
+        }
         </style>
     </head>
     <body class="bg-background-dark text-slate-100 antialiased">
@@ -52,71 +578,89 @@
         <div id="global-toast-container"
              class="fixed top-8 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-4 items-center pointer-events-none">
         </div>
-        <header class="sticky top-0 z-50 w-full border-b border-neutral-border bg-background-dark/90 backdrop-blur-md">
-            <div class="w-full px-10 lg:px-16 py-5 flex items-center justify-between">
+        <header id="app-header" class="sticky top-0 z-50 w-full">
+            <div class="header-glass-bar w-full px-10 lg:px-16 py-5 flex items-center justify-between">
                 <div class="flex items-center gap-16">
                     <a class="flex items-center gap-2 group" href="{% url 'home' %}">
-                        <span class="material-symbols-outlined text-primary text-3xl transition-transform group-hover:rotate-12">fluid</span>
+                        <span class="material-symbols-outlined text-primary text-3xl brand-fluid-icon">fluid</span>
                         <h1 class="text-2xl font-extrabold tracking-tighter uppercase">Scentora</h1>
                     </a>
                     <nav class="hidden lg:flex items-center">
-                        <div class="flex items-center gap-1 px-2 py-2 rounded-full border border-white/5 bg-white/[0.02] backdrop-blur-xl">
+                        <div class="nav-dock flex items-center gap-1 px-2 py-2 rounded-full">
                             <a href="{% url 'home' %}"
-                               class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300 {% if request.resolver_match.url_name == 'home' %} text-primary {% else %} text-slate-300 hover:text-white {% endif %}">
+                               class="nav-pill relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] {% if request.resolver_match.url_name == 'home' %} text-primary {% else %} text-slate-300 hover:text-white {% endif %}">
                                 Home
                                 {% if request.resolver_match.url_name == 'home' %}
-                                    <span class="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
+                                    <span class="pill-underline absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
                                 {% endif %}
                             </a>
                             <a href="{% url 'shop:product_list' %}"
-                               class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300 {% if request.resolver_match.url_name == 'product_list' %} text-primary {% else %} text-slate-300 hover:text-white {% endif %}">
+                               class="nav-pill relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] {% if request.resolver_match.url_name == 'product_list' %} text-primary {% else %} text-slate-300 hover:text-white {% endif %}">
                                 Shop
                                 {% if request.resolver_match.url_name == 'product_list' %}
-                                    <span class="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
+                                    <span class="pill-underline absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
                                 {% endif %}
                             </a>
                             <a href="{% url 'shop:brand_list' %}"
-                               class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300 {% if request.resolver_match.url_name == 'brand_list' %} text-primary {% else %} text-slate-300 hover:text-white {% endif %}">
+                               class="nav-pill relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] {% if request.resolver_match.url_name == 'brand_list' %} text-primary {% else %} text-slate-300 hover:text-white {% endif %}">
                                 Brands
                                 {% if request.resolver_match.url_name == 'brand_list' %}
-                                    <span class="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
+                                    <span class="pill-underline absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
                                 {% endif %}
                             </a>
                             <a href="{% url 'shop:category_list' %}"
-                               class="relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] transition-all duration-300 {% if request.resolver_match.url_name == 'category_list' %} text-primary {% else %} text-slate-300 hover:text-white {% endif %}">
+                               class="nav-pill relative px-5 py-3 text-[10px] font-bold uppercase tracking-[0.22em] {% if request.resolver_match.url_name == 'category_list' %} text-primary {% else %} text-slate-300 hover:text-white {% endif %}">
                                 Category
                                 {% if request.resolver_match.url_name == 'category_list' %}
-                                    <span class="absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
+                                    <span class="pill-underline absolute left-1/2 -translate-x-1/2 bottom-0 w-7 h-[2px] bg-primary rounded-full shadow-[0_0_15px_rgba(236,182,19,.7)]"></span>
                                 {% endif %}
                             </a>
                         </div>
                     </nav>
                 </div>
                 <div class="flex items-center gap-6">
+                    <form
+    action="{% url 'search_products' %}"
+    method="GET"
+    class="search-capsule hidden lg:flex items-center px-4 py-2"
+>
+
+    <span class="material-symbols-outlined text-slate-500 text-[18px]">
+        search
+    </span>
+
+    <input
+        type="text"
+        name="q"
+        placeholder="Search fragrances..."
+        class="bg-transparent border-none outline-none text-sm text-white placeholder:text-slate-500 ml-2 w-48"
+    >
+
+</form>
                     
                     {% if user.is_authenticated %}
                         <div class="flex items-center gap-7 border-l border-neutral-border pl-8">
                             <!-- Wishlist -->
-                            <a href="{% url 'cart:wishlist_detail' %}" class="relative group pt-2">
+                            <a href="{% url 'cart:wishlist_detail' %}" class="icon-bubble relative group pt-2 rounded-full">
                                 <span class="material-symbols-outlined text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
                                     favorite
                                 </span>
                                 <span id="wishlist-icon-count"
                                       hx-get="{% url 'cart:wishlist_count_only' %}"
                                       hx-trigger="wishlistUpdated from:body"
-                                      class="absolute -top-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-black text-[9px] font-black leading-none ">
+                                      class="badge-pop absolute -top-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-black text-[9px] font-black leading-none ">
                                     {{ request.user.wishlist.items.count }}
                                 </span>
                             </a>
                             <!-- Cart -->
-                            <a href="{% url 'cart:cart_detail' %}" class="relative group pt-2">
+                            <a href="{% url 'cart:cart_detail' %}" class="icon-bubble relative group pt-2 rounded-full">
                                 <span class="material-symbols-outlined text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
                                     shopping_bag
                                 </span>
                                 <span id="cart-icon-count"
                                       hx-get="{% url 'cart:cart_count_only' %}"
                                       hx-trigger="update-cart from:body"
-                                      class="absolute -top-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-black text-[9px] font-black leading-none ">
+                                      class="badge-pop absolute -top-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-black text-[9px] font-black leading-none ">
                                     {{ cart|length }}
                                 </span>
                             </a>
@@ -130,7 +674,7 @@
                                     <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-white">{{ user.username }}</span>
                                 </div>
                                 <div class="relative">
-                                    <div class="w-11 h-11 rounded-full border border-neutral-border group-hover:border-primary transition-all p-0.5 overflow-hidden">
+                                    <div class="profile-avatar-ring w-11 h-11 rounded-full border border-neutral-border p-0.5 overflow-hidden">
                                         {% if user.profile_image %}
                                             <img src="{{ user.profile_image.url }}"
                                                  class="w-full h-full object-cover rounded-full">
@@ -140,23 +684,23 @@
                                             </div>
                                         {% endif %}
                                     </div>
-                                    <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-background-dark"></span>
+                                    <span class="presence-dot absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-background-dark"></span>
                                 </div>
                             </a>
                         </div>
                     {% endif %}
                 </div>
             </div>
-        </div>
-    </header>
+        </header>
     <main>
         {% block content %}
-           <section class="relative h-[85vh] w-full overflow-hidden bg-black">
+           <section id="hero-section" class="relative h-[85vh] w-full overflow-hidden bg-black">
+                <div class="liquid-blob" id="liquid-blob"></div>
                 <div id="hero-carousel"
      class="absolute inset-0 z-0 flex transition-transform duration-[1200ms]">
 
 {% for category in hero_categories %}
-<div class="min-w-full h-full relative">
+<div class="min-w-full h-full relative {% if forloop.first %}hero-slide-active{% endif %}">
     <img
         src="{{ category.category_image.url }}"
         alt="{{ category.name }}"
@@ -169,30 +713,58 @@
 
                 
                 <div class="absolute inset-0 z-10 hero-gradient"></div>
+
+                <!-- Floating glass accents (purely decorative, signature liquid-glass touch) -->
+                <div class="hero-float-chip hidden lg:flex items-center gap-2 px-5 py-3 top-[18%] right-[8%]" style="animation-delay:0s;">
+                    <span class="material-symbols-outlined text-primary text-[16px]">auto_awesome</span>
+                    <span class="text-[9px] uppercase tracking-[0.3em] text-slate-300">Hand Selected</span>
+                </div>
+                <div class="hero-float-chip hidden lg:flex items-center gap-2 px-5 py-3 top-[68%] right-[18%]" style="animation-delay:1.4s;">
+                    <span class="material-symbols-outlined text-primary text-[16px]">diamond</span>
+                    <span class="text-[9px] uppercase tracking-[0.3em] text-slate-300">Rare Origins</span>
+                </div>
+
                 <div class="relative z-20 h-full max-w-[1440px] mx-auto px-8 lg:px-12 flex items-center">
                     <div class="max-w-2xl space-y-8">
                         <div class="flex items-center gap-4">
-                            <span class="w-12 h-[1px] bg-primary"></span>
-                            <h2 class="text-primary font-bold tracking-[0.4em] uppercase text-[10px]">Exquisite Collection 2026</h2>
+                            <span class="hero-eyebrow-line w-12 h-[1px] bg-primary"></span>
+                            <h2 class="hero-reveal-up d1 text-primary font-bold tracking-[0.4em] uppercase text-[10px]">Exquisite Collection 2026</h2>
                         </div>
-                        <h1 class="text-6xl lg:text-8xl font-light leading-none tracking-tighter">
-                            Crafting Your
+                        <h1 class="hero-reveal-up d2 font-serif-display text-7xl lg:text-[7.5rem] leading-[0.92] tracking-[-0.02em]">
+                            <span class="font-light italic text-slate-300">Crafting Your</span>
                             <br />
-                            <span class="font-extrabold text-white">Identity.</span>
+                            <span class="font-medium text-white">Identity.</span>
                         </h1>
-                        <p class="text-lg text-slate-400 font-light max-w-md leading-relaxed">
+                        <p class="hero-reveal-up d3 text-lg text-slate-400 font-light max-w-md leading-relaxed">
                             Explore an exclusive sanctuary of rare fragrances, curated from the most prestigious perfume houses in the world.
                         </p>
-                        <div class="flex flex-wrap gap-6 pt-4">
-                            <button class="bg-primary text-background-dark font-black uppercase tracking-widest text-[11px] px-12 py-5 rounded-sm hover:brightness-110 transition-all">
-                                <a href="{% url 'shop:product_list' %}"
-   class="bg-primary text-background-dark font-black uppercase tracking-widest text-[11px] px-12 py-5 rounded-sm hover:brightness-110 transition-all">
-    Shop Now
+                        <div class="hero-reveal-up d4 flex flex-wrap gap-6 pt-4">
+                            <a href="{% url 'shop:product_list' %}"
+   class="liquid-btn group relative inline-flex items-center justify-center
+          overflow-hidden
+          px-14 py-5
+          bg-primary
+          text-black
+          font-black
+          uppercase
+          tracking-[0.3em]
+          text-[11px]
+          rounded-full">
+
+    <span class="relative z-10 flex items-center gap-2">
+        Shop Now
+        <span class="material-symbols-outlined text-[18px] btn-arrow">
+            arrow_forward
+        </span>
+    </span>
+
+    <span class="absolute inset-0 bg-white/20
+                 translate-x-[-120%]
+                 group-hover:translate-x-[120%]
+                 transition-transform duration-700">
+    </span>
 </a>
-                            </button>
-                            <button class="border border-white/20 text-white font-bold uppercase tracking-widest text-[11px] px-12 py-5 rounded-sm hover:bg-white hover:text-black transition-all">
-                                The Collection
-                            </button>
+                            
                         </div>
                     </div>
                 </div>
@@ -201,7 +773,7 @@
 
     {% for image in hero_images %}
     <div
-        class="w-1.5 h-1.5 rounded-full {% if forloop.first %}bg-primary scale-125{% else %}bg-white/20{% endif %} cursor-pointer transition-all duration-500"
+        class="carousel-dot w-1.5 h-1.5 rounded-full {% if forloop.first %}bg-primary scale-125{% else %}bg-white/20{% endif %} cursor-pointer"
         onclick="goToSlide({{ forloop.counter0 }})">
     </div>
     {% endfor %}
@@ -227,14 +799,24 @@ document.addEventListener('DOMContentLoaded', function () {
         carousel.style.transform =
             `translateX(-${n * 100}%)`;
 
+        slides.forEach((slide, index) => {
+            if (index === n) {
+                slide.classList.add('hero-slide-active');
+            } else {
+                slide.classList.remove('hero-slide-active');
+            }
+        });
+
         dots.forEach((dot, index) => {
 
             if (index === n) {
                 dot.classList.add('bg-primary');
                 dot.classList.remove('bg-white/20');
+                dot.classList.add('scale-125');
             } else {
                 dot.classList.remove('bg-primary');
                 dot.classList.add('bg-white/20');
+                dot.classList.remove('scale-125');
             }
 
         });
@@ -255,34 +837,116 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
+    /* ---- Liquid blob follows pointer within hero (visual-only enhancement) ---- */
+    const heroSection = document.getElementById('hero-section');
+    const blob = document.getElementById('liquid-blob');
+    if (heroSection && blob) {
+        heroSection.addEventListener('mousemove', (e) => {
+            const rect = heroSection.getBoundingClientRect();
+            blob.style.left = (e.clientX - rect.left) + 'px';
+            blob.style.top = (e.clientY - rect.top) + 'px';
+        });
+    }
+
+    /* ---- Magnetic nav dock pills (visual-only enhancement) ---- */
+    document.querySelectorAll('.nav-dock').forEach((dock) => {
+        const pills = dock.querySelectorAll('.nav-pill');
+        dock.addEventListener('mousemove', (e) => {
+            const dockRect = dock.getBoundingClientRect();
+            pills.forEach((pill) => {
+                const pillRect = pill.getBoundingClientRect();
+                const pillCenterX = pillRect.left + pillRect.width / 2 - dockRect.left;
+                const dist = Math.abs(e.clientX - dockRect.left - pillCenterX);
+                const influence = Math.max(0, 1 - dist / 90);
+                pill.style.transform = `translateY(${-3 * influence}px) scale(${1 + 0.08 * influence})`;
+            });
+        });
+        dock.addEventListener('mouseleave', () => {
+            pills.forEach((pill) => { pill.style.transform = ''; });
+        });
+    });
+
+    /* ---- Ripple effect on liquid buttons (visual-only enhancement) ---- */
+    document.querySelectorAll('.liquid-btn').forEach((btn) => {
+        btn.addEventListener('click', function (e) {
+            const rect = btn.getBoundingClientRect();
+            const ripple = document.createElement('span');
+            const size = Math.max(rect.width, rect.height) * 1.4;
+            ripple.className = 'btn-ripple';
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = (e.clientX - rect.left - size / 2) + 'px';
+            ripple.style.top = (e.clientY - rect.top - size / 2) + 'px';
+            btn.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 750);
+        });
+    });
+
+    /* ---- Badge bump animation when counts update (visual-only enhancement) ---- */
+    document.body.addEventListener('wishlistUpdated', () => {
+        const el = document.getElementById('wishlist-icon-count');
+        if (el) { el.classList.remove('bump'); requestAnimationFrame(() => el.classList.add('bump')); }
+    });
+    document.body.addEventListener('update-cart', () => {
+        const el = document.getElementById('cart-icon-count');
+        if (el) { el.classList.remove('bump'); requestAnimationFrame(() => el.classList.add('bump')); }
+    });
+
+    /* ---- Scroll reveal observer (visual-only enhancement) ---- */
+    const revealEls = document.querySelectorAll('.reveal-on-scroll');
+    if ('IntersectionObserver' in window && revealEls.length) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15 });
+        revealEls.forEach((el) => observer.observe(el));
+    } else {
+        revealEls.forEach((el) => el.classList.add('is-visible'));
+    }
+
+    /* ---- Header shrink-on-scroll (visual-only enhancement) ---- */
+    const header = document.getElementById('app-header');
+    if (header) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 24) {
+                header.classList.add('py-1');
+            } else {
+                header.classList.remove('py-1');
+            }
+        }, { passive: true });
+    }
+
 });
 </script>
-            <section class="bg-neutral-dark border-b border-neutral-border py-16">
+            <section class="py-16">
                 <div class="max-w-[1440px] mx-auto px-8 lg:px-12">
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-12">
-                        <div class="flex flex-col gap-4">
-                            <span class="material-symbols-outlined text-primary text-3xl">verified</span>
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div class="trust-chip glass-panel reveal-on-scroll flex flex-col gap-4">
+                            <span class="trust-icon-orb"><span class="material-symbols-outlined text-primary text-3xl">verified</span></span>
                             <div>
                                 <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Authentic Heritage</h4>
                                 <p class="text-[10px] text-slate-500 uppercase tracking-widest">100% Genuine Origin</p>
                             </div>
                         </div>
-                        <div class="flex flex-col gap-4">
-                            <span class="material-symbols-outlined text-primary text-3xl">lock</span>
+                        <div class="trust-chip glass-panel reveal-on-scroll flex flex-col gap-4">
+                            <span class="trust-icon-orb"><span class="material-symbols-outlined text-primary text-3xl">lock</span></span>
                             <div>
                                 <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Secure Transaction</h4>
                                 <p class="text-[10px] text-slate-500 uppercase tracking-widest">Encrypted Checkout</p>
                             </div>
                         </div>
-                        <div class="flex flex-col gap-4">
-                            <span class="material-symbols-outlined text-primary text-3xl">local_shipping</span>
+                        <div class="trust-chip glass-panel reveal-on-scroll flex flex-col gap-4">
+                            <span class="trust-icon-orb"><span class="material-symbols-outlined text-primary text-3xl">local_shipping</span></span>
                             <div>
                                 <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Global Delivery</h4>
                                 <p class="text-[10px] text-slate-500 uppercase tracking-widest">2-3 Day Express</p>
                             </div>
                         </div>
-                        <div class="flex flex-col gap-4">
-                            <span class="material-symbols-outlined text-primary text-3xl">assignment_return</span>
+                        <div class="trust-chip glass-panel reveal-on-scroll flex flex-col gap-4">
+                            <span class="trust-icon-orb"><span class="material-symbols-outlined text-primary text-3xl">assignment_return</span></span>
                             <div>
                                 <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Concierge Returns</h4>
                                 <p class="text-[10px] text-slate-500 uppercase tracking-widest">7-Day Policy</p>
@@ -292,38 +956,38 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </section>
             <section class="py-32 max-w-[1440px] mx-auto px-8 lg:px-12">
-                <div class="flex items-end justify-between mb-20">
+                <div class="reveal-on-scroll flex items-end justify-between mb-20">
                     <div class="space-y-4">
                         <p class="text-primary text-[10px] font-bold uppercase tracking-[0.4em]">Curated for you</p>
-                        <h2 class="text-4xl font-extralight tracking-tight">
-                            Featured <span class="font-bold">Masterpieces</span>
+                        <h2 class="font-serif-display text-5xl font-light tracking-[-0.01em] text-white">
+                            Featured <span class="italic font-normal">Masterpieces</span>
                         </h2>
                     </div>
-                    <a class="text-xs font-bold uppercase tracking-widest border-b border-primary/40 pb-2 hover:text-primary transition-all"
-                       href="#">View Gallery</a>
+                    <a class="glass-btn text-xs font-bold uppercase tracking-widest px-6 py-3 hover:text-primary"
+                       href="{% url 'shop:product_list' %}">View Gallery</a>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-                    {% for product in featured_products %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+                    {% for product in featured_products|slice:":6" %}
 
-    <div class="group space-y-6">
+    <a href="{% url 'shop:product_detail' product.uuid %}" class="product-card reveal-on-scroll group space-y-6 block">
 
-        <div class="relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-sm">
+        <div class="product-card-media glass-panel relative aspect-[3/4] overflow-hidden">
 
             {% with image=product.images.first %}
             {% if image %}
             <img
                 src="{{ image.image.url }}"
                 alt="{{ product.name }}"
-                class="w-full h-full object-cover hover-reveal"
+                class="w-full h-full object-cover product-img-clean"
             >
             {% endif %}
             {% endwith %}
 
-            
+            <div class="product-card-shine"></div>
 
         </div>
 
-        <div class="space-y-1">
+        <div class="space-y-2 px-2">
 
             {% if product.brand %}
             <p class="text-[10px] text-primary font-bold uppercase tracking-widest">
@@ -331,13 +995,13 @@ document.addEventListener('DOMContentLoaded', function () {
             </p>
             {% endif %}
 
-            <h3 class="text-lg font-bold tracking-tight">
+            <h3 class="font-serif-display text-xl font-medium tracking-[-0.005em]">
                 {{ product.name }}
             </h3>
 
             {% with variant=product.variants.first %}
             {% if variant %}
-            <p class="text-slate-500 text-sm font-light">
+            <p class="text-slate-400 text-sm font-light tracking-wide">
                 ₹{{ variant.get_price }}
             </p>
             {% endif %}
@@ -345,40 +1009,99 @@ document.addEventListener('DOMContentLoaded', function () {
 
         </div>
 
-    </div>
+    </a>
 
     {% endfor %}
 
 
                 </div>
             </section>
-            <section class="py-32 bg-[#050505]">
+            <section class="py-32">
                 <div class="max-w-[1440px] mx-auto px-8 lg:px-12">
-                    <h2 class="text-center text-xs font-bold uppercase tracking-[0.5em] text-slate-500 mb-16">The Departments</h2>
+                    <div class="reveal-on-scroll flex items-end justify-between mb-16">
+                        <h2 class="font-serif-display text-3xl italic font-light text-slate-200 tracking-[-0.01em]">The Departments</h2>
+                        <a class="glass-btn text-xs font-bold uppercase tracking-widest px-6 py-3 hover:text-primary"
+                           href="{% url 'shop:category_list' %}">View All Categories</a>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-    {% for category in categories %}
+    {% for category in categories|slice:":6" %}
 
-    <a class="group relative h-[600px] overflow-hidden"
-      href="{% url 'shop:category_list' %}">
+    <a class="dept-card glass-panel reveal-on-scroll group relative h-[600px] overflow-hidden"
+      href="{% url 'shop:product_list' %}?category={{ category.id }}">
 
         {% if category.category_image %}
         <img
             src="{{ category.category_image.url }}"
             alt="{{ category.name }}"
-            class="w-full h-full object-cover hover-reveal"
+            class="w-full h-full object-cover product-img-clean"
         >
         {% endif %}
 
         <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
 
-        <div class="absolute bottom-10 left-10 space-y-2">
-            <h3 class="text-2xl font-bold tracking-tight">
+        <div class="dept-label-bar glass absolute bottom-6 left-6 right-6 px-6 py-5 space-y-1">
+            <h3 class="dept-label font-serif-display text-2xl font-medium tracking-[-0.01em]">
                 {{ category.name }}
             </h3>
 
-            <p class="text-primary text-[10px] font-bold uppercase tracking-widest">
-                Explore Collection
+            <p class="dept-cta text-primary text-[10px] font-bold uppercase tracking-widest">
+                Explore Collection →
+            </p>
+        </div>
+
+    </a>
+
+    {% endfor %}
+
+</div>
+                </div>
+            </section>
+            <!--
+                BRANDS SECTION
+                Requires a `brands` context variable from the view, e.g.:
+                    "brands": Brand.objects.filter(is_active=True).order_by("id")[:6]
+                (matches the same ordering used in shop:brand_list)
+            -->
+            <section class="py-32 border-t border-neutral-border/60">
+                <div class="max-w-[1440px] mx-auto px-8 lg:px-12">
+                    <div class="reveal-on-scroll flex items-end justify-between mb-16">
+                        <h2 class="font-serif-display text-3xl italic font-light text-slate-200 tracking-[-0.01em]">The Maisons</h2>
+                        <a class="glass-btn text-xs font-bold uppercase tracking-widest px-6 py-3 hover:text-primary"
+                           href="{% url 'shop:brand_list' %}">View All Brands</a>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+    {% for brand in brands|slice:":6" %}
+
+    <a class="dept-card glass-panel reveal-on-scroll group relative h-[600px] overflow-hidden"
+      href="{% url 'shop:product_list' %}?brand={{ brand.id }}">
+
+        {% with first_product=brand.products.all|first %}
+            {% with first_image=first_product.images.all|first %}
+                {% if first_image %}
+        <img
+            src="{{ first_image.image.url }}"
+            alt="{{ brand.name }}"
+            class="w-full h-full object-cover product-img-clean"
+        >
+                {% else %}
+        <div class="w-full h-full bg-neutral-dark flex items-center justify-center">
+            <span class="material-symbols-outlined text-zinc-800 text-6xl">blur_on</span>
+        </div>
+                {% endif %}
+            {% endwith %}
+        {% endwith %}
+
+        <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
+
+        <div class="dept-label-bar glass absolute bottom-6 left-6 right-6 px-6 py-5 space-y-1">
+            <h3 class="dept-label font-serif-display text-2xl font-medium tracking-[-0.01em]">
+                {{ brand.name }}
+            </h3>
+
+            <p class="dept-cta text-primary text-[10px] font-bold uppercase tracking-widest">
+                Explore Collection →
             </p>
         </div>
 
@@ -390,20 +1113,20 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </section>
             <section class="py-32">
-                <div class="max-w-4xl mx-auto px-8 text-center">
+                <div class="reveal-on-scroll glass-panel max-w-4xl mx-auto px-12 py-20 text-center rounded-[var(--radius-2xl)]">
                     <div class="space-y-8">
-                        <span class="material-symbols-outlined text-primary text-6xl font-light">mail</span>
-                        <h2 class="text-4xl font-extralight tracking-tight">
-                            The <span class="font-bold italic">Scentora</span> Journal
+                        <span class="newsletter-icon-orb"><span class="material-symbols-outlined text-primary text-4xl font-light">mail</span></span>
+                        <h2 class="font-serif-display text-4xl font-light tracking-[-0.01em]">
+                            The <span class="italic font-medium text-primary">Scentora</span> Journal
                         </h2>
                         <p class="text-slate-500 text-sm uppercase tracking-[0.3em] max-w-lg mx-auto leading-loose">
                             Subscribe for exclusive access to vintage releases and private invitations.
                         </p>
-                        <form class="flex flex-col sm:flex-row gap-0 max-w-md mx-auto border-b border-neutral-border focus-within:border-primary transition-all">
-                            <input class="flex-1 bg-transparent border-none text-sm py-4 outline-none placeholder:text-slate-700"
+                        <form class="newsletter-form flex flex-col sm:flex-row items-center gap-0 max-w-md mx-auto">
+                            <input class="flex-1 bg-transparent border-none text-sm py-3 outline-none placeholder:text-slate-600 w-full"
                                    placeholder="Email Address"
                                    type="email" />
-                            <button class="text-primary font-bold uppercase tracking-widest text-[10px] py-4 px-6 hover:text-white transition-colors">
+                            <button class="text-primary font-bold uppercase tracking-widest text-[10px] py-3 px-7 hover:text-white whitespace-nowrap">
                                 Join
                             </button>
                         </form>
@@ -412,73 +1135,232 @@ document.addEventListener('DOMContentLoaded', function () {
             </section>
         {% endblock content %}
     </main>
-    <footer class="bg-neutral-dark pt-32 pb-16 border-t border-neutral-border">
-        <div class="max-w-[1440px] mx-auto px-8 lg:px-12">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-20 mb-24">
-                <div class="space-y-8">
-                    <a class="flex items-center gap-2" href="#">
-                        <span class="material-symbols-outlined text-primary text-3xl">fluid</span>
-                        <h2 class="text-2xl font-extrabold tracking-tighter uppercase text-white">Scentora</h2>
-                    </a>
-                    <p class="text-slate-500 text-sm font-light leading-relaxed">
-                        A legacy of olfactory excellence. Curating the world's most intimate memories through the art of fine perfumery.
-                    </p>
-                </div>
-                <div>
-                    <h4 class="font-bold text-[10px] uppercase tracking-[0.3em] text-primary mb-10">Collections</h4>
-                    <ul class="space-y-4 text-xs text-slate-500 uppercase tracking-widest">
-                        <li>
-                            <a class="hover:text-primary transition-all" href="#">Shop All</a>
-                        </li>
-                        <li>
-                            <a class="hover:text-primary transition-all" href="#">New Arrivals</a>
-                        </li>
-                        <li>
-                            <a class="hover:text-primary transition-all" href="#">Maison Private</a>
-                        </li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-bold text-[10px] uppercase tracking-[0.3em] text-primary mb-10">Maison</h4>
-                    <ul class="space-y-4 text-xs text-slate-500 uppercase tracking-widest">
-                        <li>
-                            <a class="hover:text-primary transition-all" href="#">Our Story</a>
-                        </li>
-                        <li>
-                            <a class="hover:text-primary transition-all" href="#">Philosophy</a>
-                        </li>
-                        <li>
-                            <a class="hover:text-primary transition-all" href="#">Boutiques</a>
-                        </li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="font-bold text-[10px] uppercase tracking-[0.3em] text-primary mb-10">Concierge</h4>
-                    <ul class="space-y-4 text-xs text-slate-500 uppercase tracking-widest">
-                        <li>
-                            <a class="hover:text-primary transition-all" href="#">Contact</a>
-                        </li>
-                        <li>
-                            <a class="hover:text-primary transition-all" href="#">Shipping</a>
-                        </li>
-                        <li>
-                            <a class="hover:text-primary transition-all" href="#">Returns</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div class="pt-10 border-t border-neutral-border flex flex-col md:flex-row justify-between items-center gap-6">
-                <p class="text-slate-600 text-[10px] uppercase tracking-widest">
-                    © 2026 Scentora Maison De Parfum. All Rights Reserved.
-                </p>
-                <div class="flex gap-8 opacity-30 text-slate-400">
-                    <span class="material-symbols-outlined text-xl">payments</span>
-                    <span class="material-symbols-outlined text-xl">wallet</span>
-                    <span class="material-symbols-outlined text-xl">credit_card</span>
-                </div>
-            </div>
+    <footer class="border-t border-neutral-border/60">
+
+    <div class="max-w-[1440px] mx-auto px-8 lg:px-12 py-28">
+
+        <!-- Brand -->
+        <div class="text-center mb-24">
+
+            <a href="{% url 'home' %}"
+               class="inline-flex items-center gap-3 group mb-6">
+
+                <span class="material-symbols-outlined text-primary text-4xl footer-logo-icon">
+                    fluid
+                </span>
+
+                <h2 class="text-4xl font-extrabold tracking-[0.2em] uppercase text-white">
+                    Scentora
+                </h2>
+
+            </a>
+
+            <p class="text-primary text-[10px] uppercase tracking-[0.5em] mb-8">
+                Maison De Parfum
+            </p>
+
+            <p class="max-w-2xl mx-auto text-slate-500 text-sm leading-relaxed font-light">
+                A legacy of olfactory excellence. Curating the world's most
+                intimate memories through the art of fine perfumery.
+            </p>
+
         </div>
-    </footer>
+
+        <!-- Navigation -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-16 text-center mb-24">
+
+            <!-- Collections -->
+            <div>
+
+                <h4 class="font-bold text-[10px] uppercase tracking-[0.4em] text-primary mb-8">
+                    Collections
+                </h4>
+
+                <ul class="space-y-4">
+
+                    <li>
+                        <a href="{% url 'shop:product_list' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Shop All
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{% url 'shop:new_arrivals' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            New Arrivals
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="{% url 'shop:product_list' %}?category={{ private_reserve.id }}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Private Reserve
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'shop:product_list' %}?category={{ limited_edition.id }}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Limited Editions
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'shop:best_sellers' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Best Sellers
+                        </a>
+                    </li>
+                     <li>
+                        <a href="{% url 'shop:archive_collection' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Archive Collection
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+            <!-- Maison -->
+            <div>
+
+                <h4 class="font-bold text-[10px] uppercase tracking-[0.4em] text-primary mb-8">
+                    Maison
+                </h4>
+
+                <ul class="space-y-4">
+
+                    <li>
+                        <a href="{% url 'our_story' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Our Story
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{% url 'philosophy' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Philosophy
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{% url 'boutiques' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Boutiques
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+            <!-- Concierge -->
+            <div>
+
+                <h4 class="font-bold text-[10px] uppercase tracking-[0.4em] text-primary mb-8">
+                    Concierge
+                </h4>
+
+                <ul class="space-y-4">
+
+                    <li>
+                        <a href="{% url 'contact' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Contact Us
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{% url 'shipping_policy' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Shipping Policy
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="{% url 'return_refund_policy' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Return & Refund Policy
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'privacy_policy' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Privacy Policy
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'terms_conditions' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Terms & Conditions
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'about_scentora' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                           About Scentora
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+
+        <!-- Social -->
+        <div class="border-t border-neutral-border pt-12 pb-12">
+
+            <div class="flex justify-center gap-12">
+
+                <a href="https://www.instagram.com/_.oblivorn._/?hl=en"
+                   class="footer-link text-[10px] uppercase tracking-[0.35em] text-slate-500 hover:text-primary">
+                    Instagram
+                </a>
+
+                <a href="https://in.pinterest.com/"
+                   class="footer-link text-[10px] uppercase tracking-[0.35em] text-slate-500 hover:text-primary">
+                    Pinterest
+                </a>
+
+                <a href="https://x.com/"
+                   class="footer-link text-[10px] uppercase tracking-[0.35em] text-slate-500 hover:text-primary">
+                    X
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- Bottom -->
+        <div class="border-t border-neutral-border pt-10 flex flex-col lg:flex-row justify-between items-center gap-6">
+
+            <p class="text-slate-600 text-[10px] uppercase tracking-[0.3em]">
+                © 2026 Scentora Maison De Parfum. All Rights Reserved.
+            </p>
+
+            <div class="flex gap-8 opacity-40 text-slate-500">
+
+                <span class="material-symbols-outlined text-xl footer-payment-icon">
+                    payments
+                </span>
+
+                <span class="material-symbols-outlined text-xl footer-payment-icon">
+                    wallet
+                </span>
+
+                <span class="material-symbols-outlined text-xl footer-payment-icon">
+                    credit_card
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</footer>
     <script>
     // CSRF for HTMX
     document.body.addEventListener('htmx:configRequest', (event) => {
