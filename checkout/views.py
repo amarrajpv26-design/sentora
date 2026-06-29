@@ -250,7 +250,6 @@ def buy_now_checkout_view(request, variant_id):
 
 def generate_order_id():
     import uuid
-
     return f"ORD-{uuid.uuid4().hex[:10].upper()}"
 
 
@@ -293,9 +292,7 @@ def place_order_view(request):
                     return redirect("checkout")
 
                 mrp_total = variant.price * quantity
-
                 selling_price, _ = get_effective_price(variant)
-
                 selling_total = selling_price * quantity
                 subtotal += selling_total
 
@@ -380,7 +377,6 @@ def place_order_view(request):
     )
 
     for item in checkout_items:
-
         variant = item["variant"]
         quantity = item["quantity"]
         item_subtotal = item["selling_total"]
@@ -401,10 +397,7 @@ def place_order_view(request):
     if payment_method == "ONLINE":
 
         client = razorpay.Client(
-            auth=(
-                settings.RAZORPAY_KEY_ID,
-                settings.RAZORPAY_KEY_SECRET,
-            )
+            auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
         )
 
         razorpay_amount = int(order.total_amount * 100)
@@ -449,11 +442,10 @@ def place_order_view(request):
     # =====================================================
     # WALLET PAYMENT
     # =====================================================
-
     elif payment_method == "WALLET":
         try:
             user_wallet = request.user.wallet
-        except:
+        except Exception:
             order.delete()
             messages.error(request, "Wallet not found.")
             return redirect("checkout")
@@ -521,6 +513,11 @@ def place_order_view(request):
 
         handle_order_referral_events(order)
 
+        # ── SUCCESS MESSAGE ──
+        messages.success(
+            request,
+            f"₹{order.total_amount} paid successfully via Wallet!"
+        )
         return redirect("order_success", order_id=order.order_id)
 
     # =====================================================
@@ -541,7 +538,6 @@ def place_order_view(request):
         ).delete()
 
         if checkout_type == "buy_now":
-
             variant = checkout_items[0]["variant"]
             ordered_qty = checkout_items[0]["quantity"]
 
@@ -568,6 +564,11 @@ def place_order_view(request):
 
         handle_order_referral_events(order)
 
+        # ── SUCCESS MESSAGE ──
+        messages.success(
+            request,
+            f"Order placed successfully! ₹{order.total_amount} to be paid on delivery."
+        )
         return redirect("order_success", order_id=order.order_id)
 
 
@@ -604,17 +605,14 @@ def payment_verify_view(request):
     }
 
     try:
-        # Verify the signature authenticity
         client.utility.verify_payment_signature(params_dict)
 
-        # 1. Update order payment status
         order.payment_status = "PAID"
         order.order_status = "CONFIRMED"
         order.razorpay_payment_id = razorpay_payment_id
         order.razorpay_signature = razorpay_signature
         order.save()
 
-        # 2. Inventory safety step
         with transaction.atomic():
             for item in order.items.all():
                 if item.product_variant:
@@ -622,12 +620,9 @@ def payment_verify_view(request):
                         stock=F("stock") - item.quantity
                     )
 
-        # 3. Clear cart using DB — session may be lost after Razorpay redirect
         from cart.models import CartItem
-
         CartItem.objects.filter(cart__user=order.user).delete()
 
-        # 4. Cleanup wishlist
         ordered_variants = [
             item.product_variant for item in order.items.all() if item.product_variant
         ]
@@ -635,7 +630,6 @@ def payment_verify_view(request):
             wishlist__user=order.user, variant__in=ordered_variants
         ).delete()
 
-        # 5. Record coupon usage and clean up session
         record_coupon_usage(order)
 
         if "coupon_id" in request.session:
@@ -643,9 +637,7 @@ def payment_verify_view(request):
 
         handle_order_referral_events(order)
 
-        # 6. Restore session lost during Razorpay bank redirect
         from django.contrib.auth import login as auth_login
-
         if not request.user.is_authenticated:
             auth_login(
                 request,
@@ -653,7 +645,11 @@ def payment_verify_view(request):
                 backend="django.contrib.auth.backends.ModelBackend",
             )
 
-        messages.success(request, "Payment verified and order confirmed successfully!")
+        # ── SUCCESS MESSAGE ──
+        messages.success(
+            request,
+            f"₹{order.total_amount} paid successfully via Online Payment!"
+        )
         return redirect("order_success", order_id=order.order_id)
 
     except Exception as e:
@@ -697,20 +693,110 @@ def retry_payment_view(request, order_id):
         messages.info(request, "This order is already paid.")
         return redirect("order_success", order_id=order.order_id)
 
+    if order.order_status not in ["PENDING", "CONFIRMED", "SHIPPED", "OUT_FOR_DELIVERY"]:
+        messages.error(request, "This order is not eligible for payment.")
+        return redirect("order_detail", order_id=order.order_id)
+
+    # ── Wallet info for the template ──
+    wallet_balance = Decimal("0.00")
+    wallet_sufficient = False
+    wallet_shortfall = Decimal("0.00")
+
+    if hasattr(request.user, "wallet"):
+        wallet_balance = request.user.wallet.balance
+        wallet_sufficient = wallet_balance >= order.total_amount
+        if not wallet_sufficient:
+            wallet_shortfall = order.total_amount - wallet_balance
+
+    # ── GET: show payment method selection page ──
+    if request.method == "GET":
+        context = {
+            "order": order,
+            "final_total": order.total_amount,
+            "wallet_balance": wallet_balance,
+            "wallet_sufficient": wallet_sufficient,
+            "wallet_shortfall": wallet_shortfall,
+        }
+        return render(request, "checkout/retry_payment.html", context)
+
+    # ── POST: process the chosen payment method ──
+    payment_method = request.POST.get("payment_method", "ONLINE")
+
+    # ── WALLET ──
+    if payment_method == "WALLET":
+        try:
+            user_wallet = request.user.wallet
+        except Exception:
+            messages.error(request, "Wallet not found.")
+            return redirect("retry_payment", order_id=order.order_id)
+
+        if user_wallet.balance < order.total_amount:
+            messages.error(request, "Insufficient wallet balance.")
+            return redirect("retry_payment", order_id=order.order_id)
+
+        user_wallet.balance -= order.total_amount
+        user_wallet.save()
+
+        WalletTransaction.objects.create(
+            wallet=user_wallet,
+            amount=order.total_amount,
+            transaction_type="DEBIT",
+            purpose="PURCHASE",
+            order_id=order.order_id,
+            description=f"Wallet payment for Order #{order.order_id}",
+        )
+
+        order.payment_method = "WALLET"
+        order.payment_status = "PAID"
+        order.order_status = "CONFIRMED"
+        order.save()
+
+        for item in order.items.filter(item_status="ACTIVE"):
+            if item.product_variant:
+                ProductVariant.objects.filter(pk=item.product_variant.pk).update(
+                    stock=F("stock") - item.quantity
+                )
+
+        # ── SUCCESS MESSAGE ──
+        messages.success(
+            request,
+            f"₹{order.total_amount} paid successfully via Wallet!"
+        )
+        return redirect("order_success", order_id=order.order_id)
+
+    # ── COD ──
+    # COD stays PENDING — no payment yet, just method preference recorded
+    if payment_method == "COD":
+        order.payment_method = "COD"
+        order.payment_status = "PENDING"
+        order.order_status = "PENDING"
+        order.save()
+
+        # ── SUCCESS MESSAGE ──
+        messages.success(
+            request,
+            f"Order updated to Cash on Delivery. ₹{order.total_amount} to be paid on delivery."
+        )
+        return redirect("order_success", order_id=order.order_id)
+
+    # ── ONLINE (Razorpay) ──
     client = razorpay.Client(
         auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
     )
     razorpay_amount = int(order.total_amount * 100)
 
-    razorpay_order_data = {
-        "amount": razorpay_amount,
-        "currency": "INR",
-        "receipt": order.order_id,
-        "payment_capture": 1,
-    }
+    try:
+        razorpay_order = client.order.create(data={
+            "amount": razorpay_amount,
+            "currency": "INR",
+            "receipt": order.order_id,
+            "payment_capture": 1,
+        })
+    except Exception:
+        messages.error(request, "Payment gateway unavailable. Please try again.")
+        return redirect("retry_payment", order_id=order.order_id)
 
-    razorpay_order = client.order.create(data=razorpay_order_data)
-
+    order.payment_method = "ONLINE"
     order.razorpay_order_id = razorpay_order["id"]
     order.save()
 
@@ -720,10 +806,12 @@ def retry_payment_view(request, order_id):
         "razorpay_key_id": settings.RAZORPAY_KEY_ID,
         "razorpay_amount": razorpay_amount,
         "final_total": order.total_amount,
+        "wallet_balance": wallet_balance,
+        "wallet_sufficient": wallet_sufficient,
+        "wallet_shortfall": wallet_shortfall,
         "trigger_payment": True,
     }
-
-    return render(request, "checkout/checkout.html", context)
+    return render(request, "checkout/retry_payment.html", context)
 
 
 @login_required
@@ -811,7 +899,6 @@ def get_available_coupons(request):
     data = []
     for coupon in coupons:
 
-        # Skip coupons this user has already used up their personal allowance for
         if coupon.usage_limit_per_user:
             user_uses = CouponUsage.objects.filter(
                 coupon=coupon, user=request.user

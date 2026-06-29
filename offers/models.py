@@ -93,6 +93,22 @@ class CategoryOffer(OfferBase):
 
     def __str__(self):
         return f"{self.name} → {self.category.name}"
+    
+class BrandOffer(OfferBase):
+    """Offer applied to all products belonging to a brand."""
+
+    brand = models.ForeignKey(
+        'products.Brand',
+        on_delete=models.CASCADE,
+        related_name="offers",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Brand Offer"
+
+    def __str__(self):
+        return f"{self.name} → {self.brand.name}"
 
 
 class ReferralOffer(models.Model):

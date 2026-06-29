@@ -11,7 +11,6 @@ from django.contrib.auth.decorators import login_required
 from offers.utils import get_effective_price
 
 
-
 @require_POST
 def cart_add(request, variant_id):
     cart = Cart(request)
@@ -38,7 +37,8 @@ def cart_add(request, variant_id):
     if request.headers.get("HX-Request"):
         response = HttpResponse("", status=200)
         if success:
-            response["HX-Trigger"] = "update-cart, wishlistUpdated"
+            response["HX-Trigger"] = json.dumps({"showMessage": "Item added to cart"})
+            response["HX-Trigger-After-Swap"] = "cartUpdated, wishlistUpdated"
         else:
             response["HX-Trigger"] = json.dumps({"showMessage": message})
 
@@ -49,7 +49,7 @@ def cart_add(request, variant_id):
     else:
         messages.error(request, message)
 
-    return redirect(request.META.get('HTTP_REFERER', 'shop:product_list'))
+    return redirect(request.META.get("HTTP_REFERER", "shop:product_list"))
 
 
 def cart_count_only(request):
@@ -152,7 +152,7 @@ def cart_update(request, variant_id):
             message = "Quantity decreased"
 
         else:
-            
+
             success = True
             message = "It should have atleast one item"
 
@@ -191,6 +191,7 @@ def wishlist_toggle(request, variant_id):
 
         existing_item.delete()
         is_in_wishlist = False
+        message = "Item removed from wishlist"
 
     else:
         WishlistItem.objects.filter(
@@ -200,6 +201,7 @@ def wishlist_toggle(request, variant_id):
         WishlistItem.objects.create(wishlist=wishlist, variant=variant)
 
         is_in_wishlist = True
+        message = "Item added to wishlist"
 
     response = render(
         request,
@@ -211,7 +213,8 @@ def wishlist_toggle(request, variant_id):
         },
     )
 
-    response["HX-Trigger"] = "wishlistUpdated"
+    response["HX-Trigger"] = json.dumps({"showMessage": message})
+    response["HX-Trigger-After-Swap"] = "wishlistUpdated"
 
     return response
 
@@ -226,7 +229,8 @@ def wishlist_remove(request, variant_id):
 
     response = HttpResponse("", status=200)
 
-    response["HX-Trigger"] = "wishlistUpdated"
+    response["HX-Trigger"] = json.dumps({"showMessage": "Item removed from wishlist"})
+    response["HX-Trigger-After-Swap"] = "wishlistUpdated"
 
     return response
 
@@ -241,7 +245,8 @@ def wishlist_count_only(request):
 
     return HttpResponse(str(count))
 
-@login_required(login_url='user_login')
+
+@login_required(login_url="user_login")
 def wishlist_detail(request):
     wishlist = Wishlist.objects.filter(user=request.user).first()
 
@@ -252,8 +257,6 @@ def wishlist_detail(request):
         effective_price, offer_label = get_effective_price(item.variant)
         item.variant.effective_price = effective_price
         item.variant.offer_label = offer_label
-
-
 
     return render(
         request, "cart/wishlist_detail.html", {"wishlist_items": wishlist_items}
@@ -267,8 +270,7 @@ def wishlist_button_partial(request, variant_id):
 
     if request.user.is_authenticated:
         is_in_wishlist = WishlistItem.objects.filter(
-            wishlist__user=request.user,
-            variant=variant
+            wishlist__user=request.user, variant=variant
         ).exists()
 
     return render(

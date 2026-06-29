@@ -27,11 +27,11 @@ def welcome_view(request):
         is_active=True, category_image__isnull=False
     )
 
-    featured_products = Product.objects.filter(is_active=True).prefetch_related(
+    featured_products = Product.objects.filter(is_active=True, is_featured=True).prefetch_related(
         "images", "variants"
     )
 
-    categories = Category.objects.filter(is_active=True).order_by("id")
+    categories = Category.objects.filter(is_active=True,is_featured=True).order_by("id")
 
     brands = Brand.objects.filter(is_active=True).order_by("id")[:6]
 
@@ -54,11 +54,11 @@ def home(request):
         is_active=True, category_image__isnull=False
     )
 
-    featured_products = Product.objects.filter(is_active=True).prefetch_related(
+    featured_products = Product.objects.filter(is_active=True, is_featured=True).prefetch_related(
         "images", "variants"
     )
 
-    categories = Category.objects.filter(is_active=True)
+    categories = Category.objects.filter(is_active=True,is_featured=True).order_by("id")
     brands = Brand.objects.filter(is_active=True).order_by("id")[:6]
 
     context = {
@@ -275,6 +275,7 @@ def edit_profile_view(request):
         if not username:
             messages.error(request, "Username is required.", extra_tags="username")
             errors = True
+        
         elif User.objects.filter(username=username).exclude(pk=user.pk).exists():
             messages.error(
                 request,
@@ -612,3 +613,8 @@ def terms_conditions(request):
 
 def about_scentora(request):
     return render(request, "pages/about_scentora.html")
+
+
+
+def custom_404(request, exception=None):
+    return render(request, "404.html", status=404)

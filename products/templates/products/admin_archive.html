@@ -1,0 +1,464 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<style>
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #f4b41a; border-radius: 10px; }
+
+.luxury-shimmer {
+    background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 4s linear infinite;
+}
+@keyframes shimmer { to { background-position: 200% center; } }
+
+.glass-panel {
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.4s ease;
+}
+.glass-panel:hover { border-color: rgba(244,180,26,0.2); }
+
+.luxury-input {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.05);
+    color: white;
+    transition: all 0.3s ease;
+}
+.luxury-input:focus {
+    border-color: #f4b41a;
+    box-shadow: 0 0 15px rgba(244,180,26,0.1);
+    outline: none;
+}
+
+.luxury-table tr { transition: all 0.3s ease; border-bottom: 1px solid rgba(255,255,255,0.02); }
+.luxury-table tr:hover { background: rgba(255,255,255,0.01); }
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    color: rgba(255,255,255,0.4);
+}
+.action-btn:hover { transform: translateY(-2px); }
+.btn-restore { color: #f4b41a; border-color: rgba(244,180,26,0.2); background: rgba(244,180,26,0.03); }
+.btn-restore:hover { color: #000; background: #f4b41a; border-color: #f4b41a; box-shadow: 0 0 20px rgba(244,180,26,0.4); }
+
+.product-img-frame {
+    width: 42px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Tab styling */
+.archive-tab {
+    padding: 10px 28px;
+    border-radius: 100px;
+    font-size: 9px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+    cursor: pointer;
+    color: rgba(255,255,255,0.3);
+}
+.archive-tab:hover { color: rgba(255,255,255,0.7); border-color: rgba(255,255,255,0.1); }
+.archive-tab.active {
+    background: rgba(244,180,26,0.1);
+    border-color: rgba(244,180,26,0.3);
+    color: #f4b41a;
+}
+
+/* Empty state */
+.empty-state {
+    padding: 80px 0;
+    text-align: center;
+}
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+    <span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">Archive Vault</span>
+{% endblock %}
+
+{% block content %}
+{% if messages %}
+<div class="mb-6 space-y-3">
+    {% for message in messages %}
+    <div class="p-4 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-start justify-between
+        {% if message.tags == 'error' %}bg-red-500/10 text-red-400 border border-red-500/20
+        {% elif message.tags == 'success' %}bg-gold/10 text-gold border border-gold/20
+        {% else %}bg-white/5 text-white/70 border border-white/10{% endif %}">
+        <span>{{ message }}</span>
+        <button onclick="this.parentElement.remove()" class="ml-4 text-lg text-white/30 hover:text-white">&times;</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="animate__animated animate__fadeIn">
+
+    <!-- ── Header ── -->
+    <div class="flex items-center justify-between mb-10">
+        <div>
+            <h2 class="text-4xl font-extralight text-white tracking-tighter">
+                Archive <span class="font-black luxury-shimmer">Vault</span>
+            </h2>
+            <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">
+                All unlisted products and categories. Restore or keep archived.
+            </p>
+        </div>
+        <!-- Stat chips -->
+        <div class="flex items-center gap-4">
+            <div class="glass-panel rounded-2xl px-6 py-4 flex items-center gap-3">
+                <div class="w-8 h-8 bg-orange-500/10 rounded-lg flex items-center justify-center text-orange-400">
+                    <i class="bi bi-box-seam text-sm"></i>
+                </div>
+                <div>
+                    <p class="text-[8px] text-white/30 uppercase tracking-[2px] font-black">Archived Products</p>
+                    <p class="text-xl font-black text-white">{{ total_archived_products }}</p>
+                </div>
+            </div>
+            <div class="glass-panel rounded-2xl px-6 py-4 flex items-center gap-3">
+                <div class="w-8 h-8 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-400">
+                    <i class="bi bi-archive text-sm"></i>
+                </div>
+                <div>
+                    <p class="text-[8px] text-white/30 uppercase tracking-[2px] font-black">Archived Categories</p>
+                    <p class="text-xl font-black text-white">{{ total_archived_categories }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Tabs ── -->
+    <div class="flex items-center gap-3 mb-8">
+        <a href="?tab=products"
+           class="archive-tab {% if active_tab == 'products' %}active{% endif %}">
+            <i class="bi bi-bag me-2"></i>Products
+            {% if total_archived_products > 0 %}
+            <span class="ml-2 px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 text-[8px]">{{ total_archived_products }}</span>
+            {% endif %}
+        </a>
+        <a href="?tab=categories"
+           class="archive-tab {% if active_tab == 'categories' %}active{% endif %}">
+            <i class="bi bi-boxes me-2"></i>Categories
+            {% if total_archived_categories > 0 %}
+            <span class="ml-2 px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 text-[8px]">{{ total_archived_categories }}</span>
+            {% endif %}
+        </a>
+    </div>
+
+    <!-- ══════════════════════════════════════════ -->
+    <!--  PRODUCTS TAB                              -->
+    <!-- ══════════════════════════════════════════ -->
+    {% if active_tab == 'products' %}
+
+    <!-- Filter bar -->
+    <form method="GET" action="{% url 'admin_archive' %}"
+          class="glass-panel rounded-2xl p-8 flex items-end gap-6 mb-8">
+        <input type="hidden" name="tab" value="products">
+        <div class="flex-grow">
+            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Search Archived Products</label>
+            <input type="text" name="p_search" value="{{ p_search|default:'' }}"
+                   placeholder="Filter by name or brand..."
+                   class="luxury-input py-3 px-5 rounded-xl text-sm w-full placeholder:text-white/10">
+        </div>
+        <div class="w-48">
+            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Brand</label>
+            <div class="relative">
+                <select name="p_brand" class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none cursor-pointer">
+                    <option value="all">All Brands</option>
+                    {% for brand in brands %}
+                    <option value="{{ brand.id }}" {% if p_brand == brand.id|stringformat:"i" %}selected{% endif %}>{{ brand.name }}</option>
+                    {% endfor %}
+                </select>
+                <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none text-[10px]"></i>
+            </div>
+        </div>
+        <div class="w-48">
+            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Category</label>
+            <div class="relative">
+                <select name="p_cat" class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none cursor-pointer">
+                    <option value="all">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if p_cat == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+                <i class="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none text-[10px]"></i>
+            </div>
+        </div>
+        <button type="submit"
+                class="px-10 py-3 text-[10px] font-black uppercase tracking-[2px] text-white bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-gold/30 transition-all">
+            Filter
+        </button>
+    </form>
+
+    <!-- Products table -->
+    <div class="glass-panel rounded-[24px] overflow-hidden">
+        <table class="w-full text-left luxury-table">
+            <thead>
+                <tr class="bg-white/[0.01]">
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Product ID</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Product Name</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Brand</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Category</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Archived On</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black text-right">Restore</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/[0.03]">
+                {% for product in archived_products %}
+                <tr class="group opacity-60 hover:opacity-100 transition-all">
+                    <td class="px-8 py-6">
+                        <span class="text-orange-400/70 font-bold tracking-widest text-[11px]">#SC-{{ product.id|stringformat:"04d" }}</span>
+                    </td>
+                    <td class="px-8 py-6">
+                        <div class="flex items-center gap-4">
+                            {% with product.images.first as main_img %}
+                            <img src="{% if main_img %}{{ main_img.image.url }}{% else %}{% static 'img/placeholder.png' %}{% endif %}"
+                                 class="product-img-frame grayscale">
+                            {% endwith %}
+                            <div>
+                                <span class="text-sm text-white/70 font-bold tracking-tight">{{ product.name }}</span>
+                                <p class="text-[9px] text-white/20 uppercase tracking-[2px] mt-0.5">Unlisted</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6">
+                        <span class="text-xs text-white/40 font-medium">{{ product.brand.name }}</span>
+                    </td>
+                    <td class="px-8 py-6">
+                        <div class="flex flex-wrap gap-2">
+                            {% for cat in product.categories.all|slice:":1" %}
+                            <span class="px-2 py-0.5 bg-white/5 border border-white/10 text-[8px] text-white/40 uppercase tracking-widest rounded">{{ cat.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td class="px-8 py-6">
+                        <span class="text-xs text-white/30 tracking-wider">{{ product.updated_at|date:"M d, Y" }}</span>
+                    </td>
+                    <td class="px-8 py-6 text-right">
+                        <div class="flex items-center justify-end gap-3">
+                            <a href="{% url 'admin_product_detail' product.id %}"
+                               class="action-btn text-white/20 hover:text-white transition-colors" title="View">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <button onclick="openRestoreModal('product', '{{ product.id }}', '{{ product.name|escapejs }}')"
+                                    class="action-btn btn-restore" title="Restore Product">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                        </div>
+                        <form id="restore-product-{{ product.id }}"
+                              action="{% url 'toggle_product_status' product.id %}"
+                              method="POST" style="display:none">
+                            {% csrf_token %}
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <i class="bi bi-bag-check text-2xl text-white/10"></i>
+                            </div>
+                            <p class="text-[10px] text-white/20 uppercase tracking-[3px] font-black">No archived products found</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Products pagination -->
+    {% if archived_products.has_other_pages %}
+    <div class="mt-8 flex items-center justify-center gap-4">
+        {% if archived_products.has_previous %}
+        <a href="?tab=products&p_page={{ archived_products.previous_page_number }}{% if p_search %}&p_search={{ p_search }}{% endif %}{% if p_brand != 'all' %}&p_brand={{ p_brand }}{% endif %}{% if p_cat != 'all' %}&p_cat={{ p_cat }}{% endif %}"
+           class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">Prev</a>
+        {% endif %}
+        <div class="text-[11px] font-black text-gold tracking-[2px]">
+            {{ archived_products.number }} / {{ archived_products.paginator.num_pages }}
+        </div>
+        {% if archived_products.has_next %}
+        <a href="?tab=products&p_page={{ archived_products.next_page_number }}{% if p_search %}&p_search={{ p_search }}{% endif %}{% if p_brand != 'all' %}&p_brand={{ p_brand }}{% endif %}{% if p_cat != 'all' %}&p_cat={{ p_cat }}{% endif %}"
+           class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% endif %}{# end products tab #}
+
+
+    <!-- ══════════════════════════════════════════ -->
+    <!--  CATEGORIES TAB                            -->
+    <!-- ══════════════════════════════════════════ -->
+    {% if active_tab == 'categories' %}
+
+    <!-- Filter bar -->
+    <form method="GET" action="{% url 'admin_archive' %}"
+          class="glass-panel rounded-2xl p-8 flex items-end gap-6 mb-8">
+        <input type="hidden" name="tab" value="categories">
+        <div class="flex-grow">
+            <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Search Archived Categories</label>
+            <input type="text" name="c_search" value="{{ c_search|default:'' }}"
+                   placeholder="Filter by name..."
+                   class="luxury-input py-3 px-5 rounded-xl text-sm w-full placeholder:text-white/10">
+        </div>
+        <button type="submit"
+                class="px-10 py-3 text-[10px] font-black uppercase tracking-[2px] text-white bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 hover:border-gold/30 transition-all">
+            Filter
+        </button>
+    </form>
+
+    <!-- Categories table -->
+    <div class="glass-panel rounded-[24px] overflow-hidden">
+        <table class="w-full text-left luxury-table">
+            <thead>
+                <tr class="bg-white/[0.01]">
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Category ID</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Name</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Description</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Archived On</th>
+                    <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black text-right">Restore</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/[0.03]">
+                {% for category in archived_categories %}
+                <tr class="group opacity-60 hover:opacity-100 transition-all">
+                    <td class="px-8 py-6">
+                        <span class="px-3 py-1 bg-white/5 border border-white/10 text-[10px] text-white/30 font-black uppercase tracking-widest rounded-md">
+                            CAT-{{ category.id|stringformat:"03d" }}
+                        </span>
+                    </td>
+                    <td class="px-8 py-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-white/[0.02] border border-white/5 flex items-center justify-center text-white/20">
+                                <i class="bi bi-droplet-half"></i>
+                            </div>
+                            <div>
+                                <span class="text-sm text-white/70 font-bold tracking-tight">{{ category.name }}</span>
+                                <p class="text-[9px] text-white/20 uppercase tracking-[2px] mt-0.5">Archived</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-8 py-6">
+                        <p class="text-xs text-white/30 font-medium line-clamp-1 max-w-[280px]">
+                            {{ category.description|default:"No description." }}
+                        </p>
+                    </td>
+                    <td class="px-8 py-6">
+                        <span class="text-xs text-white/30 tracking-wider">{{ category.updated_at|date:"M d, Y" }}</span>
+                    </td>
+                    <td class="px-8 py-6 text-right">
+                        <button onclick="openRestoreModal('category', '{{ category.id }}', '{{ category.name|escapejs }}')"
+                                class="action-btn btn-restore" title="Restore Category">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                        <form id="restore-category-{{ category.id }}"
+                              action="{% url 'toggle_category_status' category.id %}"
+                              method="POST" style="display:none">
+                            {% csrf_token %}
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <i class="bi bi-boxes text-2xl text-white/10"></i>
+                            </div>
+                            <p class="text-[10px] text-white/20 uppercase tracking-[3px] font-black">No archived categories found</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Categories pagination -->
+    {% if archived_categories.has_other_pages %}
+    <div class="mt-8 flex items-center justify-center gap-4">
+        {% if archived_categories.has_previous %}
+        <a href="?tab=categories&c_page={{ archived_categories.previous_page_number }}{% if c_search %}&c_search={{ c_search }}{% endif %}"
+           class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">Prev</a>
+        {% endif %}
+        <div class="text-[11px] font-black text-gold tracking-[2px]">
+            {{ archived_categories.number }} / {{ archived_categories.paginator.num_pages }}
+        </div>
+        {% if archived_categories.has_next %}
+        <a href="?tab=categories&c_page={{ archived_categories.next_page_number }}{% if c_search %}&c_search={{ c_search }}{% endif %}"
+           class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% endif %}{# end categories tab #}
+
+</div><!-- /animate__fadeIn -->
+
+<!-- ── Restore Confirmation Modal ── -->
+<div id="restoreModal"
+     class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black/90 backdrop-blur-md p-4">
+    <div class="glass-panel rounded-[32px] p-10 max-w-md w-full border-gold/20 text-center animate__animated animate__fadeIn">
+        <div class="w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6 border border-gold/20 bg-gold/5">
+            <i class="bi bi-arrow-counterclockwise text-3xl text-gold"></i>
+        </div>
+        <h3 id="restoreModalTitle" class="text-white font-black text-xl uppercase tracking-[3px] mb-2"></h3>
+        <p id="restoreModalMsg" class="text-white/40 text-xs font-medium tracking-wider mb-10 leading-relaxed"></p>
+        <div class="flex justify-center gap-6">
+            <button onclick="closeRestoreModal()"
+                    class="text-[10px] text-white/30 uppercase font-black tracking-widest hover:text-white transition-colors">
+                Cancel
+            </button>
+            <button id="restoreConfirmBtn"
+                    class="px-10 py-3 bg-gold text-black rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-[0_0_20px_rgba(244,180,26,0.4)] transition-all">
+                Restore
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openRestoreModal(type, id, name) {
+    const modal = document.getElementById('restoreModal');
+    const title = document.getElementById('restoreModalTitle');
+    const msg   = document.getElementById('restoreModalMsg');
+    const btn   = document.getElementById('restoreConfirmBtn');
+    const form  = document.getElementById(`restore-${type}-${id}`);
+
+    title.innerHTML = `Restore <span class="luxury-shimmer">${name}</span>`;
+
+    if (type === 'product') {
+        msg.innerText = "Re-listing this product will make it visible in the storefront and available for purchase.";
+    } else {
+        msg.innerText = "This will return the vault to active status and make it visible across the Scentora registry.";
+    }
+
+    btn.onclick = () => form.submit();
+    modal.classList.remove('hidden');
+}
+
+function closeRestoreModal() {
+    document.getElementById('restoreModal').classList.add('hidden');
+}
+</script>
+{% endblock %}

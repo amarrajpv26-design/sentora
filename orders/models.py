@@ -131,3 +131,30 @@ class OrderItem(models.Model):
     def __str__(self):
 
         return self.product_name
+
+
+class OrderStatusHistory(models.Model):
+    """
+    One row per status change on an Order. Lets the order detail page
+    show *when* each stage happened (Confirmed on 24 June, Shipped on
+    25 June, etc.) instead of only the current order_status value.
+
+    Rows are created via the record_status_change() helper in
+    orders/views.py — call it anywhere order.order_status is changed.
+    """
+
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="status_history"
+    )
+
+    status = models.CharField(max_length=30, choices=Order.ORDER_STATUS)
+
+    note = models.CharField(max_length=255, blank=True, null=True)
+
+    changed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["changed_at"]
+
+    def __str__(self):
+        return f"{self.order.order_id} -> {self.status} @ {self.changed_at:%d %b %Y %H:%M}"

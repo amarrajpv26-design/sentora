@@ -2,14 +2,43 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
-from .models import Order, OrderItem
+from .models import Order, OrderItem, OrderStatusHistory
 from django.http import HttpResponse
 from weasyprint import HTML
 from wallets.models import Wallet, WalletTransaction
 from django.template.loader import render_to_string
-
+from django.db.models import Count
 
 from django.core.paginator import Paginator
+
+# Maps order_status -> step index used by the horizontal tracking stepper
+# in the template. Statuses not in this dict (CANCELLED, RETURN_REQUESTED,
+# RETURNED, RETURN_REJECTED) are handled separately in the template, since
+# they branch off the main PENDING -> DELIVERED flow rather than sitting on it.
+ORDER_STATUS_STEPS = {
+    "PENDING": 0,
+    "CONFIRMED": 1,
+    "SHIPPED": 2,
+    "OUT_FOR_DELIVERY": 3,
+    "DELIVERED": 4,
+}
+
+
+def record_status_change(order, status, note=""):
+    """
+    Logs a timestamped OrderStatusHistory row every time an order's
+    status changes. Call this immediately after setting
+    order.order_status = "..." and saving the order.
+
+    Guards against creating a duplicate row if the latest history
+    entry already matches the status being recorded (e.g. if a view
+    is somehow triggered twice for the same transition).
+    """
+    last = order.status_history.order_by("-changed_at").first()
+    if last and last.status == status:
+        return
+    OrderStatusHistory.objects.create(order=order, status=status, note=note)
+
 
 @login_required
 def order_list_view(request):
@@ -59,7 +88,18 @@ def order_detail_view(request, order_id):
 
     order = get_object_or_404(Order, order_id=order_id, user=request.user)
 
-    context = {"order": order}
+    # Backfill safety net: orders placed before this feature existed won't
+    # have any OrderStatusHistory rows yet. Create one for their current
+    # status on first view so the timeline is never empty. Harmless no-op
+    # for orders that already have history.
+    if not order.status_history.exists():
+        OrderStatusHistory.objects.create(order=order, status=order.order_status)
+
+    context = {
+        "order": order,
+        "status_history": order.status_history.all(),
+        "step": ORDER_STATUS_STEPS.get(order.order_status, -1),
+    }
 
     return render(request, "orders/order_detail.html", context)
 
@@ -117,6 +157,7 @@ def cancel_order_view(request, order_id):
         order.payment_status = "FAILED"
 
     order.save()
+    record_status_change(order, "CANCELLED", note=reason)
 
     for item in order.items.all():
 
@@ -207,6 +248,7 @@ def cancel_order_item_view(request, item_id):
             order.payment_status = "REFUNDED"
 
         order.save()
+        record_status_change(order, "CANCELLED", note=reason)
 
     messages.success(request, "Item cancelled successfully.")
 
@@ -230,6 +272,7 @@ def return_order_view(request, order_id):
     order.order_status = "RETURN_REQUESTED"
     order.return_reason = reason
     order.save()
+    record_status_change(order, "RETURN_REQUESTED", note=reason)
 
     # Mirror cancel: mark all active items too
     for item in order.items.filter(item_status="ACTIVE"):
@@ -270,6 +313,7 @@ def return_order_item_view(request, item_id):
     if not active_items.exists():
         order.order_status = "RETURN_REQUESTED"
         order.save()
+        record_status_change(order, "RETURN_REQUESTED", note=reason)
 
     messages.success(request, "Return request submitted for item.")
     return redirect("order_detail", order.order_id)
@@ -352,6 +396,7 @@ def admin_approve_return_view(request, order_id):
     order.order_status = "RETURNED"
     order.payment_status = "REFUNDED"
     order.save()
+    record_status_change(order, "RETURNED")
 
     # Get user wallet and execute transaction
     user_wallet, created = Wallet.objects.get_or_create(
@@ -381,3 +426,15 @@ def admin_approve_return_view(request, order_id):
         f"Return approved. ₹{refund_amount} has been safely credited to {order.user.username}'s wallet.",
     )
     return redirect("order_detail", order.order_id)
+
+
+# ============================================================
+# WHEN YOU BUILD AN ADMIN VIEW THAT MOVES ORDERS THROUGH
+# PENDING -> CONFIRMED -> SHIPPED -> OUT_FOR_DELIVERY -> DELIVERED,
+# follow this exact pattern so the tracking timeline picks it up:
+#
+#     order.order_status = new_status
+#     order.save()
+#     record_status_change(order, new_status, note=optional_note)
+#     return redirect("order_detail", order.order_id)
+# ============================================================

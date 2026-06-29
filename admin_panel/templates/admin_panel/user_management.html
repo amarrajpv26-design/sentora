@@ -131,8 +131,21 @@
                     {% for user in users %}
                         <tr class="group cursor-pointer">
                             <td class="px-8 py-6 text-xs text-white/30 font-medium">#USR-{{ user.id }}</td>
-                            <td class="px-8 py-6 text-sm text-white font-bold tracking-tight">{{ user.username }}</td>
-                            <td class="px-8 py-6 text-xs text-white/60 font-light">{{ user.email }}</td>
+<td class="px-8 py-6">
+    <div class="flex items-center gap-3">
+        {% if user.profile_image %}
+            <img src="{{ user.profile_image.url }}"
+                 alt="{{ user.username }}"
+                 class="w-8 h-8 rounded-full object-cover ring-1 ring-white/10">
+        {% else %}
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-black text-[10px] font-black flex-shrink-0"
+                 style="background: #D4AF37;">
+                {{ user.username|slice:":1"|upper }}
+            </div>
+        {% endif %}
+        <span class="text-sm text-white font-bold tracking-tight">{{ user.username }}</span>
+    </div>
+</td>                            <td class="px-8 py-6 text-xs text-white/60 font-light">{{ user.email }}</td>
                             <td class="px-8 py-6 text-xs text-white/60">
                                 {% if user.phone_number %}
                                     {{ user.phone_number }}

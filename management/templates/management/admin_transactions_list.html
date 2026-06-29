@@ -40,7 +40,7 @@
 {% endblock %}
 
 {% block breadcrumb %}
-<span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">Wallet Transactions</span>
+<span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">Transaction Ledger</span>
 {% endblock %}
 
 {% block content %}
@@ -51,112 +51,191 @@
       Transaction <span class="font-black luxury-shimmer">Ledger</span>
     </h2>
     <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">
-      Complete wallet activity across all user accounts.
+      Unified view of wallet activity and online payments across all accounts.
     </p>
   </div>
 
-  <form method="GET" action="{% url 'management:admin_transactions_list' %}" class="glass-panel rounded-2xl p-8 grid grid-cols-12 gap-8 items-end mb-8">
+  <!-- FILTERS -->
+  <form method="GET" action="{% url 'management:admin_transactions_list' %}"
+        class="glass-panel rounded-2xl p-8 grid grid-cols-12 gap-6 items-end mb-8">
 
+    <!-- Search -->
     <div class="col-span-4">
       <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Search</label>
       <div class="relative flex items-center gap-3">
         <div class="relative flex-grow">
           <input type="text" name="search" value="{{ search_query|default:'' }}"
-            placeholder="Email, username, payment ID..."
+            placeholder="Email, username, order ID, Razorpay ID..."
             class="luxury-input py-3 px-5 rounded-xl text-sm w-full placeholder:text-white/20">
           {% if search_query %}
-          <a href="{% url 'management:admin_transactions_list' %}" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
+          <a href="{% url 'management:admin_transactions_list' %}"
+             class="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white">
             <i class="bi bi-x-circle-fill text-xs"></i>
           </a>
           {% endif %}
         </div>
-        <button type="submit" class="px-6 py-3 text-[10px] font-black uppercase tracking-[2px] text-black bg-gold rounded-xl hover:shadow-[0_0_20px_rgba(244,180,26,0.3)] transition-all">
+        <button type="submit"
+                class="px-6 py-3 text-[10px] font-black uppercase tracking-[2px] text-black
+                       bg-gold rounded-xl hover:shadow-[0_0_20px_rgba(244,180,26,0.3)] transition-all">
           Search
         </button>
       </div>
     </div>
 
+    <!-- Type -->
     <div class="col-span-3">
       <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Type</label>
-      <select name="transaction_type" onchange="this.form.submit()" class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none bg-black">
-        <option value="" {% if not type_filter %}selected{% endif %}>All Types</option>
-        {% for key, value in type_choices %}
-        <option value="{{ key }}" {% if type_filter == key %}selected{% endif %}>{{ value }}</option>
+      <select name="transaction_type" onchange="this.form.submit()"
+              class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none bg-black">
+        {% for key, label in type_choices %}
+        <option value="{{ key }}" {% if type_filter == key %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
       </select>
     </div>
 
+    <!-- Purpose -->
     <div class="col-span-3">
       <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Purpose</label>
-      <select name="purpose" onchange="this.form.submit()" class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none bg-black">
-        <option value="" {% if not purpose_filter %}selected{% endif %}>All Purposes</option>
-        {% for key, value in purpose_choices %}
-        <option value="{{ key }}" {% if purpose_filter == key %}selected{% endif %}>{{ value }}</option>
+      <select name="purpose" onchange="this.form.submit()"
+              class="luxury-input py-3 px-5 rounded-xl text-sm w-full appearance-none bg-black">
+        {% for key, label in purpose_choices %}
+        <option value="{{ key }}" {% if purpose_filter == key %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
       </select>
     </div>
 
+    <!-- Clear -->
     <div class="col-span-2">
-      <a href="{% url 'management:admin_transactions_list' %}" class="block text-center px-6 py-3 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-[2px] text-white/60 hover:text-white hover:border-white transition-all">
+      <a href="{% url 'management:admin_transactions_list' %}"
+         class="block text-center px-6 py-3 border border-white/10 rounded-xl
+                text-[10px] font-black uppercase tracking-[2px] text-white/60
+                hover:text-white hover:border-white transition-all">
         Clear
       </a>
     </div>
 
   </form>
 
+  <!-- TABLE -->
   <div class="glass-panel rounded-[32px] overflow-hidden">
     <table class="w-full text-left luxury-table">
       <thead>
         <tr class="bg-white/[0.01]">
-          <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">#</th>
           <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Date</th>
           <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">User</th>
           <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Amount</th>
           <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Type</th>
           <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Purpose</th>
-          <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black text-right">Action</th>
+          <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Reference</th>
+          <th class="px-8 py-6 text-[9px] text-gold/40 uppercase tracking-[3px] font-black text-right">Detail</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-white/[0.03]">
-        {% for txn in transactions %}
+
+        {% for row in transactions %}
         <tr class="group">
-          <td class="px-8 py-6 text-xs text-white/30 font-mono">{{ txn.pk }}</td>
-          <td class="px-8 py-6 text-xs text-white/60 font-light">{{ txn.created_at|date:"M d, Y H:i" }}</td>
-          <td class="px-8 py-6">
-            <div class="text-sm text-white font-bold tracking-tight">{{ txn.wallet.user.username }}</div>
-            <div class="text-[10px] text-white/30 font-medium tracking-wide mt-0.5">{{ txn.wallet.user.email }}</div>
+
+          <!-- Date -->
+          <td class="px-8 py-6 text-xs text-white/60 font-light whitespace-nowrap">
+            {{ row.date|date:"M d, Y" }}<br>
+            <span class="text-white/25">{{ row.date|date:"H:i" }}</span>
           </td>
+
+          <!-- User -->
+          <td class="px-8 py-6">
+            <div class="text-sm text-white font-bold tracking-tight">{{ row.user.username }}</div>
+            <div class="text-[10px] text-white/30 font-medium tracking-wide mt-0.5">{{ row.user.email }}</div>
+          </td>
+
+          <!-- Amount -->
           <td class="px-8 py-6 text-sm font-black
-            {% if txn.transaction_type == 'CREDIT' %}text-green-400{% else %}text-red-400{% endif %}">
-            {% if txn.transaction_type == 'CREDIT' %}+{% else %}-{% endif %}₹{{ txn.amount }}
+            {% if row.type == 'CREDIT' %}text-green-400
+            {% elif row.type == 'DEBIT' %}text-red-400
+            {% else %}text-blue-400{% endif %}">
+            {% if row.type == 'CREDIT' %}+
+            {% elif row.type == 'DEBIT' %}-
+            {% endif %}₹{{ row.amount }}
           </td>
+
+          <!-- Type badge -->
           <td class="px-8 py-6">
-            <span class="px-4 py-2 rounded-full text-[10px] uppercase font-black tracking-wider
-              {% if txn.transaction_type == 'CREDIT' %}text-green-400 bg-green-500/10{% else %}text-red-400 bg-red-500/10{% endif %}">
-              {{ txn.transaction_type }}
-            </span>
+            {% if row.type == 'CREDIT' %}
+              <span class="px-3 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider
+                           text-green-400 bg-green-500/10 border border-green-500/20">
+                Credit
+              </span>
+            {% elif row.type == 'DEBIT' %}
+              <span class="px-3 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider
+                           text-red-400 bg-red-500/10 border border-red-500/20">
+                Debit
+              </span>
+            {% else %}
+              <span class="px-3 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider
+                           text-blue-400 bg-blue-500/10 border border-blue-500/20">
+                Online
+              </span>
+            {% endif %}
           </td>
+
+          <!-- Purpose badge -->
           <td class="px-8 py-6">
-  <span class="px-4 py-2 rounded-full text-[10px] uppercase font-black tracking-wider
-    {% if txn.purpose == 'RECHARGE' %}text-blue-400 bg-blue-500/10
-    {% elif txn.purpose == 'REFUND' %}text-amber-400 bg-amber-500/10
-    {% elif txn.purpose == 'PURCHASE' %}text-purple-400 bg-purple-500/10
-    {% else %}text-white/60 bg-white/5{% endif %}">
-    {% if txn.purpose == 'REFUND' %}
-      {% if 'item cancellation' in txn.description %}Item Cancel Refund
-      {% elif 'cancellation' in txn.description %}Order Cancel Refund
-      {% elif 'returned' in txn.description %}Return Refund
-      {% else %}Refund{% endif %}
-    {% else %}
-      {{ txn.get_purpose_display }}
-    {% endif %}
-  </span>
-</td>
+            {% if row.purpose == 'RECHARGE' %}
+              <span class="px-3 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider
+                           text-blue-400 bg-blue-500/10">Recharge</span>
+
+            {% elif row.purpose == 'PURCHASE' %}
+              <span class="px-3 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider
+                           text-purple-400 bg-purple-500/10">Wallet Pay</span>
+
+            {% elif row.purpose == 'ONLINE_PAYMENT' %}
+              <span class="px-3 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider
+                           text-blue-400 bg-blue-500/10">Razorpay</span>
+
+            {% elif row.purpose == 'REFERRAL_BONUS' %}
+              <span class="px-3 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider
+                           text-yellow-400 bg-yellow-500/10">Referral</span>
+
+            {% elif row.purpose == 'REFUND' %}
+              {% if 'item cancellation' in row.description %}
+                <span class="px-3 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider
+                             text-amber-400 bg-amber-500/10">Item Refund</span>
+              {% elif 'cancellation' in row.description %}
+                <span class="px-3 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider
+                             text-amber-400 bg-amber-500/10">Order Refund</span>
+              {% else %}
+                <span class="px-3 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider
+                             text-amber-400 bg-amber-500/10">Refund</span>
+              {% endif %}
+
+            {% else %}
+              <span class="px-3 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider
+                           text-white/50 bg-white/5">{{ row.purpose }}</span>
+            {% endif %}
+          </td>
+
+          <!-- Reference -->
+          <td class="px-8 py-6">
+            {% if row.order_id %}
+            <div class="text-xs font-mono text-white/50">{{ row.order_id }}</div>
+            {% endif %}
+            {% if row.razorpay_id %}
+            <div class="text-[10px] font-mono text-white/25 mt-0.5 truncate max-w-[140px]">
+              {{ row.razorpay_id }}
+            </div>
+            {% endif %}
+            {% if not row.order_id and not row.razorpay_id %}
+            <span class="text-white/20">—</span>
+            {% endif %}
+          </td>
+
+          <!-- Detail link -->
           <td class="px-8 py-6 text-right">
-            <a href="{% url 'management:admin_transaction_detail' txn.pk %}" class="text-white/20 hover:text-gold transition-all transform group-hover:scale-110 inline-block">
+            <a href="{% url 'management:admin_transaction_detail' row.pk %}?source={{ row.source }}"
+               class="text-white/20 hover:text-gold transition-all transform group-hover:scale-110 inline-block">
               <i class="bi bi-eye text-lg"></i>
             </a>
           </td>
+
         </tr>
         {% empty %}
         <tr>
@@ -165,32 +244,40 @@
           </td>
         </tr>
         {% endfor %}
+
       </tbody>
     </table>
   </div>
 
-{% if transactions.has_other_pages %}
-<div class="mt-10 flex items-center justify-between px-4">
-  <div class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
-    Showing <span class="text-gold">{{ transactions.start_index }}–{{ transactions.end_index }}</span> of {{ transactions.paginator.count }}
+  <!-- PAGINATION -->
+  {% if transactions.has_other_pages %}
+  <div class="mt-10 flex items-center justify-between px-4">
+    <div class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
+      Showing
+      <span class="text-gold">{{ transactions.start_index }}–{{ transactions.end_index }}</span>
+      of {{ transactions.paginator.count }}
+    </div>
+    <div class="flex items-center gap-4">
+      {% if transactions.has_previous %}
+      <a href="?page={{ transactions.previous_page_number }}&search={{ search_query|default:'' }}&transaction_type={{ type_filter|default:'' }}&purpose={{ purpose_filter|default:'' }}"
+         class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase
+                font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
+        Prev
+      </a>
+      {% endif %}
+      <div class="text-[11px] font-black text-gold tracking-[2px]">
+        {{ transactions.number }} / {{ transactions.paginator.num_pages }}
+      </div>
+      {% if transactions.has_next %}
+      <a href="?page={{ transactions.next_page_number }}&search={{ search_query|default:'' }}&transaction_type={{ type_filter|default:'' }}&purpose={{ purpose_filter|default:'' }}"
+         class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase
+                font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
+        Next
+      </a>
+      {% endif %}
+    </div>
   </div>
-  <div class="flex items-center gap-4">
-    {% if transactions.has_previous %}
-    <a href="?page={{ transactions.previous_page_number }}&search={{ search_query|default:'' }}&transaction_type={{ type_filter|default:'' }}&purpose={{ purpose_filter|default:'' }}"
-      class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
-      Prev
-    </a>
-    {% endif %}
-    <div class="text-[11px] font-black text-gold tracking-[2px]">{{ transactions.number }} / {{ transactions.paginator.num_pages }}</div>
-    {% if transactions.has_next %}
-    <a href="?page={{ transactions.next_page_number }}&search={{ search_query|default:'' }}&transaction_type={{ type_filter|default:'' }}&purpose={{ purpose_filter|default:'' }}"
-      class="h-10 px-6 flex items-center glass-panel rounded-full text-[10px] uppercase font-black tracking-[2px] text-white/60 hover:text-gold transition-all">
-      Next
-    </a>
-    {% endif %}
-  </div>
-</div>
-{% endif %}
+  {% endif %}
 
 </div>
 {% endblock %}

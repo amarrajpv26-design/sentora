@@ -7,16 +7,11 @@ import uuid
 
 
 def get_effective_price(variant):
-    """
-    Returns (effective_price, offer_label) for a ProductVariant.
-    offer_label is a human-readable string like "Summer Sale (-20%)" or None.
-    """
-    from offers.models import ProductOffer, CategoryOffer
-
+    from offers.models import ProductOffer, CategoryOffer, BrandOffer
+    
     base_price = variant.offer_price if variant.offer_price else variant.price
     best_price = base_price
     best_label = None
-
     now = timezone.now()
 
     # ── 1. Product-level offer ──
@@ -27,17 +22,16 @@ def get_effective_price(variant):
             start_date__lte=now,
             end_date__gte=now,
         )
-        .order_by("-discount_value")  # highest discount first
+        .order_by("-discount_value")
         .first()
     )
-
     if product_offer:
         product_offer_price = product_offer.compute_discount(variant.price)
         if product_offer_price < best_price:
             best_price = product_offer_price
             best_label = _build_label(product_offer)
 
-    # ── 2. Category-level offers (all categories this product is in) ──
+    # ── 2. Category-level offers ──
     category_ids = variant.product.categories.values_list("id", flat=True)
     category_offers = CategoryOffer.objects.filter(
         category_id__in=category_ids,
@@ -45,12 +39,24 @@ def get_effective_price(variant):
         start_date__lte=now,
         end_date__gte=now,
     )
-
     for cat_offer in category_offers:
         cat_offer_price = cat_offer.compute_discount(variant.price)
         if cat_offer_price < best_price:
             best_price = cat_offer_price
             best_label = _build_label(cat_offer)
+
+    # ── 3. Brand-level offer ──  ← ADD THIS BLOCK
+    brand_offers = BrandOffer.objects.filter(
+        brand=variant.product.brand,
+        is_active=True,
+        start_date__lte=now,
+        end_date__gte=now,
+    )
+    for brand_offer in brand_offers:
+        brand_offer_price = brand_offer.compute_discount(variant.price)
+        if brand_offer_price < best_price:
+            best_price = brand_offer_price
+            best_label = _build_label(brand_offer)
 
     return best_price, best_label
 

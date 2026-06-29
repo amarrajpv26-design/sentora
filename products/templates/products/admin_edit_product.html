@@ -1,28 +1,29 @@
 {% extends 'admin_panel/base_admin.html' %}
 {% load static %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
-    .glass-panel { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-    .luxury-input { 
-        background: rgba(0, 0, 0, 0.4); 
-        border: 1px solid rgba(255, 255, 255, 0.05); 
-        color: white; 
+    .glass-panel { background: rgba(255,255,255,0.02); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+    .luxury-input {
+        background: rgba(0,0,0,0.4);
+        border: 1px solid rgba(255,255,255,0.05);
+        color: white;
         transition: all 0.3s ease;
         min-height: 58px;
-    }    
-    .luxury-input:focus { border-color: #f4b41a; box-shadow: 0 0 15px rgba(244, 180, 26, 0.1); outline: none; }
-    
-    .variant-row { background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.03); transition: all 0.3s ease; }
-    .variant-row:hover { border-color: rgba(244, 180, 26, 0.2); background: rgba(255, 255, 255, 0.02); }
+    }
+    .luxury-input:focus { border-color: #f4b41a; box-shadow: 0 0 15px rgba(244,180,26,0.1); outline: none; }
+    .luxury-input.input-error { border-color: rgba(239,68,68,0.6); box-shadow: 0 0 10px rgba(239,68,68,0.1); }
 
-    .image-preview-slot { width: 100%; aspect-ratio: 3/4; background: rgba(0,0,0,0.4); border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-    .image-preview-slot img { width: 100%; height: 100%; object-fit: cover; }
-    
-    .luxury-shimmer { background: linear-gradient(90deg, #fff, #f4b41a, #fff); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite; }
+    .variant-row { background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); transition: all 0.3s ease; }
+    .variant-row:hover { border-color: rgba(244,180,26,0.2); background: rgba(255,255,255,0.02); }
+    .variant-row.row-error { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.03); }
+
+    .image-preview-slot { width:100%; aspect-ratio:3/4; background:rgba(0,0,0,0.4); border:1px dashed rgba(255,255,255,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+    .image-preview-slot img { width:100%; height:100%; object-fit:cover; }
+
+    .luxury-shimmer { background: linear-gradient(90deg,#fff,#f4b41a,#fff); background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; animation: shimmer 3s linear infinite; }
     @keyframes shimmer { to { background-position: 200% center; } }
-    
+
     select.luxury-input {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
         background-repeat: no-repeat;
@@ -30,567 +31,653 @@
         background-size: 1rem;
         padding-right: 3rem;
     }
+
+    /* Toggle switch */
+    .toggle-track { width:44px; height:24px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:100px; position:relative; cursor:pointer; transition:all 0.3s ease; }
+    .toggle-track.active { background:rgba(244,180,26,0.2); border-color:rgba(244,180,26,0.4); }
+    .toggle-thumb { width:16px; height:16px; background:rgba(255,255,255,0.2); border-radius:50%; position:absolute; top:3px; left:3px; transition:all 0.3s ease; }
+    .toggle-track.active .toggle-thumb { left:21px; background:#f4b41a; }
+
+    /* Inline error */
+    .field-error { color:#f87171; font-size:9px; text-transform:uppercase; letter-spacing:2px; font-weight:900; margin-top:6px; display:none; }
+    .field-error.visible { display:block; }
+
+    #errorBanner { display:none; }
+    #errorBanner.visible { display:block; }
     </style>
 {% endblock %}
+
 {% block content %}
-    <div class="max-w-7xl mx-auto animate__animated animate__fadeIn pb-20">
-        <div class="mb-10 flex justify-between items-end">
-            <div>
-                <a href="{% url 'admin_product_list' %}"
-                   class="group flex items-center gap-3 text-white/50 text-[10px] uppercase tracking-[3px] font-bold mb-4 hover:text-gold transition-all">
-                    <i class="bi bi-arrow-left"></i> Back to Registry
-                </a>
-                <h2 class="text-4xl font-extralight text-white tracking-tighter">
-                    Recalibrate <span class="font-black luxury-shimmer">{{ product.name }}</span>
-                </h2>
-            </div>
-            <div class="text-right">
-                <p class="text-white/20 text-[9px] uppercase tracking-[4px] font-black mb-1">Registry Entry #{{ product.id }}</p>
-                <p class="text-white/20 text-[9px] uppercase tracking-[4px] font-black italic">
-                    Last Updated: {{ product.updated_at|date:"M d, Y" }}
-                </p>
-            </div>
-        </div>
-        {% if messages %}
-<div class="mb-6 space-y-3">
-    {% for message in messages %}
-        <div class="p-4 rounded-xl text-[11px] font-black uppercase tracking-widest
-            {% if message.tags == 'error' %}
-                bg-red-500/10 text-red-400 border border-red-500/20
-            {% elif message.tags == 'success' %}
-                bg-gold/10 text-gold border border-gold/20
-            {% else %}
-                bg-white/5 text-white/70 border border-white/10
-            {% endif %}">
-            {{ message }}
-        </div>
-    {% endfor %}
-</div>
-{% endif %}
-        <form method="POST" enctype="multipart/form-data" id="product-form">
-            <div id="errorBox"
-     class="hidden mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] font-black uppercase tracking-widest">
-</div>
-            {% csrf_token %}
-            <div class="grid grid-cols-12 gap-8 items-start">
-                <div class="col-span-8 space-y-8">
-                    <div class="glass-panel rounded-[32px] p-10 space-y-8">
-                        <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-4 border-b border-white/5 pb-4">
-                            Core Identity
-                        </h3>
-                        <div class="grid grid-cols-2 gap-6">
-                            <div class="col-span-2">
-                                <label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Scent Name</label>
-                                <input type="text"
-                                       name="name"
-                                       value="{{ product.name }}"
-                                       required
-                                       class="luxury-input py-4 px-6 rounded-xl text-sm w-full font-bold">
-                            </div>
-                            <div>
-                                <label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Brand/House</label>
-                                <input type="text"
-                                       name="brand_name"
-                                       list="brand-suggestions"
-                                       value="{{ product.brand.name }}"
-                                       class="luxury-input py-4 px-6 rounded-xl text-sm w-full font-bold"
-                                       required>
-                                <datalist id="brand-suggestions">
-                                    {% for brand in brands %}<option value="{{ brand.name }}">{% endfor %}
-                                    </datalist>
-                                </div>
-                                <div>
-                                    <label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Primary Vault</label>
-                                    <select name="category"
-                                            class="luxury-input py-4 px-6 rounded-xl text-sm w-full appearance-none">
-                                        {% for cat in categories %}
-                                            {# Force both to strings to ensure the 'selected' attribute triggers #}
-                                            <option value="{{ cat.id }}"
-                                                    {% if cat in product.categories.all %}selected{% endif %}>
-                                                {{ cat.name }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Scent Narrative</label>
-                                <textarea name="description"
-                                          rows="4"
-                                          class="luxury-input py-4 px-6 rounded-xl text-sm w-full">{{ product.description }}</textarea>
-                            </div>
-                            <div class="pt-6 border-t border-white/5">
-                                <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-6">Olfactory Pyramid</h3>
-                                <div class="grid grid-cols-3 gap-6">
-                                    <div>
-                                        <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Top Notes</label>
-                                        <input type="text"
-                                               name="top_notes"
-                                               value="{{ product.top_notes }}"
-                                               class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Heart Notes</label>
-                                        <input type="text"
-                                               name="heart_notes"
-                                               value="{{ product.heart_notes }}"
-                                               class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Base Notes</label>
-                                        <input type="text"
-                                               name="base_notes"
-                                               value="{{ product.base_notes }}"
-                                               class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="glass-panel rounded-[32px] p-10">
-                            <div class="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
-                                <div>
-                                    <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px]">Product Variants</h3>
-                                    <p class="text-white/20 text-[8px] uppercase tracking-[2px] mt-1">Manage volumes and pricing</p>
-                                </div>
-                                <button type="button"
-                                        id="add-variant-btn"
-                                        class="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-[2px] text-gold hover:bg-gold hover:text-black transition-all">
-                                    <i class="bi bi-plus-lg me-1"></i> Add Size
-                                </button>
-                            </div>
-                            <div id="variant-container" class="space-y-4">
-                                {% for variant in product.variants.all|dictsort:"size_ml" %}
-                                    <div class="variant-row p-6 rounded-2xl grid grid-cols-12 gap-4 items-end relative group">
-                                        <input type="hidden" name="variant_id[]" value="{{ variant.id }}">
-                                            <input type="hidden" name="v_stock_original[]" value="{{ variant.stock }}">
+<div class="max-w-7xl mx-auto animate__animated animate__fadeIn pb-20">
 
-                                        <div class="col-span-3">
-                                            <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Volume</label>
-                                            <select name="v_size[]"
-                                                    required
-                                                    class="luxury-input py-3 px-4 rounded-lg text-xs w-full font-bold appearance-none">
-                                                <option value="8ml" {% if variant.size == '8ml' %}selected{% endif %}>8ml (Travel)</option>
-                                                <option value="20ml" {% if variant.size == '20ml' %}selected{% endif %}>20ml (Discovery)</option>
-                                                <option value="50ml" {% if variant.size == '50ml' %}selected{% endif %}>50ml (Signature)</option>
-                                                <option value="100ml" {% if variant.size == '100ml' %}selected{% endif %}>100ml (Grand)</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-span-3">
-                                            <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Price (₹)</label>
-                                            <input type="number"
-                                                   name="v_price[]"
-                                                   value="{{ variant.price }}"
-                                                   required
-                                                   min="0"
-                                                   class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
-                                        </div>
-                                        <div class="col-span-2">
-                                            <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Offer</label>
-                                            <input type="number"
-                                                   name="v_offer[]"
-                                                   value="{{ variant.offer_price|default:'' }}"
-                                                   min="0"
-                                                   class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
-                                        </div>
-                                        <div class="col-span-3">
-                                            <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Stock</label>
-                                            <input type="number"
-                                                   name="v_stock[]"
-                                                   value="{{ variant.stock }}"
-                                                   required
-                                                   min="0"
-                                                   class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
-                                        </div>
-                                        <div class="col-span-1 flex justify-center pb-2">
-                                            <button type="button"
-                                                    onclick="removeVariantRow(this)"
-                                                    class="text-white/10 hover:text-red-500 transition-colors">
-                                                <i class="bi bi-x-circle text-lg"></i>
-                                            </button>
-                                        </div>
-                                    </div>
+    <!-- Header -->
+    <div class="mb-10 flex justify-between items-end">
+        <div>
+            <a href="{% url 'admin_product_list' %}"
+               class="group flex items-center gap-3 text-white/50 text-[10px] uppercase tracking-[3px] font-bold mb-4 hover:text-gold transition-all">
+                <i class="bi bi-arrow-left"></i> Back to Registry
+            </a>
+            <h2 class="text-4xl font-extralight text-white tracking-tighter">
+                Recalibrate <span class="font-black luxury-shimmer">{{ product.name }}</span>
+            </h2>
+        </div>
+        <div class="text-right">
+            <p class="text-white/20 text-[9px] uppercase tracking-[4px] font-black mb-1">Registry Entry #{{ product.id }}</p>
+            <p class="text-white/20 text-[9px] uppercase tracking-[4px] font-black italic">
+                Last Updated: {{ product.updated_at|date:"M d, Y" }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Server messages -->
+    {% if messages %}
+    <div class="mb-6 space-y-3">
+        {% for message in messages %}
+        <div class="p-4 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-start justify-between
+            {% if message.tags == 'error' %}bg-red-500/10 text-red-400 border border-red-500/20
+            {% elif message.tags == 'success' %}bg-gold/10 text-gold border border-gold/20
+            {% else %}bg-white/5 text-white/70 border border-white/10{% endif %}">
+            <span>{{ message }}</span>
+            <button type="button" onclick="this.parentElement.remove()" class="ml-4 text-lg text-white/30 hover:text-white">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- JS error banner -->
+    <div id="errorBanner" class="mb-6 p-5 rounded-xl bg-red-500/10 border border-red-500/20">
+        <p class="text-[10px] font-black uppercase tracking-[3px] text-red-400 mb-2">Please fix the following</p>
+        <ul id="errorList" class="space-y-1 list-none"></ul>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="product-form" novalidate>
+        {% csrf_token %}
+
+        <!-- ═══════ GRID ═══════ -->
+        <div class="grid grid-cols-12 gap-8 items-start">
+
+            <!-- ══ LEFT COLUMN ══ -->
+            <div class="col-span-8 space-y-8">
+
+                <!-- Core Identity -->
+                <div class="glass-panel rounded-[32px] p-10 space-y-8">
+                    <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-4 border-b border-white/5 pb-4">Core Identity</h3>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <!-- Name -->
+                        <div class="col-span-2">
+                            <label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Scent Name</label>
+                            <input type="text" name="name" id="field-name" required
+                                   value="{{ product.name }}"
+                                   class="luxury-input py-4 px-6 rounded-xl text-sm w-full font-bold">
+                            <p class="field-error" id="err-name">Name is required</p>
+                        </div>
+
+                        <!-- Brand -->
+                        <div>
+                            <label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Brand / House</label>
+                            <input type="text" name="brand_name" id="field-brand" list="brand-suggestions" required
+                                   value="{{ product.brand.name }}"
+                                   class="luxury-input py-4 px-6 rounded-xl text-sm w-full font-bold">
+                            <datalist id="brand-suggestions">
+                                {% for brand in brands %}<option value="{{ brand.name }}">{% endfor %}
+                            </datalist>
+                            <p class="field-error" id="err-brand">Brand is required</p>
+                        </div>
+
+                        <!-- Category -->
+                        <div>
+                            <label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Primary Vault</label>
+                            <select name="category" class="luxury-input py-4 px-6 rounded-xl text-sm w-full appearance-none">
+                                {% for cat in categories %}
+                                    <option value="{{ cat.id }}" {% if cat in product.categories.all %}selected{% endif %}>{{ cat.name }}</option>
                                 {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Scent Narrative</label>
+                        <textarea name="description" id="field-description" rows="4"
+                                  class="luxury-input py-4 px-6 rounded-xl text-sm w-full">{{ product.description }}</textarea>
+                        <p class="field-error" id="err-description">Description is required</p>
+                    </div>
+
+                    <!-- Olfactory Pyramid -->
+                    <div class="pt-6 border-t border-white/5">
+                        <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-6">Olfactory Pyramid</h3>
+                        <div class="grid grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Top Notes</label>
+                                <input type="text" name="top_notes" value="{{ product.top_notes }}"
+                                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
+                            </div>
+                            <div>
+                                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Heart Notes</label>
+                                <input type="text" name="heart_notes" value="{{ product.heart_notes }}"
+                                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
+                            </div>
+                            <div>
+                                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Base Notes</label>
+                                <input type="text" name="base_notes" value="{{ product.base_notes }}"
+                                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
                             </div>
                         </div>
                     </div>
-                    <div class="col-span-4 sticky top-10 space-y-6">
-                        <div class="glass-panel rounded-[32px] p-8">
-                            <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-6 border-b border-white/5 pb-4">
-                                Visual Gallery (3:4)
-                            </h3>
-                            <div class="grid grid-cols-2 gap-4" id="gallery-grid">
-                                {% with product.images.all|dictsort:"id" as existing_images %}
-                                    {% for img in existing_images %}
-                                        <div class="image-preview-slot relative group {% if forloop.first %}col-span-2{% endif %}"
-                                             id="preview-{{ forloop.counter0 }}">
-                                            <button type="button"
-                                                    onclick="removeImage('{{ forloop.counter0 }}')"
-                                                    class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
-                                                <i class="bi bi-x"></i>
-                                            </button>
-                                            <img src="{{ img.image.url }}"
-                                                 class="cursor-pointer absolute inset-0 w-full h-full object-cover z-0"
-                                                 onclick="document.getElementById('img-{{ forloop.counter0 }}').click()">
-                                            <input type="hidden"
-                                                   name="existing_image_ids[]"
-                                                   value="{{ img.id }}"
-                                                   id="id-{{ forloop.counter0 }}">
-                                            <label for="img-{{ forloop.counter0 }}"
-                                                   class="cursor-pointer text-center w-full h-full flex flex-col items-center justify-center">
-                                                <i class="bi bi-camera text-2xl text-white/10 block mb-2"></i>
-                                                <span class="text-[8px] text-white/20 uppercase font-black tracking-widest">
-                                                    {% if forloop.first %}
-                                                        Master Image
-                                                    {% else %}
-                                                        Slot {{ forloop.counter0 }}
-                                                    {% endif %}
-                                                </span>
-                                            </label>
-                                            <input type="file"
-                                                   id="img-{{ forloop.counter0 }}"
-                                                   class="hidden image-input"
-                                                   accept="image/*"
-                                                   data-index="{{ forloop.counter0 }}">
-                                            <input type="hidden"
-                                                   name="cropped_images[]"
-                                                   id="cropped-{{ forloop.counter0 }}"
-                                                   value="KEEP">
-                                        </div>
-                                    {% endfor %}
-                                    {% if not existing_images %}
-                                        <div class="image-preview-slot relative group col-span-2" id="preview-0">
-                                            <label for="img-0"
-                                                   class="cursor-pointer text-center w-full h-full flex flex-col items-center justify-center">
-                                                <i class="bi bi-camera text-2xl text-white/10 block mb-2"></i>
-                                                <span class="text-[8px] text-white/20 uppercase font-black tracking-widest">Master Image</span>
-                                            </label>
-                                            <input type="file"
-                                                   id="img-0"
-                                                   class="hidden image-input"
-                                                   accept="image/*"
-                                                   data-index="0">
-                                            <input type="hidden" name="cropped_images[]" id="cropped-0">
-                                        </div>
-                                    {% endif %}
-                                {% endwith %}
-                            </div>
-                            <p class="text-[8px] text-white/20 uppercase tracking-[2px] mt-6 text-center italic">
-                                High-res portraits only. Slots expand as you add more.
-                            </p>
+
+                    <!-- Featured Toggle -->
+                    <div class="pt-6 border-t border-white/5 flex items-center justify-between">
+                        <div>
+                            <p class="text-[9px] text-white/40 uppercase tracking-[3px] font-black">Featured Scent</p>
+                            <p class="text-[8px] text-white/20 mt-1">Highlight this product on the homepage</p>
                         </div>
-                        <div class="glass-panel rounded-[32px] p-8">
-                            <button type="submit"
-                                    class="w-full py-5 bg-gold text-black rounded-2xl font-black text-[11px] uppercase tracking-[3px] hover:shadow-[0_0_30px_rgba(244,180,26,0.3)] transition-all mb-4">
-                                Update Registry
-                            </button>
-                            <a href="{% url 'admin_product_list' %}"
-                               class="block text-center text-[9px] font-black text-white/20 uppercase tracking-[2px] hover:text-white transition-colors">
-                                Discard Edits
-                            </a>
+                        <div class="flex items-center gap-3">
+                            <span id="featured-label" class="text-[9px] uppercase tracking-[2px] font-black text-white/20">Off</span>
+                            <div id="featured-toggle" class="toggle-track {% if product.is_featured %}active{% endif %}"
+                                 onclick="toggleFeatured()">
+                                <div class="toggle-thumb"></div>
+                            </div>
+                            {# Send "on" if currently featured so the initial state is pre-set #}
+                            <input type="hidden" name="is_featured" id="is_featured_input"
+                                   value="{% if product.is_featured %}on{% endif %}">
                         </div>
                     </div>
-                    <div id="cropper-modal"
-                         class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
-                        <div class="glass-panel rounded-[32px] p-8 max-w-xl w-full border-gold/20">
-                            <h3 class="text-white font-black text-[11px] uppercase tracking-[3px] mb-6">Refine Composition</h3>
-                            <div class="max-h-[500px] overflow-hidden rounded-xl bg-black">
-                                <img id="image-to-crop" style="max-width: 100%;">
+                </div>
+
+                <!-- Variants -->
+                <div class="glass-panel rounded-[32px] p-10">
+                    <div class="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
+                        <div>
+                            <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px]">Product Variants</h3>
+                            <p class="text-white/20 text-[8px] uppercase tracking-[2px] mt-1">Manage volumes and pricing</p>
+                        </div>
+                        <button type="button" id="add-variant-btn"
+                                class="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-[2px] text-gold hover:bg-gold hover:text-black transition-all">
+                            <i class="bi bi-plus-lg me-1"></i> Add Size
+                        </button>
+                    </div>
+                    <p class="field-error mb-4" id="err-variants">Variant error</p>
+
+                    <div id="variant-container" class="space-y-4">
+                        {% for variant in product.variants.all|dictsort:"size_ml" %}
+                        <div class="variant-row p-6 rounded-2xl grid grid-cols-12 gap-4 items-end relative group">
+                            <input type="hidden" name="variant_id[]" value="{{ variant.id }}">
+                            <input type="hidden" name="v_stock_original[]" value="{{ variant.stock }}">
+
+                            <div class="col-span-3">
+                                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Volume</label>
+                                <select name="v_size[]" required class="luxury-input py-3 px-4 rounded-lg text-xs w-full font-bold appearance-none">
+                                    <option value="8ml"   {% if variant.size == '8ml'   %}selected{% endif %}>8ml (Travel)</option>
+                                    <option value="20ml"  {% if variant.size == '20ml'  %}selected{% endif %}>20ml (Discovery)</option>
+                                    <option value="50ml"  {% if variant.size == '50ml'  %}selected{% endif %}>50ml (Signature)</option>
+                                    <option value="100ml" {% if variant.size == '100ml' %}selected{% endif %}>100ml (Grand)</option>
+                                </select>
                             </div>
-                            <div class="flex justify-end gap-6 mt-8">
-                                <button type="button"
-                                        id="cancel-crop"
-                                        class="text-[10px] text-white/30 uppercase font-black tracking-widest">
-                                    Cancel
+                            <div class="col-span-3">
+                                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Price (₹)</label>
+                                <input type="number" name="v_price[]" value="{{ variant.price }}" required min="0" step="0.01"
+                                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Offer (₹)</label>
+                                <input type="number" name="v_offer[]" value="{{ variant.offer_price|default:'' }}" min="0" step="0.01"
+                                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
+                            </div>
+                            <div class="col-span-3">
+                                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Stock</label>
+                                <input type="number" name="v_stock[]" value="{{ variant.stock }}" required min="0"
+                                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full">
+                            </div>
+                            <div class="col-span-1 flex justify-center pb-2">
+                                <button type="button" onclick="removeVariantRow(this)"
+                                        class="text-white/10 hover:text-red-500 transition-colors">
+                                    <i class="bi bi-x-circle text-lg"></i>
                                 </button>
-                                <button type="button"
-                                        id="apply-crop"
-                                        class="px-10 py-3 bg-gold text-black rounded-xl font-black text-[10px] uppercase tracking-widest">
-                                    Verify Crop
-                                </button>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
-                    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-                    <script>
-    // Logic for Variants (Max 4) - Unchanged
-    const addBtn = document.getElementById('add-variant-btn');
-    if (addBtn) {
-        addBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const container = document.getElementById('variant-container');
-            const rows = container.getElementsByClassName('variant-row');
-            
-            if (rows.length >= 4) {
-                showError("Maximum 4 sizes allowed.");
-                return;
-            }
+                </div>
 
-            const newRow = rows[0].cloneNode(true);
+            </div><!-- /col-span-8 -->
 
-// reset ONLY values safely
-newRow.querySelector('input[name="variant_id[]"]').value = "";
+            <!-- ══ RIGHT COLUMN ══ -->
+            <div class="col-span-4 sticky top-10 space-y-6">
 
-newRow.querySelectorAll('input').forEach(i => {
-    i.value = "";
-});
+                <!-- Gallery -->
+                <div class="glass-panel rounded-[32px] p-8">
+                    <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-6 border-b border-white/5 pb-4">
+                        Visual Gallery (3:4)
+                    </h3>
+                    <p class="field-error mb-4" id="err-images">Minimum 4 images required</p>
+                    <div class="grid grid-cols-2 gap-4" id="gallery-grid">
+                        {% with product.images.all|dictsort:"id" as existing_images %}
+                            {% for img in existing_images %}
+                            <div class="image-preview-slot relative group {% if forloop.first %}col-span-2{% endif %}"
+                                 id="preview-{{ forloop.counter0 }}">
+                                <button type="button" onclick="removeImage('{{ forloop.counter0 }}')"
+                                        class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                                <img src="{{ img.image.url }}"
+                                     class="cursor-pointer absolute inset-0 w-full h-full object-cover z-0"
+                                     onclick="document.getElementById('img-{{ forloop.counter0 }}').click()">
+                                <input type="hidden" name="existing_image_ids[]" value="{{ img.id }}" id="id-{{ forloop.counter0 }}">
+                                <label for="img-{{ forloop.counter0 }}"
+                                       class="cursor-pointer text-center w-full h-full flex flex-col items-center justify-center">
+                                    <i class="bi bi-camera text-2xl text-white/10 block mb-2"></i>
+                                    <span class="text-[8px] text-white/20 uppercase font-black tracking-widest">
+                                        {% if forloop.first %}Master Image{% else %}Slot {{ forloop.counter0 }}{% endif %}
+                                    </span>
+                                </label>
+                                <input type="file" id="img-{{ forloop.counter0 }}" class="hidden image-input" accept="image/*" data-index="{{ forloop.counter0 }}">
+                                <input type="hidden" name="cropped_images[]" id="cropped-{{ forloop.counter0 }}" value="KEEP">
+                            </div>
+                            {% endfor %}
 
-newRow.querySelectorAll('select').forEach(s => {
-    s.selectedIndex = 0;
-});
+                            {% if not existing_images %}
+                            <div class="image-preview-slot relative group col-span-2" id="preview-0">
+                                <label for="img-0" class="cursor-pointer text-center w-full h-full flex flex-col items-center justify-center">
+                                    <i class="bi bi-camera text-2xl text-white/10 block mb-2"></i>
+                                    <span class="text-[8px] text-white/20 uppercase font-black tracking-widest">Master Image</span>
+                                </label>
+                                <input type="file" id="img-0" class="hidden image-input" accept="image/*" data-index="0">
+                                <input type="hidden" name="cropped_images[]" id="cropped-0">
+                            </div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    <p class="text-[8px] text-white/20 uppercase tracking-[2px] mt-6 text-center italic">
+                        Click any image to replace it. Slots expand as you add more.
+                    </p>
+                </div>
 
-// attach safety AFTER reset
-newRow.querySelectorAll('input[type="number"]').forEach(preventNegative);
+                <!-- Submit -->
+                <div class="glass-panel rounded-[32px] p-8">
+                    <button type="submit"
+                            class="w-full py-5 bg-gold text-black rounded-2xl font-black text-[11px] uppercase tracking-[3px] hover:shadow-[0_0_30px_rgba(244,180,26,0.3)] transition-all mb-4">
+                        Update Registry
+                    </button>
+                    <a href="{% url 'admin_product_list' %}"
+                       class="block text-center text-[9px] font-black text-white/20 uppercase tracking-[2px] hover:text-white transition-colors">
+                        Discard Edits
+                    </a>
+                </div>
 
-container.appendChild(newRow);
-        });
+            </div><!-- /col-span-4 -->
+        </div><!-- /grid -->
+    </form>
+</div>
+
+<!-- Cropper Modal -->
+<div id="cropper-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
+    <div class="glass-panel rounded-[32px] p-8 max-w-xl w-full border-gold/20">
+        <h3 class="text-white font-black text-[11px] uppercase tracking-[3px] mb-6">Refine Composition</h3>
+        <div class="max-h-[500px] overflow-hidden rounded-xl bg-black">
+            <img id="image-to-crop" style="max-width:100%;">
+        </div>
+        <div class="flex justify-end gap-6 mt-8">
+            <button type="button" id="cancel-crop" class="text-[10px] text-white/30 uppercase font-black tracking-widest">Cancel</button>
+            <button type="button" id="apply-crop" class="px-10 py-3 bg-gold text-black rounded-xl font-black text-[10px] uppercase tracking-widest">
+                Verify Crop
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+// ─────────────────────────────────────────────────────
+//  FEATURED TOGGLE — initialise from server state
+// ─────────────────────────────────────────────────────
+(function initFeatured() {
+    const track = document.getElementById('featured-toggle');
+    const label = document.getElementById('featured-label');
+    if (track.classList.contains('active')) {
+        label.textContent = 'On';
+        label.style.color = '#f4b41a';
     }
+})();
 
-    function removeVariantRow(button) {
-        const rows = document.getElementsByClassName('variant-row');
-        if (rows.length > 1) {
-            button.closest('.variant-row').remove();
-        }
-    }
-
-    // --- Permanently Fixed Logic for Dynamic Image Gallery ---
-    let cropper;
-    let currentSlotIndex;
-    const modal = document.getElementById('cropper-modal');
-    const imageToCrop = document.getElementById('image-to-crop');
-
-    // Function to handle opening the cropper
-    function handleFileSelect(input) {
-        if (!input.files[0]) return;
-        currentSlotIndex = input.dataset.index;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            imageToCrop.src = event.target.result;
-            modal.classList.remove('hidden');
-            if (cropper) cropper.destroy();
-            cropper = new Cropper(imageToCrop, { aspectRatio: 3/4, viewMode: 2 });
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-
-    // NEW HELPER: Finds the highest ID in the DOM and adds 1 to prevent collisions
-    function getNextAvailableIndex() {
-        let maxIndex = -1;
-        document.querySelectorAll('.image-preview-slot').forEach(slot => {
-            const idx = parseInt(slot.id.replace('preview-', ''));
-            if (!isNaN(idx) && idx > maxIndex) maxIndex = idx;
-        });
-        return maxIndex + 1;
-    }
-
-    // Function to ensure an empty slot always exists
-    function checkAndAddEmptySlot() {
-        const allSlots = document.querySelectorAll('.image-preview-slot');
-        let hasEmptySlot = false;
-        
-        allSlots.forEach(slot => {
-            if (!slot.querySelector('img')) {
-                hasEmptySlot = true;
-            }
-        });
-
-        // If no empty slot exists, use the calculated unique index
-        if (!hasEmptySlot) {
-            addNewImageSlot(getNextAvailableIndex());
-        }
-    }
-
-    // Bind existing inputs and run initial check
-    document.querySelectorAll('.image-input').forEach(input => {
-        input.addEventListener('change', function() { handleFileSelect(this); });
-    });
-
-    // Run this on page load specifically for the Edit Page
-    window.addEventListener('DOMContentLoaded', checkAndAddEmptySlot);
-
-    document.getElementById('apply-crop').addEventListener('click', () => {
-        const canvas = cropper.getCroppedCanvas({ width: 600, height: 800 });
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-        
-        const previewBox = document.getElementById(`preview-${currentSlotIndex}`);
-        const hiddenInput = document.getElementById(`cropped-${currentSlotIndex}`);
-        const fileInput = document.getElementById(`img-${currentSlotIndex}`);
-
-        let img = previewBox.querySelector('img') || document.createElement('img');
-        img.className = "cursor-pointer absolute inset-0 w-full h-full object-cover z-0";
-        img.src = dataUrl;
-        img.onclick = () => fileInput.click();
-        
-        if (!previewBox.querySelector('img')) {
-            previewBox.appendChild(img);
-        }
-        
-        hiddenInput.value = dataUrl;
-        const existingId = document.getElementById(`id-${currentSlotIndex}`);
-if (existingId) {
-    hiddenInput.value = dataUrl;
+function toggleFeatured() {
+    const track = document.getElementById('featured-toggle');
+    const label = document.getElementById('featured-label');
+    const input = document.getElementById('is_featured_input');
+    const isActive = track.classList.toggle('active');
+    label.textContent = isActive ? 'On' : 'Off';
+    label.style.color = isActive ? '#f4b41a' : '';
+    input.value = isActive ? 'on' : '';
 }
 
-        // Check if we need to add another empty slot after this crop
-        checkAndAddEmptySlot();
+// ─────────────────────────────────────────────────────
+//  VARIANT LOGIC
+// ─────────────────────────────────────────────────────
+const SIZE_ORDER = { '8ml': 8, '20ml': 20, '50ml': 50, '100ml': 100 };
 
-        modal.classList.add('hidden');
-        if (cropper) { cropper.destroy(); cropper = null; }
+document.getElementById('add-variant-btn').addEventListener('click', function (e) {
+    e.preventDefault();
+    const container = document.getElementById('variant-container');
+    const rows = container.getElementsByClassName('variant-row');
+    if (rows.length >= 4) {
+        showError(['Maximum 4 size variants allowed.']);
+        return;
+    }
+    const newRow = rows[0].cloneNode(true);
+    newRow.querySelector('input[name="variant_id[]"]').value = '';
+    newRow.querySelector('input[name="v_stock_original[]"]').value = '0';
+    newRow.querySelectorAll('input[type="number"], input[type="text"]').forEach(i => i.value = '');
+    newRow.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+    newRow.querySelectorAll('input[type="number"]').forEach(attachNegativeGuard);
+    newRow.classList.remove('row-error');
+    container.appendChild(newRow);
+});
+
+function removeVariantRow(btn) {
+    const rows = document.getElementsByClassName('variant-row');
+    if (rows.length > 1) btn.closest('.variant-row').remove();
+}
+
+// ─────────────────────────────────────────────────────
+//  CLIENT-SIDE VARIANT VALIDATION (mirrors server logic)
+// ─────────────────────────────────────────────────────
+function validateVariants() {
+    const rows = Array.from(document.querySelectorAll('.variant-row'));
+    const errors = [];
+    const variants = [];
+    const seenSizes = new Set();
+
+    rows.forEach(r => r.classList.remove('row-error'));
+
+    rows.forEach(row => {
+        const size     = row.querySelector('select[name="v_size[]"]')?.value?.trim() || '';
+        const priceRaw = row.querySelector('input[name="v_price[]"]')?.value?.trim() || '';
+        const offerRaw = row.querySelector('input[name="v_offer[]"]')?.value?.trim() || '';
+
+        if (!size || !priceRaw) return;
+
+        // Rule 1 – duplicate
+        if (seenSizes.has(size)) {
+            errors.push(`Duplicate variant: '${size}' can only appear once.`);
+            row.classList.add('row-error');
+            return;
+        }
+        seenSizes.add(size);
+
+        const price = parseFloat(priceRaw);
+        const offer = offerRaw !== '' ? parseFloat(offerRaw) : null;
+
+        // Rule 2 – offer < price within variant
+        if (offer !== null && offer >= price) {
+            errors.push(`${size}: Offer (₹${offer}) must be less than price (₹${price}).`);
+            row.classList.add('row-error');
+        }
+
+        variants.push({ size, order: SIZE_ORDER[size] ?? 999, price, offer, row });
     });
 
-    function addNewImageSlot(newIndex) {
-        const grid = document.getElementById('gallery-grid');
-        const newSlot = document.createElement('div');
-        newSlot.className = "image-preview-slot relative group animate__animated animate__fadeIn";
-        newSlot.id = `preview-${newIndex}`;
-        
-        newSlot.innerHTML = `
-            <button type="button" onclick="removeImage(${newIndex})" class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
-                <i class="bi bi-x text-xs"></i>
-            </button>
-            <label for="img-${newIndex}" class="cursor-pointer text-center w-full h-full flex flex-col items-center justify-center">
-                <i class="bi bi-plus-lg text-white/10"></i>
-            </label>
-            <input type="file" id="img-${newIndex}" class="hidden image-input" accept="image/*" data-index="${newIndex}">
-            <input type="hidden" name="cropped_images[]" id="cropped-${newIndex}">
-        `;
-        
-        grid.appendChild(newSlot);
-        newSlot.querySelector('.image-input').addEventListener('change', function() {
-            handleFileSelect(this);
-        });
+    if (variants.length === 0) {
+        errors.push('At least one product variant is required.');
     }
 
-    function removeImage(index) {
-        
-    const previewBox = document.getElementById(`preview-${index}`);
+    if (errors.length) return errors;
+
+    variants.sort((a, b) => a.order - b.order);
+
+    // Rule 3 – strictly increasing price & offer across sizes
+    for (let i = 1; i < variants.length; i++) {
+        const prev = variants[i - 1];
+        const curr = variants[i];
+
+        if (curr.price <= prev.price) {
+            errors.push(`${curr.size} price (₹${curr.price}) must be greater than ${prev.size} price (₹${prev.price}).`);
+            curr.row.classList.add('row-error');
+        }
+
+        if (curr.offer !== null && prev.offer !== null && curr.offer <= prev.offer) {
+            errors.push(`${curr.size} offer (₹${curr.offer}) must be greater than ${prev.size} offer (₹${prev.offer}).`);
+            curr.row.classList.add('row-error');
+        }
+
+        if (curr.offer !== null && prev.offer === null && curr.offer <= prev.price) {
+            errors.push(`${curr.size} offer (₹${curr.offer}) must be greater than ${prev.size} price (₹${prev.price}).`);
+            curr.row.classList.add('row-error');
+        }
+    }
+
+    return errors;
+}
+
+// ─────────────────────────────────────────────────────
+//  IMAGE GALLERY
+// ─────────────────────────────────────────────────────
+let cropper;
+let currentSlotIndex;
+const modal = document.getElementById('cropper-modal');
+const imageToCrop = document.getElementById('image-to-crop');
+
+function handleFileSelect(input) {
+    if (!input.files || !input.files[0]) return;
+    currentSlotIndex = input.dataset.index;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        imageToCrop.src = e.target.result;
+        modal.classList.remove('hidden');
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(imageToCrop, { aspectRatio: 3/4, viewMode: 2 });
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+
+document.querySelectorAll('.image-input').forEach(input => {
+    input.addEventListener('change', function () { handleFileSelect(this); });
+});
+
+function getNextAvailableIndex() {
+    let max = -1;
+    document.querySelectorAll('.image-preview-slot').forEach(s => {
+        const idx = parseInt(s.id.replace('preview-', ''));
+        if (!isNaN(idx) && idx > max) max = idx;
+    });
+    return max + 1;
+}
+
+function checkAndAddEmptySlot() {
+    const hasEmpty = [...document.querySelectorAll('.image-preview-slot')].some(s => !s.querySelector('img'));
+    if (!hasEmpty) addNewImageSlot(getNextAvailableIndex());
+}
+
+window.addEventListener('DOMContentLoaded', checkAndAddEmptySlot);
+
+document.getElementById('apply-crop').addEventListener('click', () => {
+    const canvas = cropper.getCroppedCanvas({ width: 600, height: 800 });
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+    const previewBox  = document.getElementById(`preview-${currentSlotIndex}`);
+    const hiddenInput = document.getElementById(`cropped-${currentSlotIndex}`);
+    const fileInput   = document.getElementById(`img-${currentSlotIndex}`);
+
+    let img = previewBox.querySelector('img') || document.createElement('img');
+    img.className = 'cursor-pointer absolute inset-0 w-full h-full object-cover z-0';
+    img.src = dataUrl;
+    img.onclick = () => fileInput.click();
+    if (!previewBox.querySelector('img')) previewBox.appendChild(img);
+
+    hiddenInput.value = dataUrl;
+    checkAndAddEmptySlot();
+
+    modal.classList.add('hidden');
+    if (cropper) { cropper.destroy(); cropper = null; }
+});
+
+function addNewImageSlot(newIndex) {
+    const grid = document.getElementById('gallery-grid');
+    const div  = document.createElement('div');
+    div.className = 'image-preview-slot relative group animate__animated animate__fadeIn';
+    div.id = `preview-${newIndex}`;
+    div.innerHTML = `
+        <button type="button" onclick="removeImage(${newIndex})"
+                class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
+            <i class="bi bi-x text-xs"></i>
+        </button>
+        <label for="img-${newIndex}" class="cursor-pointer text-center w-full h-full flex flex-col items-center justify-center">
+            <i class="bi bi-plus-lg text-white/10"></i>
+        </label>
+        <input type="file" id="img-${newIndex}" class="hidden image-input" accept="image/*" data-index="${newIndex}">
+        <input type="hidden" name="cropped_images[]" id="cropped-${newIndex}">
+    `;
+    grid.appendChild(div);
+    div.querySelector('.image-input').addEventListener('change', function () { handleFileSelect(this); });
+}
+
+function removeImage(index) {
     index = parseInt(index);
+    const previewBox  = document.getElementById(`preview-${index}`);
     if (!previewBox) return;
 
-    const img = previewBox.querySelector("img");
+    const img         = previewBox.querySelector('img');
     const hiddenInput = document.getElementById(`cropped-${index}`);
-    const fileInput = document.getElementById(`img-${index}`);
-    const idInput = document.getElementById(`id-${index}`);
+    const fileInput   = document.getElementById(`img-${index}`);
+    const idInput     = document.getElementById(`id-${index}`);
 
-    // remove image
     if (img) img.remove();
-    if (fileInput) fileInput.value = "";
+    if (fileInput) fileInput.value = '';
 
-    if (hiddenInput) {
-        hiddenInput.value = idInput ? "REMOVED" : "";
-    }
+    if (hiddenInput) hiddenInput.value = idInput ? 'REMOVED' : '';
 
-    // FIRST 4 = permanent slots
     if (index < 4) {
+        // Permanent slot: reset to empty state
+        const idHtml = idInput
+            ? `<input type="hidden" name="existing_image_ids[]" value="${idInput.value}" id="id-${index}">`
+            : '';
         previewBox.innerHTML = `
-            ${
-                idInput
-                    ? `<input type="hidden" name="existing_image_ids[]" value="${idInput.value}" id="id-${index}">`
-                    : ""
-            }
-
+            ${idHtml}
             <label for="img-${index}" class="cursor-pointer text-center w-full h-full flex flex-col items-center justify-center">
                 <i class="bi bi-plus-lg text-white/10 text-xl"></i>
             </label>
-
             <input type="file" id="img-${index}" class="hidden image-input" accept="image/*" data-index="${index}">
-
-            <input type="hidden" name="cropped_images[]" id="cropped-${index}" value="${idInput ? "REMOVED" : ""}">
+            <input type="hidden" name="cropped_images[]" id="cropped-${index}" value="${idInput ? 'REMOVED' : ''}">
         `;
-    }
-
-    // DYNAMIC SLOT (5th+)
-    else {
+    } else {
+        // Dynamic slot: reset its content
         previewBox.innerHTML = `
-            <button type="button" onclick="removeImage(${index})" class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
+            <button type="button" onclick="removeImage(${index})"
+                    class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
                 <i class="bi bi-x"></i>
             </button>
-
             <label for="img-${index}" class="cursor-pointer text-center w-full h-full flex flex-col items-center justify-center">
                 <i class="bi bi-plus-lg text-white/10 text-xl"></i>
             </label>
-
             <input type="file" id="img-${index}" class="hidden image-input" accept="image/*" data-index="${index}">
-
             <input type="hidden" name="cropped_images[]" id="cropped-${index}">
         `;
     }
 
-    previewBox.querySelector(".image-input")
-        .addEventListener("change", function () {
-            handleFileSelect(this);
-        });
+    previewBox.querySelector('.image-input').addEventListener('change', function () { handleFileSelect(this); });
 
-    // dynamic empty slots cleanup
-    const dynamicSlots = Array.from(document.querySelectorAll(".image-preview-slot"))
-        .filter(slot => {
-            const idx = parseInt(slot.id.replace("preview-", ""));
-            return idx >= 4;
-        });
+    // Clean up excess empty dynamic slots — keep exactly one
+    const dynamicSlots = [...document.querySelectorAll('.image-preview-slot')]
+        .filter(s => parseInt(s.id.replace('preview-', '')) >= 4);
+    const emptyDynamic = dynamicSlots.filter(s => !s.querySelector('img'));
 
-    const emptyDynamic = dynamicSlots.filter(slot => !slot.querySelector("img"));
-
-    // keep exactly one empty dynamic slot
-    if (emptyDynamic.length === 0) {
-        addNewImageSlot(getNextAvailableIndex());
-    }
-
-   if (emptyDynamic.length > 1) {
-    for (let i = 0; i < emptyDynamic.length - 1; i++) {
-        emptyDynamic[i].remove();
+    if (emptyDynamic.length === 0) addNewImageSlot(getNextAvailableIndex());
+    if (emptyDynamic.length > 1) {
+        for (let i = 0; i < emptyDynamic.length - 1; i++) emptyDynamic[i].remove();
     }
 }
-}
 
-    // Modal Cancel Logic
-    document.getElementById('cancel-crop').addEventListener('click', () => {
-        const modal = document.getElementById('cropper-modal');
-        modal.classList.add('hidden');
-        if (typeof cropper !== 'undefined' && cropper) { 
-            cropper.destroy(); 
-            cropper = null; 
-        }
-    });
-document.getElementById("product-form").addEventListener("submit", function(e) {
+document.getElementById('cancel-crop').addEventListener('click', () => {
+    modal.classList.add('hidden');
+    if (cropper) { cropper.destroy(); cropper = null; }
+});
+
+// ─────────────────────────────────────────────────────
+//  FORM SUBMIT VALIDATION
+// ─────────────────────────────────────────────────────
+document.getElementById('product-form').addEventListener('submit', function (e) {
+    clearErrors();
+    const allErrors = [];
+
+    // Name
+    if (!document.getElementById('field-name').value.trim()) {
+        allErrors.push('Product name is required.');
+        showFieldError('err-name', 'Name is required');
+        document.getElementById('field-name').classList.add('input-error');
+    }
+
+    // Brand
+    if (!document.getElementById('field-brand').value.trim()) {
+        allErrors.push('Brand / House is required.');
+        showFieldError('err-brand', 'Brand is required');
+        document.getElementById('field-brand').classList.add('input-error');
+    }
+
+    // Description
+    if (!document.getElementById('field-description').value.trim()) {
+        allErrors.push('Scent narrative is required.');
+        showFieldError('err-description', 'Description is required');
+        document.getElementById('field-description').classList.add('input-error');
+    }
+
+    // Variants
+    const variantErrors = validateVariants();
+    if (variantErrors.length) {
+        allErrors.push(...variantErrors);
+        document.getElementById('err-variants').textContent = variantErrors[0];
+        document.getElementById('err-variants').classList.add('visible');
+    }
+
+    // Images — count valid (non-REMOVED) images with either an existing id or new data
     let validImages = 0;
-
-    document.querySelectorAll(".image-preview-slot").forEach(slot => {
-        const img = slot.querySelector("img");
+    document.querySelectorAll('.image-preview-slot').forEach(slot => {
+        const img    = slot.querySelector('img');
         const hidden = slot.querySelector('input[id^="cropped-"]');
-
-        if (img && hidden && hidden.value !== "REMOVED") {
-            validImages++;
-        }
+        if (img && hidden && hidden.value !== 'REMOVED' && hidden.value !== '') validImages++;
     });
-
     if (validImages < 4) {
+        allErrors.push('Minimum 4 product images are required.');
+        document.getElementById('err-images').classList.add('visible');
+    }
+
+    if (allErrors.length) {
         e.preventDefault();
-        showError("Minimum 4 product images are required.");
+        showError(allErrors);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return false;
     }
 });
-function preventNegative(input) {
-    input.addEventListener("input", () => {
-        if (input.value !== "" && Number(input.value) < 0) {
-            input.value = 0;
-        }
-    });
 
-    input.addEventListener("blur", () => {
-        if (input.value === "" || Number(input.value) < 0) {
-            input.value = 0;
-        }
-    });
+function clearErrors() {
+    document.querySelectorAll('.field-error').forEach(el => el.classList.remove('visible'));
+    document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+    document.querySelectorAll('.row-error').forEach(el => el.classList.remove('row-error'));
+    document.getElementById('errorBanner').classList.remove('visible');
+    document.getElementById('errorList').innerHTML = '';
 }
-document.querySelectorAll('input[type="number"]').forEach(preventNegative);
-function showError(message) {
-    const box = document.getElementById("errorBox");
-    box.innerText = message;
-    box.classList.remove("hidden");
 
-    setTimeout(() => {
-        box.classList.add("hidden");
-    }, 4000);
+function showFieldError(id, msg) {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = msg; el.classList.add('visible'); }
 }
-                    </script>
-                {% endblock %}
+
+function showError(msgs) {
+    const banner = document.getElementById('errorBanner');
+    const list   = document.getElementById('errorList');
+    list.innerHTML = msgs.map(m =>
+        `<li class="flex items-start gap-2 text-[10px] text-red-300 font-bold uppercase tracking-[1px]">
+            <i class="bi bi-x-circle mt-[2px] flex-shrink-0"></i><span>${m}</span>
+        </li>`
+    ).join('');
+    banner.classList.add('visible');
+}
+
+// ─────────────────────────────────────────────────────
+//  NEGATIVE GUARD
+// ─────────────────────────────────────────────────────
+function attachNegativeGuard(input) {
+    input.addEventListener('input', () => { if (input.value !== '' && Number(input.value) < 0) input.value = 0; });
+    input.addEventListener('blur',  () => { if (input.value === '' || Number(input.value) < 0) input.value = 0; });
+}
+document.querySelectorAll('input[type="number"]').forEach(attachNegativeGuard);
+</script>
+{% endblock %}

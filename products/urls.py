@@ -29,4 +29,5 @@ urlpatterns = [
         views.toggle_product_status,
         name="toggle_product_status",
     ),
+    path("admin/archive/", views.admin_archive, name="admin_archive"),
 ]

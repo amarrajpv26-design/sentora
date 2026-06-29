@@ -13,11 +13,11 @@ urlpatterns = [
     path(
         "payment/verify/", views.payment_verify_view, name="payment_verify"
     ),  # The "checker" for Razorpay
-    path(
-        "payment/failed/", views.payment_failed_view, name="payment_failed"
-    ), 
-     path('payment/retry/<str:order_id>/', views.retry_payment_view, name='retry_payment'), 
+    path("payment/failed/", views.payment_failed_view, name="payment_failed"),
+    path("retry/<str:order_id>/", views.retry_payment_view, name="retry_payment"),
     path("coupon/apply/", views.apply_coupon_view, name="apply_coupon"),
     path("coupon/remove/", views.remove_coupon_view, name="remove_coupon"),
-    path("coupon/available/", views.get_available_coupons, name="get_available_coupons"),
+    path(
+        "coupon/available/", views.get_available_coupons, name="get_available_coupons"
+    ),
 ]

@@ -1,1 +1,129 @@
-<h1>CUSTOM 404 PAGE WORKING</h1>
+{% extends 'users/index.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+  @keyframes floatDot {
+    0%   { opacity: 0; transform: translateY(0) scale(1); }
+    20%  { opacity: 0.6; }
+    80%  { opacity: 0.2; }
+    100% { opacity: 0; transform: translateY(-80px) scale(0.3); }
+  }
+  .p404-dot {
+    position: absolute;
+    width: 2px; height: 2px;
+    border-radius: 50%;
+    background: #D4AF37;
+    opacity: 0;
+    animation: floatDot 6s infinite;
+  }
+  .p404-number {
+    -webkit-text-stroke: 1px rgba(212,175,55,0.5);
+    color: transparent;
+    position: relative;
+  }
+  .p404-number::after {
+    content: '404';
+    position: absolute;
+    inset: 0;
+    color: #D4AF37;
+    -webkit-text-stroke: 0;
+    opacity: 0.12;
+    filter: blur(18px);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .p404-btn-ghost:hover {
+    border-color: rgba(212,175,55,0.4) !important;
+    color: #D4AF37 !important;
+  }
+  .p404-btn-primary:hover {
+    background: #e8c84a !important;
+  }
+</style>
+
+<section class="relative min-h-screen w-full flex items-center justify-center overflow-hidden" style="background: #0a0a0a;">
+
+  <div class="absolute inset-0 pointer-events-none"
+       style="background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212,175,55,0.07) 0%, transparent 60%),
+                          radial-gradient(ellipse 40% 40% at 20% 80%, rgba(212,175,55,0.04) 0%, transparent 50%);">
+  </div>
+
+  <div class="absolute inset-0 pointer-events-none"
+       style="background-image: linear-gradient(rgba(212,175,55,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(212,175,55,0.04) 1px, transparent 1px);
+              background-size: 60px 60px;
+              mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 100%);">
+  </div>
+
+  <div class="absolute inset-0 pointer-events-none" id="p404-particles"></div>
+
+  <div class="relative z-10 text-center px-8 py-24 mx-auto" style="max-width: 560px;">
+
+    <div class="flex items-center justify-center gap-4 mb-10">
+      <span class="h-px w-10" style="background: linear-gradient(90deg, transparent, #D4AF37);"></span>
+      <p style="color: #D4AF37; font-family: 'Jost', sans-serif; font-size: 9px; font-weight: 500; letter-spacing: 0.45em; text-transform: uppercase; margin: 0;">Error 404</p>
+      <span class="h-px w-10" style="background: linear-gradient(90deg, #D4AF37, transparent);"></span>
+    </div>
+
+    <h1 class="p404-number block leading-none mb-0"
+        style="font-family: 'Cormorant Garamond', serif; font-size: clamp(100px, 18vw, 150px); font-weight: 300; letter-spacing: -0.02em;">
+      404
+    </h1>
+
+    <div class="flex justify-center my-4">
+      <div class="w-px h-12" style="background: linear-gradient(to bottom, #D4AF37, transparent);"></div>
+    </div>
+
+    <h2 class="mb-4" style="font-family: 'Cormorant Garamond', serif; font-size: clamp(22px, 4vw, 30px); font-weight: 300; color: #f0ece4; letter-spacing: 0.03em; font-style: italic;">
+      A Scent <span style="font-style: normal; font-weight: 600; color: #fff;">Lost in Time</span>
+    </h2>
+
+    <p class="mx-auto mb-10" style="font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 300; color: rgba(255,255,255,0.35); letter-spacing: 0.06em; line-height: 1.8; max-width: 340px;">
+      This fragrance has dissipated into the ether.<br>
+      The page you seek no longer lingers here.
+    </p>
+
+    <div class="flex justify-center mb-10" style="opacity: 0.65;">
+      <svg width="48" height="80" viewBox="0 0 48 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="17" y="2" width="14" height="8" rx="2" stroke="#D4AF37" stroke-width="0.8"/>
+        <path d="M14 10 C8 16 6 22 6 30 L6 68 C6 72 9 74 12 74 L36 74 C39 74 42 72 42 68 L42 30 C42 22 40 16 34 10 Z"
+              stroke="#D4AF37" stroke-width="0.8" fill="rgba(212,175,55,0.04)"/>
+        <line x1="6" y1="44" x2="42" y2="44" stroke="#D4AF37" stroke-width="0.4" opacity="0.4"/>
+        <ellipse cx="24" cy="52" rx="8" ry="5" stroke="#D4AF37" stroke-width="0.4" fill="none" opacity="0.3"/>
+        <path d="M16 28 Q24 24 32 28" stroke="#D4AF37" stroke-width="0.4" fill="none" opacity="0.5"/>
+      </svg>
+    </div>
+
+    <div class="flex flex-wrap gap-3 justify-center">
+      <a href="{% url 'home' %}"
+         class="p404-btn-primary"
+         style="font-family: 'Jost', sans-serif; font-size: 9px; font-weight: 600; letter-spacing: 0.35em; text-transform: uppercase; background: #D4AF37; color: #0a0a0a; padding: 14px 32px; border-radius: 1px; transition: all 0.3s; text-decoration: none; display: inline-block;">
+        Return Home
+      </a>
+      <a href="{% url 'shop:product_list' %}"
+         class="p404-btn-ghost"
+         style="font-family: 'Jost', sans-serif; font-size: 9px; font-weight: 500; letter-spacing: 0.35em; text-transform: uppercase; background: transparent; color: rgba(255,255,255,0.6); border: 0.5px solid rgba(255,255,255,0.15); padding: 14px 32px; border-radius: 1px; transition: all 0.3s; text-decoration: none; display: inline-block;">
+        Explore Fragrances
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  const wrap = document.getElementById('p404-particles');
+  for (let i = 0; i < 18; i++) {
+    const d = document.createElement('div');
+    d.className = 'p404-dot';
+    d.style.left = Math.random() * 100 + '%';
+    d.style.bottom = (Math.random() * 40 + 5) + '%';
+    d.style.animationDelay = (Math.random() * 6) + 's';
+    d.style.animationDuration = (4 + Math.random() * 4) + 's';
+    d.style.width = d.style.height = (Math.random() > 0.5 ? '1px' : '2px');
+    wrap.appendChild(d);
+  }
+</script>
+
+{% endblock content %}

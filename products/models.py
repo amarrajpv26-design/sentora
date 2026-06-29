@@ -23,6 +23,24 @@ class Category(models.Model):
         default=False, help_text="Should this show up on the homepage sections?"
     )
 
+    # Seasonal Window
+    is_seasonal = models.BooleanField(
+        default=False,
+        help_text="Enable automatic activation/archiving based on a recurring annual date window.",
+    )
+    season_start_month = models.PositiveSmallIntegerField(
+        null=True, blank=True, help_text="Month the season starts (1=Jan, 12=Dec)"
+    )
+    season_start_day = models.PositiveSmallIntegerField(
+        null=True, blank=True, help_text="Day of month the season starts"
+    )
+    season_end_month = models.PositiveSmallIntegerField(
+        null=True, blank=True, help_text="Month the season ends (1=Jan, 12=Dec)"
+    )
+    season_end_day = models.PositiveSmallIntegerField(
+        null=True, blank=True, help_text="Day of month the season ends"
+    )
+
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -36,12 +54,49 @@ class Category(models.Model):
             raise ValidationError(
                 f"A vault named '{self.name}' already exists (names are case-insensitive)."
             )
+        if self.is_seasonal:
+            missing = []
+            if not self.season_start_month:
+                missing.append("Season Start Month")
+            if not self.season_start_day:
+                missing.append("Season Start Day")
+            if not self.season_end_month:
+                missing.append("Season End Month")
+            if not self.season_end_day:
+                missing.append("Season End Day")
+            if missing:
+                raise ValidationError(
+                    f"Seasonal category requires: {', '.join(missing)}."
+                )
 
     def save(self, *args, **kwargs):
         self.full_clean()
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+
+    def is_in_season(self):
+        if not self.is_seasonal:
+            return False
+        if not all([
+            self.season_start_month,
+            self.season_start_day,
+            self.season_end_month,
+            self.season_end_day,
+        ]):
+            return False
+
+        from datetime import date
+        today = date.today()
+        year  = today.year
+
+        start = date(year, self.season_start_month, self.season_start_day)
+        end   = date(year, self.season_end_month,   self.season_end_day)
+
+        if start <= end:
+            return start <= today <= end
+        else:
+            return today >= start or today <= end
 
     def __str__(self):
         return self.name
@@ -128,7 +183,6 @@ class ProductVariant(models.Model):
     def save(self, *args, **kwargs):
         self.size_ml = self.SIZE_MAP.get(self.size, 0)
         if not self.sku:
-
             self.sku = f"SCENT-{uuid.uuid4().hex[:6].upper()}"
         super().save(*args, **kwargs)
 

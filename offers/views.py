@@ -17,36 +17,36 @@ from .utils import get_qualifying_orders, REFERRAL_AUTO_UNLOCK_THRESHOLD
 
 @staff_member_required(login_url="admin_login")
 def offer_dashboard(request):
-    """Main offers landing page — three panels side by side."""
     now = timezone.now()
 
     product_list = ProductOffer.objects.select_related("product").order_by(
         "-created_at"
     )
-
     product_paginator = Paginator(product_list, 5)
-    product_page = request.GET.get("product_page")
-    product_offers = product_paginator.get_page(product_page)
+    product_offers = product_paginator.get_page(request.GET.get("product_page"))
 
     category_list = CategoryOffer.objects.select_related("category").order_by(
         "-created_at"
     )
-
     category_paginator = Paginator(category_list, 5)
-    category_page = request.GET.get("category_page")
-    category_offers = category_paginator.get_page(category_page)
+    category_offers = category_paginator.get_page(request.GET.get("category_page"))
+
+    brand_list = BrandOffer.objects.select_related("brand").order_by(
+        "-created_at"
+    )  # ← NEW
+    brand_paginator = Paginator(brand_list, 5)
+    brand_offers = brand_paginator.get_page(request.GET.get("brand_page"))
 
     referral_list = ReferralOffer.objects.select_related("referrer").order_by(
         "-created_at"
     )
-
     referral_paginator = Paginator(referral_list, 5)
-    referral_page = request.GET.get("referral_page")
-    referral_offers = referral_paginator.get_page(referral_page)
+    referral_offers = referral_paginator.get_page(request.GET.get("referral_page"))
 
     context = {
         "product_offers": product_offers,
         "category_offers": category_offers,
+        "brand_offers": brand_offers,  # ← NEW
         "referral_offers": referral_offers,
         "now": now,
     }
@@ -261,6 +261,7 @@ def referral_signup_redirect(request, token):
 @login_required
 def my_referral_view(request):
     from .utils import maybe_auto_unlock_referral
+
     maybe_auto_unlock_referral(request.user)
     referral_offer = ReferralOffer.objects.filter(referrer=request.user).first()
 
@@ -270,9 +271,12 @@ def my_referral_view(request):
     if referral_offer:
         usages = referral_offer.usages.select_related("referee").order_by("-created_at")
     else:
-        spent = get_qualifying_orders(request.user).aggregate(
-            total=Sum("total_amount")
-        )["total"] or 0
+        spent = (
+            get_qualifying_orders(request.user).aggregate(total=Sum("total_amount"))[
+                "total"
+            ]
+            or 0
+        )
         progress = {
             "spent": spent,
             "threshold": REFERRAL_AUTO_UNLOCK_THRESHOLD,
@@ -286,3 +290,68 @@ def my_referral_view(request):
         {"referral_offer": referral_offer, "progress": progress, "usages": usages},
     )
 
+
+from .models import ProductOffer, CategoryOffer, ReferralOffer, BrandOffer
+from .forms import (
+    ProductOfferForm,
+    CategoryOfferForm,
+    ReferralOfferForm,
+    BrandOfferForm,
+)
+
+# ──────────────────────────────────────────────
+#  BRAND OFFERS
+# ──────────────────────────────────────────────
+
+
+@staff_member_required(login_url="admin_login")
+def brand_offer_create(request):
+    form = BrandOfferForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Brand offer created successfully.")
+        return redirect("offers:dashboard")
+    return render(
+        request,
+        "offers/brand_offer_form.html",
+        {"form": form, "title": "New Brand Offer"},
+    )
+
+
+@staff_member_required(login_url="admin_login")
+def brand_offer_edit(request, pk):
+    offer = get_object_or_404(BrandOffer, pk=pk)
+    form = BrandOfferForm(request.POST or None, instance=offer)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Brand offer updated.")
+        return redirect("offers:dashboard")
+    return render(
+        request,
+        "offers/brand_offer_form.html",
+        {"form": form, "title": "Edit Brand Offer", "offer": offer},
+    )
+
+
+@staff_member_required(login_url="admin_login")
+def brand_offer_toggle(request, pk):
+    offer = get_object_or_404(BrandOffer, pk=pk)
+    offer.is_active = not offer.is_active
+    offer.save()
+    state = "activated" if offer.is_active else "deactivated"
+    messages.success(request, f"Offer '{offer.name}' {state}.")
+    return redirect("offers:dashboard")
+
+
+@staff_member_required(login_url="admin_login")
+def brand_offer_delete(request, pk):
+    offer = get_object_or_404(BrandOffer, pk=pk)
+    if request.method == "POST":
+        offer.delete()
+        messages.success(request, "Brand offer deleted.")
+        return redirect("offers:dashboard")
+    return render(
+        request,
+        "offers/confirm_delete.html",
+        {"offer": offer, "offer_type": "Brand Offer"},
+    )

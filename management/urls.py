@@ -70,4 +70,15 @@ urlpatterns = [
         views.sales_report_pdf,
         name="sales_report_pdf",
     ),
+    path("revenue/", views.admin_revenue_list, name="admin_revenue_list"),
+    path(
+        "revenue/<int:product_id>/",
+        views.admin_revenue_product_detail,
+        name="admin_revenue_product_detail",
+    ),
+    path(
+        "revenue/category/<int:category_id>/",
+        views.admin_revenue_category_detail,
+        name="admin_revenue_category_detail",
+    ),
 ]

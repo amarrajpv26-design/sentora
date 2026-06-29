@@ -1,0 +1,454 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<style>
+  .luxury-shimmer {
+    background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 4s linear infinite;
+  }
+  @keyframes shimmer { to { background-position: 200% center; } }
+  .glass-card {
+    background: rgba(255,255,255,0.02);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.4s ease;
+  }
+  .glass-card:hover { border-color: rgba(244,180,26,0.15); }
+  .luxury-table tr {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(255,255,255,0.02);
+  }
+  .luxury-table tr:hover { background: rgba(255,255,255,0.015); }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .cat-pill {
+    transition: all 0.25s ease;
+  }
+  .cat-pill:hover {
+    background: rgba(244,180,26,0.15) !important;
+    border-color: rgba(244,180,26,0.4) !important;
+  }
+  .luxury-input {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.05);
+    color: white;
+    transition: all 0.3s ease;
+  }
+  .luxury-input:focus {
+    border-color: #f4b41a;
+    box-shadow: 0 0 15px rgba(244,180,26,0.1);
+    outline: none;
+  }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<span class="text-white/30 font-medium uppercase tracking-[3px] text-[10px]">
+  <a href="{% url 'management:admin_revenue_list' %}" class="hover:text-gold transition-all">
+    Revenue
+  </a>
+</span>
+<span class="text-white/20 mx-2">/</span>
+<span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">
+  {{ product.name }}
+</span>
+{% endblock %}
+
+{% block content %}
+<div class="animate__animated animate__fadeIn space-y-8">
+
+  <!-- HEADER -->
+  <div class="flex items-start justify-between">
+    <div>
+      <p class="text-[10px] text-white/25 uppercase tracking-[4px] font-black mb-3">Product Revenue</p>
+      <h2 class="text-4xl font-extralight text-white tracking-tighter">
+        {{ product.name }}
+      </h2>
+      {% if product.brand %}
+      <p class="text-white/30 text-sm mt-2">{{ product.brand.name }}</p>
+      {% endif %}
+
+      <!-- Category pills linking to category revenue detail -->
+      {% if product.categories.all %}
+      <div class="flex items-center gap-2 mt-4">
+        {% for cat in product.categories.all %}
+          <a href="{% url 'management:admin_revenue_category_detail' cat.id %}"
+             class="cat-pill px-3 py-1.5 bg-gold/10 border border-gold/20 text-[9px] text-gold
+                    uppercase tracking-widest rounded-lg font-black flex items-center gap-1.5">
+            <i class="bi bi-droplet-half"></i> {{ cat.name }}
+          </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <a href="{% url 'management:admin_revenue_list' %}"
+       class="inline-flex items-center gap-2 px-5 py-2.5 glass-card rounded-full
+              text-[10px] font-black uppercase tracking-[2px] text-white/40
+              hover:text-gold transition-all">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+  </div>
+
+  <!-- TOP STATS GRID -->
+  <div class="grid grid-cols-2 xl:grid-cols-4 gap-6">
+
+    <div class="glass-card rounded-[24px] p-6">
+      <div class="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 w-fit mb-5">
+        <i class="bi bi-currency-rupee text-xl"></i>
+      </div>
+      <span class="block text-[10px] text-white/30 uppercase tracking-[3px] font-black">
+        Gross Revenue
+      </span>
+      <span class="text-3xl font-black text-emerald-400 mt-1 block tracking-tighter">
+        ₹{{ stats.total_revenue|floatformat:0 }}
+      </span>
+    </div>
+
+    <div class="glass-card rounded-[24px] p-6">
+      <div class="p-3 rounded-xl bg-blue-500/10 text-blue-400 w-fit mb-5">
+        <i class="bi bi-graph-up-arrow text-xl"></i>
+      </div>
+      <span class="block text-[10px] text-white/30 uppercase tracking-[3px] font-black">
+        Net Revenue
+      </span>
+      <span class="text-3xl font-black text-blue-400 mt-1 block tracking-tighter">
+        ₹{{ stats.net_revenue|floatformat:0 }}
+      </span>
+      <span class="text-[9px] text-white/20 mt-1 block">After refunds</span>
+    </div>
+
+    <div class="glass-card rounded-[24px] p-6">
+      <div class="p-3 rounded-xl bg-purple-500/10 text-purple-400 w-fit mb-5">
+        <i class="bi bi-box-seam text-xl"></i>
+      </div>
+      <span class="block text-[10px] text-white/30 uppercase tracking-[3px] font-black">
+        Units Sold
+      </span>
+      <span class="text-3xl font-black text-white mt-1 block tracking-tighter">
+        {{ stats.total_units_sold|default:"0" }}
+      </span>
+    </div>
+
+    <div class="glass-card rounded-[24px] p-6">
+      <div class="p-3 rounded-xl bg-gold/10 text-gold w-fit mb-5">
+        <i class="bi bi-bag text-xl"></i>
+      </div>
+      <span class="block text-[10px] text-white/30 uppercase tracking-[3px] font-black">
+        Total Orders
+      </span>
+      <span class="text-3xl font-black text-white mt-1 block tracking-tighter">
+        {{ stats.total_orders|default:"0" }}
+      </span>
+    </div>
+
+  </div>
+
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+
+    <!-- LEFT: Financial Summary + Returns/Cancellations -->
+    <div class="space-y-6">
+
+      <!-- Financial Summary -->
+      <div class="glass-card rounded-[28px] p-7">
+        <h3 class="text-base font-bold text-white mb-6 tracking-tight">Financial Summary</h3>
+        <div class="space-y-0">
+
+          <div class="stat-row">
+            <span class="text-[10px] text-white/30 uppercase tracking-[2px] font-black">Gross Revenue</span>
+            <span class="text-sm font-black text-emerald-400">₹{{ stats.total_revenue|floatformat:2 }}</span>
+          </div>
+
+          <div class="stat-row">
+            <span class="text-[10px] text-white/30 uppercase tracking-[2px] font-black">Total Refunds</span>
+            <span class="text-sm font-black text-red-400">- ₹{{ stats.refund_total|floatformat:2 }}</span>
+          </div>
+
+          <div class="stat-row">
+            <span class="text-[10px] text-white/30 uppercase tracking-[2px] font-black">Net Revenue</span>
+            <span class="text-base font-black text-blue-400">₹{{ stats.net_revenue|floatformat:2 }}</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Returns & Cancellations -->
+      <div class="glass-card rounded-[28px] p-7">
+        <h3 class="text-base font-bold text-white mb-6 tracking-tight">Returns & Cancellations</h3>
+        <div class="space-y-0">
+
+          <div class="stat-row">
+            <span class="text-[10px] text-white/30 uppercase tracking-[2px] font-black">
+              Cancelled Units
+            </span>
+            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase
+                         text-red-400 bg-red-500/10 border border-red-500/20">
+              {{ stats.cancelled_units|default:"0" }}
+            </span>
+          </div>
+
+          <div class="stat-row">
+            <span class="text-[10px] text-white/30 uppercase tracking-[2px] font-black">
+              Return Requested
+            </span>
+            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase
+                         text-amber-400 bg-amber-500/10 border border-amber-500/20">
+              {{ stats.return_requested|default:"0" }}
+            </span>
+          </div>
+
+          <div class="stat-row">
+            <span class="text-[10px] text-white/30 uppercase tracking-[2px] font-black">
+              Returned Units
+            </span>
+            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase
+                         text-orange-400 bg-orange-500/10 border border-orange-500/20">
+              {{ stats.returned_units|default:"0" }}
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Variant Breakdown -->
+      <div class="glass-card rounded-[28px] p-7">
+        <h3 class="text-base font-bold text-white mb-6 tracking-tight">By Variant</h3>
+        <div class="space-y-0">
+          {% for v in variant_breakdown %}
+          <div class="stat-row">
+            <div>
+              <span class="text-sm text-white font-semibold">{{ v.product_variant__size }}</span>
+              <span class="block text-[10px] text-white/25 mt-0.5">
+                {{ v.variant_units }} units · {{ v.variant_orders }} orders
+              </span>
+            </div>
+            <span class="text-sm font-black text-emerald-400">
+              ₹{{ v.variant_revenue|floatformat:0 }}
+            </span>
+          </div>
+          {% empty %}
+          <p class="text-white/20 text-xs text-center py-4">No variant data</p>
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Order History Table -->
+    <div class="xl:col-span-2">
+      <div class="glass-card rounded-[28px] overflow-hidden">
+
+        <div class="px-8 py-6 border-b border-white/[0.04]">
+          <h3 class="text-base font-bold text-white tracking-tight">All Orders for This Product</h3>
+          <p class="text-white/25 text-[10px] uppercase tracking-[2px] mt-1">
+            Every order that included {{ product.name }} — filtered by status below
+          </p>
+        </div>
+
+        <!-- NEW: Order/Item status filter bar -->
+        <form method="GET" class="px-8 py-5 border-b border-white/[0.04] flex flex-wrap items-end gap-4 bg-white/[0.01]">
+
+          <div class="w-48">
+            <label class="block text-[9px] text-gold/50 uppercase tracking-[2px] font-black mb-2">Order Status</label>
+            <select name="order_status"
+                    class="luxury-input py-2.5 px-4 rounded-lg text-xs w-full appearance-none cursor-pointer">
+              <option value="">All Statuses</option>
+              {% for key, label in order_status_choices %}
+                <option value="{{ key }}" {% if order_status_filter == key %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="w-48">
+            <label class="block text-[9px] text-gold/50 uppercase tracking-[2px] font-black mb-2">Item Status</label>
+            <select name="item_status"
+                    class="luxury-input py-2.5 px-4 rounded-lg text-xs w-full appearance-none cursor-pointer">
+              <option value="">All Statuses</option>
+              {% for key, label in item_status_choices %}
+                <option value="{{ key }}" {% if item_status_filter == key %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <button type="submit"
+                  class="px-6 py-2.5 text-[10px] font-black uppercase tracking-[2px] text-black bg-gold rounded-lg
+                         hover:shadow-[0_0_15px_rgba(244,180,26,0.3)] transition-all">
+            Apply
+          </button>
+
+          {% if order_status_filter or item_status_filter %}
+          <a href="{% url 'management:admin_revenue_product_detail' product.id %}"
+             class="px-6 py-2.5 text-[10px] font-black uppercase tracking-[2px] text-white/40 border border-white/10
+                    rounded-lg hover:text-white hover:border-white/30 transition-all">
+            Clear
+          </a>
+          {% endif %}
+
+        </form>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left luxury-table">
+            <thead>
+              <tr class="bg-white/[0.01]">
+                <th class="px-6 py-4 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Order</th>
+                <th class="px-6 py-4 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Customer</th>
+                <th class="px-6 py-4 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Variant</th>
+                <th class="px-6 py-4 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Qty</th>
+                <th class="px-6 py-4 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Revenue</th>
+                <th class="px-6 py-4 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Order Status</th>
+                <th class="px-6 py-4 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Item Status</th>
+                <th class="px-6 py-4 text-[9px] text-gold/40 uppercase tracking-[3px] font-black">Date</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-white/[0.03]">
+
+              {% for row in order_rows %}
+              <tr class="group">
+
+                <td class="px-6 py-4">
+                  <a href="{% url 'management:admin_order_detail' row.order.order_id %}"
+                     class="text-xs font-mono text-gold hover:underline">
+                    {{ row.order.order_id }}
+                  </a>
+                </td>
+
+                <td class="px-6 py-4">
+                  <div class="text-sm font-semibold text-white">{{ row.order.user.username }}</div>
+                  <div class="text-[10px] text-white/25 mt-0.5">{{ row.order.user.email }}</div>
+                </td>
+
+                <td class="px-6 py-4 text-xs text-white/60">
+                  {{ row.product_variant.size|default:"—" }}
+                </td>
+
+                <td class="px-6 py-4 text-sm font-bold text-white/70">
+                  {{ row.quantity }}
+                </td>
+
+                <td class="px-6 py-4">
+                  {% if row.item_status == 'CANCELLED' %}
+                    <span class="text-sm font-black text-white/20 line-through">
+                      ₹{{ row.subtotal|floatformat:0 }}
+                    </span>
+                  {% elif row.item_status == 'RETURNED' %}
+                    <span class="text-sm font-black text-orange-400">
+                      ₹{{ row.subtotal|floatformat:0 }}
+                    </span>
+                  {% else %}
+                    <span class="text-sm font-black text-emerald-400">
+                      ₹{{ row.subtotal|floatformat:0 }}
+                    </span>
+                  {% endif %}
+                </td>
+
+                <!-- Order Status -->
+                <td class="px-6 py-4">
+                  {% if row.order.order_status == 'DELIVERED' %}
+                    <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase
+                                 text-green-400 bg-green-500/10">Delivered</span>
+                  {% elif row.order.order_status == 'CANCELLED' %}
+                    <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase
+                                 text-red-400 bg-red-500/10">Cancelled</span>
+                  {% elif row.order.order_status == 'PENDING' %}
+                    <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase
+                                 text-yellow-400 bg-yellow-500/10">Pending</span>
+                  {% elif row.order.order_status == 'CONFIRMED' %}
+                    <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase
+                                 text-blue-400 bg-blue-500/10">Confirmed</span>
+                  {% elif row.order.order_status == 'SHIPPED' %}
+                    <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase
+                                 text-purple-400 bg-purple-500/10">Shipped</span>
+                  {% elif row.order.order_status == 'RETURNED' %}
+                    <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase
+                                 text-orange-400 bg-orange-500/10">Returned</span>
+                  {% else %}
+                    <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase
+                                 text-white/40 bg-white/5">
+                      {{ row.order.get_order_status_display }}
+                    </span>
+                  {% endif %}
+                </td>
+
+                <!-- Item Status -->
+                <td class="px-6 py-4">
+                  {% if row.item_status == 'ACTIVE' %}
+                    <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase
+                                 text-emerald-400 bg-emerald-500/10">Active</span>
+                  {% elif row.item_status == 'CANCELLED' %}
+                    <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase
+                                 text-red-400 bg-red-500/10">Cancelled</span>
+                  {% elif row.item_status == 'RETURN_REQUESTED' %}
+                    <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase
+                                 text-amber-400 bg-amber-500/10">Return Req.</span>
+                  {% elif row.item_status == 'RETURNED' %}
+                    <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase
+                                 text-orange-400 bg-orange-500/10">Returned</span>
+                  {% elif row.item_status == 'RETURN_REJECTED' %}
+                    <span class="px-2 py-1 rounded-full text-[9px] font-black uppercase
+                                 text-red-400 bg-red-500/10">Rejected</span>
+                  {% endif %}
+                </td>
+
+                <td class="px-6 py-4 text-xs text-white/40">
+                  {{ row.order.created_at|date:"d M Y" }}
+                </td>
+
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="8" class="px-8 py-16 text-center">
+                  <p class="text-[10px] text-white/20 uppercase tracking-[5px] italic">
+                    No orders found for this filter
+                  </p>
+                </td>
+              </tr>
+              {% endfor %}
+
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if order_rows.has_other_pages %}
+        <div class="px-8 py-6 border-t border-white/[0.04] flex items-center justify-between">
+          <div class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
+            {{ order_rows.start_index }}–{{ order_rows.end_index }}
+            of {{ order_rows.paginator.count }}
+          </div>
+          <div class="flex items-center gap-3">
+            {% if order_rows.has_previous %}
+            <a href="?page={{ order_rows.previous_page_number }}&order_status={{ order_status_filter }}&item_status={{ item_status_filter }}"
+               class="h-9 px-5 flex items-center glass-card rounded-full text-[10px] uppercase
+                      font-black tracking-[2px] text-white/50 hover:text-gold transition-all">
+              Prev
+            </a>
+            {% endif %}
+            <span class="text-[11px] font-black text-gold">
+              {{ order_rows.number }} / {{ order_rows.paginator.num_pages }}
+            </span>
+            {% if order_rows.has_next %}
+            <a href="?page={{ order_rows.next_page_number }}&order_status={{ order_status_filter }}&item_status={{ item_status_filter }}"
+               class="h-9 px-5 flex items-center glass-card rounded-full text-[10px] uppercase
+                      font-black tracking-[2px] text-white/50 hover:text-gold transition-all">
+              Next
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

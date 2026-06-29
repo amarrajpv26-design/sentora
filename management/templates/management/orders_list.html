@@ -5,6 +5,7 @@
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: #0a0a0a; }
   ::-webkit-scrollbar-thumb { background: #f4b41a; border-radius: 10px; }
+
   .luxury-shimmer {
     background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
     background-size: 200% auto;
@@ -13,6 +14,7 @@
     animation: shimmer 4s linear infinite;
   }
   @keyframes shimmer { to { background-position: 200% center; } }
+
   .glass-panel {
     background: rgba(255, 255, 255, 0.02);
     backdrop-filter: blur(12px);
@@ -20,6 +22,7 @@
     transition: all 0.4s ease;
   }
   .glass-panel:hover { border-color: rgba(244, 180, 26, 0.2); }
+
   .luxury-input {
     background: rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.05);
@@ -31,11 +34,114 @@
     box-shadow: 0 0 15px rgba(244, 180, 26, 0.1);
     outline: none;
   }
+
   .luxury-table tr {
     transition: all 0.3s ease;
     border-bottom: 1px solid rgba(255, 255, 255, 0.02);
   }
-  .luxury-table tr:hover { background: rgba(255, 255, 255, 0.01); }
+  .luxury-table tr:hover { background: rgba(255, 255, 255, 0.012); }
+
+  /* ===== Row entrance animation — staggered via inline animation-delay ===== */
+  @keyframes rowRise {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .row-rise {
+    opacity: 0;
+    animation: rowRise 0.5s cubic-bezier(.16,1,.3,1) forwards;
+  }
+  /* Stagger via nth-child instead of inline math — reliable, no template arithmetic needed */
+  .luxury-table tbody tr:nth-child(1)  { animation-delay: 0.00s; }
+  .luxury-table tbody tr:nth-child(2)  { animation-delay: 0.05s; }
+  .luxury-table tbody tr:nth-child(3)  { animation-delay: 0.10s; }
+  .luxury-table tbody tr:nth-child(4)  { animation-delay: 0.15s; }
+  .luxury-table tbody tr:nth-child(5)  { animation-delay: 0.20s; }
+  .luxury-table tbody tr:nth-child(6)  { animation-delay: 0.25s; }
+  .luxury-table tbody tr:nth-child(7)  { animation-delay: 0.30s; }
+  .luxury-table tbody tr:nth-child(8)  { animation-delay: 0.35s; }
+  .luxury-table tbody tr:nth-child(n+9) { animation-delay: 0.40s; }
+
+  /* ===== Status chip system =====
+     Each status gets: text color, soft bg, border, and a dot.
+     Active/in-progress statuses (PENDING, CONFIRMED, SHIPPED,
+     OUT_FOR_DELIVERY, RETURN_REQUESTED) get a pulsing dot since
+     they represent a state actively awaiting the next step.
+     Resolved statuses (DELIVERED, CANCELLED, RETURNED, RETURN_REJECTED)
+     get a static dot. */
+  .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px 8px 12px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+  }
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
+  .status-dot.pulse {
+    animation: dotPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes dotPulse {
+    0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+    50%      { box-shadow: 0 0 0 4px transparent; opacity: 0.6; }
+  }
+
+  /* PENDING — amber, waiting */
+  .status-PENDING { color: #fbbf24; background: rgba(251,191,36,0.08); border-color: rgba(251,191,36,0.18); }
+  .status-PENDING .status-dot { background: #fbbf24; }
+
+  /* CONFIRMED — blue, acknowledged */
+  .status-CONFIRMED { color: #60a5fa; background: rgba(96,165,250,0.08); border-color: rgba(96,165,250,0.18); }
+  .status-CONFIRMED .status-dot { background: #60a5fa; }
+
+  /* SHIPPED — violet, in motion */
+  .status-SHIPPED { color: #a78bfa; background: rgba(167,139,250,0.08); border-color: rgba(167,139,250,0.18); }
+  .status-SHIPPED .status-dot { background: #a78bfa; }
+
+  /* OUT_FOR_DELIVERY — cyan, almost there */
+  .status-OUT_FOR_DELIVERY { color: #22d3ee; background: rgba(34,211,238,0.08); border-color: rgba(34,211,238,0.18); }
+  .status-OUT_FOR_DELIVERY .status-dot { background: #22d3ee; }
+
+  /* DELIVERED — green, success (resolved) */
+  .status-DELIVERED { color: #4ade80; background: rgba(74,222,128,0.1); border-color: rgba(74,222,128,0.2); }
+  .status-DELIVERED .status-dot { background: #4ade80; }
+
+  /* CANCELLED — red, stopped (resolved) */
+  .status-CANCELLED { color: #f87171; background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.2); }
+  .status-CANCELLED .status-dot { background: #f87171; }
+
+  /* RETURN_REQUESTED — orange, needs admin attention */
+  .status-RETURN_REQUESTED { color: #fb923c; background: rgba(251,146,60,0.1); border-color: rgba(251,146,60,0.2); }
+  .status-RETURN_REQUESTED .status-dot { background: #fb923c; }
+
+  /* RETURNED — slate, closed neutral (resolved) */
+  .status-RETURNED { color: #94a3b8; background: rgba(148,163,184,0.1); border-color: rgba(148,163,184,0.2); }
+  .status-RETURNED .status-dot { background: #94a3b8; }
+
+  /* RETURN_REJECTED — rose, rejected (resolved) */
+  .status-RETURN_REJECTED { color: #fb7185; background: rgba(251,113,133,0.1); border-color: rgba(251,113,133,0.2); }
+  .status-RETURN_REJECTED .status-dot { background: #fb7185; }
+
+  /* Stat card glow pulse on hover, matching user_management's blur-glow corners */
+  .stat-glow {
+    position: absolute;
+    width: 96px;
+    height: 96px;
+    border-radius: 999px;
+    filter: blur(28px);
+    right: -1rem;
+    top: -1rem;
+    transition: all 0.4s ease;
+  }
 </style>
 {% endblock %}
 
@@ -46,7 +152,7 @@
 {% block content %}
 <div class="animate__animated animate__fadeIn">
   <div class="mb-10 flex items-center justify-between">
-    
+
     <div>
         <h2 class="text-4xl font-extralight text-white tracking-tighter">
             Fulfillment <span class="font-black luxury-shimmer">Control</span>
@@ -69,7 +175,7 @@
 
 </div>
 
-  <form method="GET" action="{% url 'management:admin_orders_list' %}" class="glass-panel rounded-2xl p-8 grid grid-cols-12 gap-8 items-end mb-8">
+  <form method="GET" action="{% url 'management:admin_orders_list' %}" class="glass-panel rounded-2xl p-8 grid grid-cols-12 gap-8 items-end mb-8 animate__animated animate__fadeInUp">
     <div class="col-span-5">
       <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Search Registry</label>
       <div class="relative flex items-center gap-3">
@@ -105,9 +211,9 @@
     </div>
   </form>
 
-  
 
-  <div class="glass-panel rounded-[32px] overflow-hidden">
+
+  <div class="glass-panel rounded-[32px] overflow-hidden animate__animated animate__fadeInUp">
     <table class="w-full text-left luxury-table">
       <thead>
         <tr class="bg-white/[0.01]">
@@ -121,7 +227,7 @@
       </thead>
       <tbody class="divide-y divide-white/[0.03]">
         {% for order in orders %}
-        <tr class="group">
+        <tr class="group row-rise">
           <td class="px-8 py-6 text-xs text-white/50 font-mono font-bold tracking-wider">#{{ order.order_id }}</td>
           <td class="px-8 py-6 text-xs text-white/60 font-light">{{ order.created_at|date:"M d, Y H:i" }}</td>
           <td class="px-8 py-6">
@@ -130,13 +236,8 @@
           </td>
           <td class="px-8 py-6 text-sm font-black text-white">₹{{ order.total_amount }}</td>
           <td class="px-8 py-6">
-            <span class=" px-4 py-2 rounded-full text-[10px] uppercase font-black tracking-wider
-              {% if order.order_status == 'DELIVERED' %} text-green-400 bg-green-500/10
-              {% elif order.order_status == 'RETURN_REQUESTED' %} text-amber-400 bg-amber-500/10
-              {% elif order.order_status == 'RETURNED' %} text-blue-400 bg-blue-500/10
-              {% elif order.order_status == 'CANCELLED' %} text-red-400 bg-red-500/10
-              {% else %} text-white bg-white/10
-              {% endif %}">
+            <span class="status-chip status-{{ order.order_status }}">
+              <span class="status-dot {% if order.order_status == 'PENDING' or order.order_status == 'CONFIRMED' or order.order_status == 'SHIPPED' or order.order_status == 'OUT_FOR_DELIVERY' or order.order_status == 'RETURN_REQUESTED' %}pulse{% endif %}"></span>
               {{ order.get_order_status_display }}
             </span>
           </td>
@@ -158,7 +259,7 @@
   </div>
 
   {% if orders.has_other_pages %}
-  <div class="mt-10 flex items-center justify-between px-4">
+  <div class="mt-10 flex items-center justify-between px-4 animate__animated animate__fadeIn">
     <div class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
       Showing entries <span class="text-gold">{{ orders.start_index }}-{{ orders.end_index }}</span>
     </div>
@@ -179,5 +280,73 @@
     </div>
   </div>
   {% endif %}
+
+  <!-- ===== STATUS BREAKDOWN STAT CARDS — matches user_management.html stat card style ===== -->
+  {% if status_counts %}
+  <div class="grid grid-cols-3 lg:grid-cols-5 gap-6 mt-12 animate__animated animate__fadeInUp animate__delay-1s">
+
+    <div class="glass-panel rounded-[24px] p-7 relative overflow-hidden group">
+      <div class="stat-glow bg-amber-400/5 group-hover:bg-amber-400/10"></div>
+      <label class="block text-[9px] text-white/30 uppercase tracking-[3px] font-black">Pending</label>
+      <span class="text-3xl font-black text-amber-400 mt-3 block tracking-tighter">{{ status_counts.PENDING|default:0 }}</span>
+    </div>
+
+    <div class="glass-panel rounded-[24px] p-7 relative overflow-hidden group">
+      <div class="stat-glow bg-blue-400/5 group-hover:bg-blue-400/10"></div>
+      <label class="block text-[9px] text-white/30 uppercase tracking-[3px] font-black">Confirmed</label>
+      <span class="text-3xl font-black text-blue-400 mt-3 block tracking-tighter">{{ status_counts.CONFIRMED|default:0 }}</span>
+    </div>
+
+    <div class="glass-panel rounded-[24px] p-7 relative overflow-hidden group">
+      <div class="stat-glow bg-violet-400/5 group-hover:bg-violet-400/10"></div>
+      <label class="block text-[9px] text-white/30 uppercase tracking-[3px] font-black">Shipped</label>
+      <span class="text-3xl font-black text-violet-400 mt-3 block tracking-tighter">{{ status_counts.SHIPPED|default:0 }}</span>
+    </div>
+
+    <div class="glass-panel rounded-[24px] p-7 relative overflow-hidden group">
+      <div class="stat-glow bg-cyan-400/5 group-hover:bg-cyan-400/10"></div>
+      <label class="block text-[9px] text-white/30 uppercase tracking-[3px] font-black">Out for Delivery</label>
+      <span class="text-3xl font-black text-cyan-400 mt-3 block tracking-tighter">{{ status_counts.OUT_FOR_DELIVERY|default:0 }}</span>
+    </div>
+
+    <div class="glass-panel rounded-[24px] p-7 relative overflow-hidden group">
+      <div class="stat-glow bg-green-400/5 group-hover:bg-green-400/10"></div>
+      <label class="block text-[9px] text-white/30 uppercase tracking-[3px] font-black">Delivered</label>
+      <span class="text-3xl font-black text-green-400 mt-3 block tracking-tighter">{{ status_counts.DELIVERED|default:0 }}</span>
+    </div>
+
+    <div class="glass-panel rounded-[24px] p-7 relative overflow-hidden group">
+      <div class="stat-glow bg-orange-400/5 group-hover:bg-orange-400/10"></div>
+      <label class="block text-[9px] text-white/30 uppercase tracking-[3px] font-black">Return Requested</label>
+      <span class="text-3xl font-black text-orange-400 mt-3 block tracking-tighter">{{ status_counts.RETURN_REQUESTED|default:0 }}</span>
+    </div>
+
+    <div class="glass-panel rounded-[24px] p-7 relative overflow-hidden group">
+      <div class="stat-glow bg-slate-400/5 group-hover:bg-slate-400/10"></div>
+      <label class="block text-[9px] text-white/30 uppercase tracking-[3px] font-black">Returned</label>
+      <span class="text-3xl font-black text-slate-400 mt-3 block tracking-tighter">{{ status_counts.RETURNED|default:0 }}</span>
+    </div>
+
+    <div class="glass-panel rounded-[24px] p-7 relative overflow-hidden group">
+      <div class="stat-glow bg-rose-400/5 group-hover:bg-rose-400/10"></div>
+      <label class="block text-[9px] text-white/30 uppercase tracking-[3px] font-black">Return Rejected</label>
+      <span class="text-3xl font-black text-rose-400 mt-3 block tracking-tighter">{{ status_counts.RETURN_REJECTED|default:0 }}</span>
+    </div>
+
+    <div class="glass-panel rounded-[24px] p-7 relative overflow-hidden group">
+      <div class="stat-glow bg-red-400/5 group-hover:bg-red-400/10"></div>
+      <label class="block text-[9px] text-white/30 uppercase tracking-[3px] font-black">Cancelled</label>
+      <span class="text-3xl font-black text-red-400 mt-3 block tracking-tighter">{{ status_counts.CANCELLED|default:0 }}</span>
+    </div>
+
+    <div class="glass-panel rounded-[24px] p-7 relative overflow-hidden group">
+      <div class="stat-glow bg-gold/5 group-hover:bg-gold/10"></div>
+      <label class="block text-[9px] text-white/30 uppercase tracking-[3px] font-black">Total Orders</label>
+      <span class="text-3xl font-black text-gold mt-3 block tracking-tighter">{{ total_orders_count|default:0 }}</span>
+    </div>
+
+  </div>
+  {% endif %}
+
 </div>
 {% endblock %}

@@ -15,6 +15,7 @@ from .models import Review
 
 @login_required
 def submit_review(request, product_id):
+    
     product = get_object_or_404(Product, id=product_id)
 
     if request.method != 'POST':

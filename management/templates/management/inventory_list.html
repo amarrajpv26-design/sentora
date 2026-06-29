@@ -2,6 +2,10 @@
 {% block extra_css %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
     <style>
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #0a0a0a; }
+    ::-webkit-scrollbar-thumb { background: #f4b41a; border-radius: 10px; }
+
     .luxury-shimmer {
         background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
         background-size: 200% auto;
@@ -10,11 +14,92 @@
         animation: shimmer 4s linear infinite;
     }
     @keyframes shimmer { to { background-position: 200% center; } }
-    .glass-panel { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.02);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.4s ease;
+    }
+    .glass-panel:hover { border-color: rgba(244, 180, 26, 0.2); }
+
     .luxury-input { background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); color: white; transition: all 0.3s ease; }
     .luxury-input:focus { border-color: #f4b41a; box-shadow: 0 0 15px rgba(244, 180, 26, 0.1); outline: none; }
+
     .luxury-table tr { transition: all 0.3s ease; border-bottom: 1px solid rgba(255, 255, 255, 0.02); }
-    .luxury-table tr:hover { background: rgba(255, 255, 255, 0.01); }
+    .luxury-table tr:hover { background: rgba(255, 255, 255, 0.012); }
+
+    /* ===== Row entrance animation, staggered via nth-child (matches order_list.html) ===== */
+    @keyframes rowRise {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .row-rise {
+        opacity: 0;
+        animation: rowRise 0.5s cubic-bezier(.16,1,.3,1) forwards;
+    }
+    .luxury-table tbody tr:nth-child(1)  { animation-delay: 0.00s; }
+    .luxury-table tbody tr:nth-child(2)  { animation-delay: 0.05s; }
+    .luxury-table tbody tr:nth-child(3)  { animation-delay: 0.10s; }
+    .luxury-table tbody tr:nth-child(4)  { animation-delay: 0.15s; }
+    .luxury-table tbody tr:nth-child(5)  { animation-delay: 0.20s; }
+    .luxury-table tbody tr:nth-child(6)  { animation-delay: 0.25s; }
+    .luxury-table tbody tr:nth-child(7)  { animation-delay: 0.30s; }
+    .luxury-table tbody tr:nth-child(8)  { animation-delay: 0.35s; }
+    .luxury-table tbody tr:nth-child(n+9) { animation-delay: 0.40s; }
+
+    /* ===== Stock status chip system =====
+       Mirrors order_list.html's chip pattern: dot + soft bg + border.
+       OUT (red) and LOW (amber, pulsing — it needs attention) and
+       IN STOCK (green, static — healthy, no action needed). */
+    .stock-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 14px 7px 11px;
+        border-radius: 999px;
+        font-size: 9px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        border: 1px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .stock-dot { width: 6px; height: 6px; border-radius: 999px; flex-shrink: 0; }
+    .stock-dot.pulse { animation: dotPulse 1.6s ease-in-out infinite; }
+    @keyframes dotPulse {
+        0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+        50%      { box-shadow: 0 0 0 4px transparent; opacity: 0.55; }
+    }
+
+    .stock-OUT { color: #f87171; background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.2); }
+    .stock-OUT .stock-dot { background: #f87171; }
+
+    .stock-LOW { color: #fbbf24; background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.2); }
+    .stock-LOW .stock-dot { background: #fbbf24; }
+
+    .stock-IN { color: #4ade80; background: rgba(74,222,128,0.1); border-color: rgba(74,222,128,0.2); }
+    .stock-IN .stock-dot { background: #4ade80; }
+
+    /* Row left-edge accent for out-of-stock rows — subtle, draws the eye down the table */
+    .row-out-of-stock { box-shadow: inset 3px 0 0 0 rgba(248,113,113,0.35); }
+    .row-low-stock { box-shadow: inset 3px 0 0 0 rgba(251,191,36,0.3); }
+
+    /* Inline stock input — gentle highlight pulse right after a successful save,
+       triggered by adding .just-saved server-side via the messages block context
+       (kept purely CSS/structural here; see note near the form) */
+    .stock-input-glow:focus { box-shadow: 0 0 0 3px rgba(244,180,26,0.12); }
+
+    .stat-glow {
+        position: absolute;
+        width: 96px;
+        height: 96px;
+        border-radius: 999px;
+        filter: blur(28px);
+        right: -1rem;
+        top: -1rem;
+        transition: all 0.4s ease;
+    }
     </style>
 {% endblock %}
 
@@ -33,7 +118,7 @@
             </p>
         </div>
 
-        <form method="GET" action="{% url 'management:admin_inventory_list' %}" class="glass-panel rounded-2xl p-8 grid grid-cols-12 gap-8 items-end mb-8">
+        <form method="GET" action="{% url 'management:admin_inventory_list' %}" class="glass-panel rounded-2xl p-8 grid grid-cols-12 gap-8 items-end mb-8 animate__animated animate__fadeInUp">
             <div class="col-span-5">
                 <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black mb-3">Search Products</label>
                 <div class="relative flex items-center gap-3">
@@ -76,13 +161,13 @@
 
         {% if messages %}
             {% for message in messages %}
-                <div class="mb-6 p-4 bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-[2px] rounded-xl flex items-center gap-3">
+                <div class="mb-6 p-4 bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-[2px] rounded-xl flex items-center gap-3 animate__animated animate__fadeIn">
                     <i class="bi bi-info-circle"></i> {{ message }}
                 </div>
             {% endfor %}
         {% endif %}
 
-        <div class="glass-panel rounded-[32px] overflow-hidden">
+        <div class="glass-panel rounded-[32px] overflow-hidden animate__animated animate__fadeInUp">
             <table class="w-full text-left luxury-table">
                 <thead>
                     <tr class="bg-white/[0.01]">
@@ -96,7 +181,7 @@
                 </thead>
                 <tbody class="divide-y divide-white/[0.03]">
                     {% for variant in variants %}
-                        <tr>
+                        <tr class="row-rise {% if variant.stock == 0 %}row-out-of-stock{% elif variant.stock <= 5 %}row-low-stock{% endif %}">
                             <td class="px-8 py-6 text-xs font-mono text-white/30">#VAR-{{ variant.id }}</td>
                             <td class="px-8 py-6 text-xs text-gold/80 font-black uppercase tracking-wider">{{ variant.product.brand.name }}</td>
                             <td class="px-8 py-6">
@@ -106,17 +191,26 @@
                             <td class="px-8 py-6 text-xs text-white/80 font-bold">₹{{ variant.price }}</td>
                             <td class="px-8 py-6">
                                 {% if variant.stock == 0 %}
-                                    <span class="px-3 py-1 bg-red-500/10 text-red-400 text-[8px] font-black uppercase tracking-widest rounded-full">Out of Stock</span>
+                                    <span class="stock-chip stock-OUT">
+                                        <span class="stock-dot"></span>
+                                        Out of Stock
+                                    </span>
                                 {% elif variant.stock <= 5 %}
-                                    <span class="px-3 py-1 bg-amber-500/10 text-amber-400 text-[8px] font-black uppercase tracking-widest rounded-full animate-pulse">Low Stock </span>
+                                    <span class="stock-chip stock-LOW">
+                                        <span class="stock-dot pulse"></span>
+                                        Low Stock
+                                    </span>
                                 {% else %}
-                                    <span class="px-3 py-1 bg-green-500/10 text-green-400 text-[8px] font-black uppercase tracking-widest rounded-full">In Stock </span>
+                                    <span class="stock-chip stock-IN">
+                                        <span class="stock-dot"></span>
+                                        In Stock
+                                    </span>
                                 {% endif %}
                             </td>
                             <td class="px-8 py-6 text-center">
                                 <form method="POST" action="{% url 'management:update_variant_stock' variant.id %}" class="flex items-center justify-center gap-2">
                                     {% csrf_token %}
-                                    <input type="number" name="stock" value="{{ variant.stock }}" min="0" class="luxury-input w-20 py-1.5 px-3 rounded-lg text-center font-bold text-xs">
+                                    <input type="number" name="stock" value="{{ variant.stock }}" min="0" class="luxury-input stock-input-glow w-20 py-1.5 px-3 rounded-lg text-center font-bold text-xs">
                                     <button type="submit" class="p-2 border border-gold/20 text-gold hover:bg-gold hover:text-black rounded-lg transition-all" title="Save Inventory Change">
                                         <i class="bi bi-check-lg text-xs"></i>
                                     </button>
@@ -135,7 +229,7 @@
         </div>
 
         {% if variants.has_other_pages %}
-            <div class="mt-10 flex items-center justify-between px-4">
+            <div class="mt-10 flex items-center justify-between px-4 animate__animated animate__fadeIn">
                 <div class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
                     Showing variants <span class="text-gold">{{ variants.start_index }}-{{ variants.end_index }}</span>
                 </div>
@@ -156,5 +250,37 @@
                 </div>
             </div>
         {% endif %}
+
+        <!-- ===== STOCK BREAKDOWN STAT CARDS — matches order_list.html / user_management.html ===== -->
+        {% if stock_counts %}
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mt-12 animate__animated animate__fadeInUp animate__delay-1s">
+
+            <div class="glass-panel rounded-[24px] p-7 relative overflow-hidden group">
+                <div class="stat-glow bg-green-400/5 group-hover:bg-green-400/10"></div>
+                <label class="block text-[9px] text-white/30 uppercase tracking-[3px] font-black">In Stock</label>
+                <span class="text-3xl font-black text-green-400 mt-3 block tracking-tighter">{{ stock_counts.in_stock|default:0 }}</span>
+            </div>
+
+            <div class="glass-panel rounded-[24px] p-7 relative overflow-hidden group">
+                <div class="stat-glow bg-amber-400/5 group-hover:bg-amber-400/10"></div>
+                <label class="block text-[9px] text-white/30 uppercase tracking-[3px] font-black">Low Stock</label>
+                <span class="text-3xl font-black text-amber-400 mt-3 block tracking-tighter">{{ stock_counts.low_stock|default:0 }}</span>
+            </div>
+
+            <div class="glass-panel rounded-[24px] p-7 relative overflow-hidden group">
+                <div class="stat-glow bg-red-400/5 group-hover:bg-red-400/10"></div>
+                <label class="block text-[9px] text-white/30 uppercase tracking-[3px] font-black">Out of Stock</label>
+                <span class="text-3xl font-black text-red-400 mt-3 block tracking-tighter">{{ stock_counts.out_of_stock|default:0 }}</span>
+            </div>
+
+            <div class="glass-panel rounded-[24px] p-7 relative overflow-hidden group">
+                <div class="stat-glow bg-gold/5 group-hover:bg-gold/10"></div>
+                <label class="block text-[9px] text-white/30 uppercase tracking-[3px] font-black">Total Variants</label>
+                <span class="text-3xl font-black text-gold mt-3 block tracking-tighter">{{ stock_counts.total|default:0 }}</span>
+            </div>
+
+        </div>
+        {% endif %}
+
     </div>
 {% endblock %}

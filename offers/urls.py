@@ -34,6 +34,11 @@ urlpatterns = [
         views.category_offer_delete,
         name="category_offer_delete",
     ),
+    # Inside your offers/urls.py, alongside existing patterns:
+    path("brand/create/", views.brand_offer_create, name="brand_offer_create"),
+    path("brand/<int:pk>/edit/", views.brand_offer_edit, name="brand_offer_edit"),
+    path("brand/<int:pk>/toggle/", views.brand_offer_toggle, name="brand_offer_toggle"),
+    path("brand/<int:pk>/delete/", views.brand_offer_delete, name="brand_offer_delete"),
     # Referral Offers
     path("referral/create/", views.referral_offer_create, name="referral_offer_create"),
     path(
@@ -54,8 +59,6 @@ urlpatterns = [
         views.referral_offer_detail,
         name="referral_offer_detail",
     ),
-    
     path("my-referrals/", views.my_referral_view, name="my_referrals"),
-    
     path("ref/<uuid:token>/", views.referral_signup_redirect, name="referral_signup"),
 ]

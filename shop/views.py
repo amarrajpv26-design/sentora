@@ -10,6 +10,7 @@ from reviews.models import Review
 from orders.models import OrderItem
 from offers.utils import get_effective_price
 from django.db.models.functions import Coalesce
+from django.db.models import Avg
 from django.db.models import (
     Min,
     Sum,
@@ -129,7 +130,7 @@ def product_list(request):
 
     return render(request, "shop/product_list.html", context)
 
-
+@login_required(login_url="user_login")
 def product_detail(request, product_uuid):
     product = get_object_or_404(
         Product.objects.prefetch_related("images", "variants", "categories"),
@@ -192,6 +193,9 @@ def product_detail(request, product_uuid):
     reviews = Review.objects.filter(product=product, is_approved=True).select_related(
         "user"
     )
+    review_count = reviews.count()
+
+    average_rating = reviews.aggregate(avg=Avg("rating"))["avg"] or 0
 
     can_review = False
     if request.user.is_authenticated:
@@ -217,6 +221,8 @@ def product_detail(request, product_uuid):
         "is_in_wishlist": is_in_wishlist,
         "all_categories": Category.objects.filter(is_active=True),
         "reviews": reviews,
+        "review_count": review_count,
+        "average_rating": average_rating,
         "can_review": can_review,
     }
 

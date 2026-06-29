@@ -89,4 +89,6 @@ urlpatterns = [
     path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
     path("terms-conditions/", views.terms_conditions, name="terms_conditions"),
     path("about-scentora/", views.about_scentora, name="about_scentora"),
+
+    path("404-test/", views.custom_404,name="404-test"),
 ]

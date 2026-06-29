@@ -6,7 +6,7 @@ from django.contrib import messages
 from orders.models import Order
 from products.models import ProductVariant
 from django.db import transaction
-from orders.views import recalculate_order_totals
+from orders.views import recalculate_order_totals, record_status_change
 from orders.models import Order, OrderItem
 from wallets.models import Wallet, WalletTransaction
 from datetime import timedelta
@@ -16,6 +16,7 @@ from django.http import HttpResponse
 from openpyxl import Workbook
 from weasyprint import HTML
 from django.template.loader import render_to_string
+from itertools import chain  # only if not already there
 
 
 @staff_member_required(login_url="user_login")
@@ -39,11 +40,20 @@ def admin_orders_list(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
+    # NEW: status breakdown counts, computed from the FULL table
+    # (unaffected by search/status filters) so the stat cards always
+    # show the true overall picture, not just what's currently filtered.
+    status_counts_qs = Order.objects.values("order_status").annotate(count=Count("id"))
+    status_counts = {row["order_status"]: row["count"] for row in status_counts_qs}
+    total_orders_count = Order.objects.count()
+
     context = {
         "orders": page_obj,
         "search_query": search_query,
         "status_filter": status_filter,
         "status_choices": Order.ORDER_STATUS,
+        "status_counts": status_counts,  # <-- NEW
+        "total_orders_count": total_orders_count,  # <-- NEW
     }
     return render(request, "management/orders_list.html", context)
 
@@ -131,6 +141,7 @@ def change_order_status(request, order_id):
         ).update(item_status="ACTIVE")
 
     order.save()
+    record_status_change(order, new_status, note=f"Updated by admin from {old_status}")
 
     messages.success(request, f"Order updated to {order.get_order_status_display()}.")
 
@@ -174,17 +185,29 @@ def admin_inventory_list(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
+    # NEW: stock breakdown counts, computed from the FULL unfiltered table
+    all_variants = ProductVariant.objects.all()
+    stock_counts = {
+        "in_stock": all_variants.filter(stock__gt=5).count(),
+        "low_stock": all_variants.filter(stock__lte=5, stock__gt=0).count(),
+        "out_of_stock": all_variants.filter(stock=0).count(),
+        "total": all_variants.count(),
+    }
+
     context = {
         "variants": page_obj,
         "search_query": search_query,
         "stock_filter": stock_filter,
         "sort": sort,
+        "stock_counts": stock_counts,  # <-- NEW
     }
     return render(request, "management/inventory_list.html", context)
 
 
 def sync_order_status(order):
     items = order.items.all()
+
+    old_status = order.order_status
 
     if items.filter(item_status="RETURN_REQUESTED").exists():
         order.order_status = "RETURN_REQUESTED"
@@ -199,6 +222,11 @@ def sync_order_status(order):
         order.order_status = "CONFIRMED"
 
     order.save()
+
+    if order.order_status != old_status:
+        record_status_change(
+            order, order.order_status, note="Auto-synced from item statuses"
+        )
 
 
 @staff_member_required(login_url="user_login")
@@ -373,6 +401,11 @@ def approve_return_item(request, item_id):
         item.order.order_status = "RETURNED"
         item.order.payment_status = "REFUNDED"
         item.order.save()
+        record_status_change(
+            item.order,
+            "RETURNED",
+            note=f"All items returned (item #{item.id} approved)",
+        )
 
     wallet.balance += item.subtotal
     wallet.save()
@@ -421,6 +454,9 @@ def reject_return_item(request, item_id):
         # Fall back gracefully to original standard delivery state
         order.order_status = "DELIVERED"
         order.save()
+        record_status_change(
+            order, "DELIVERED", note=f"Return rejected for item #{item.id}"
+        )
 
     return redirect("management:admin_return_request_detail", item_id=item.id)
 
@@ -487,6 +523,7 @@ def approve_full_return(request, order_id):
     order.order_status = "RETURNED"
     order.payment_status = "REFUNDED"
     order.save()
+    record_status_change(order, "RETURNED", note="Full order return approved by admin")
 
     messages.success(request, "Full order return approved.")
 
@@ -510,6 +547,7 @@ def reject_full_return(request, order_id):
         item.save()
 
     order.save()
+    record_status_change(order, "DELIVERED", note="Full order return rejected by admin")
 
     messages.success(request, "Full order return rejected.")
 
@@ -517,49 +555,147 @@ def reject_full_return(request, order_id):
 
 
 def admin_transactions_list(request):
-    qs = WalletTransaction.objects.select_related("wallet__user").order_by(
+    """
+    Unified ledger: merges WalletTransactions + Online (Razorpay) order payments
+    into a single sorted, filterable list.
+    """
+    from itertools import chain
+
+    search = request.GET.get("search", "").strip()
+    type_filter = request.GET.get(
+        "transaction_type", ""
+    ).strip()  # CREDIT / DEBIT / ONLINE
+    purpose_filter = request.GET.get("purpose", "").strip()
+
+    # ── 1. WALLET TRANSACTIONS ────────────────────────────────
+    wallet_qs = WalletTransaction.objects.select_related("wallet__user").order_by(
         "-created_at"
     )
 
-    search = request.GET.get("search", "").strip()
-    type_filter = request.GET.get("transaction_type", "")
-    purpose_filter = request.GET.get("purpose", "")
-
     if search:
-        qs = qs.filter(
+        wallet_qs = wallet_qs.filter(
             Q(wallet__user__email__icontains=search)
             | Q(wallet__user__username__icontains=search)
             | Q(razorpay_payment_id__icontains=search)
             | Q(order_id__icontains=search)
         )
 
-    if type_filter:
-        qs = qs.filter(transaction_type=type_filter)
+    if type_filter == "CREDIT":
+        wallet_qs = wallet_qs.filter(transaction_type="CREDIT")
+    elif type_filter == "DEBIT":
+        wallet_qs = wallet_qs.filter(transaction_type="DEBIT")
+    elif type_filter == "ONLINE":
+        wallet_qs = wallet_qs.none()  # online tab shows only order payments
 
     if purpose_filter == "RECHARGE":
-        qs = qs.filter(purpose="RECHARGE")
+        wallet_qs = wallet_qs.filter(purpose="RECHARGE")
     elif purpose_filter == "PURCHASE":
-        qs = qs.filter(purpose="PURCHASE")
-    elif purpose_filter == "ADMIN_ADJUST":
-        qs = qs.filter(purpose="ADMIN_ADJUST")
+        wallet_qs = wallet_qs.filter(purpose="PURCHASE")
+    elif purpose_filter == "REFERRAL":
+        wallet_qs = wallet_qs.filter(purpose="REFERRAL_BONUS")
     elif purpose_filter == "REFUND_ORDER":
-        qs = qs.filter(purpose="REFUND", description__icontains="cancellation of")
+        wallet_qs = wallet_qs.filter(
+            purpose="REFUND", description__icontains="cancellation of"
+        )
     elif purpose_filter == "REFUND_ITEM":
-        qs = qs.filter(purpose="REFUND", description__icontains="item cancellation")
+        wallet_qs = wallet_qs.filter(
+            purpose="REFUND", description__icontains="item cancellation"
+        )
     elif purpose_filter == "REFUND_RETURN":
-        qs = qs.filter(purpose="REFUND", description__icontains="returned")
+        wallet_qs = wallet_qs.filter(
+            purpose="REFUND", description__icontains="returned"
+        )
+    elif purpose_filter == "ONLINE":
+        wallet_qs = wallet_qs.none()
 
-    paginator = Paginator(qs, 10)
+    # Normalise wallet rows into dicts
+    wallet_rows = []
+    for txn in wallet_qs:
+        wallet_rows.append(
+            {
+                "source": "wallet",
+                "pk": txn.pk,
+                "date": txn.created_at,
+                "user": txn.wallet.user,
+                "amount": txn.amount,
+                "type": txn.transaction_type,  # CREDIT / DEBIT
+                "purpose": txn.purpose,
+                "description": txn.description or "",
+                "order_id": txn.order_id or "",
+                "razorpay_id": txn.razorpay_payment_id or "",
+                "raw": txn,
+            }
+        )
+
+    # ── 2. ONLINE ORDER PAYMENTS (Razorpay) ──────────────────
+    online_qs = (
+        Order.objects.select_related("user")
+        .filter(payment_method="ONLINE", payment_status="PAID")
+        .exclude(razorpay_payment_id__isnull=True)
+        .exclude(razorpay_payment_id="")
+        .order_by("-created_at")
+    )
+
+    if search:
+        online_qs = online_qs.filter(
+            Q(user__email__icontains=search)
+            | Q(user__username__icontains=search)
+            | Q(razorpay_payment_id__icontains=search)
+            | Q(order_id__icontains=search)
+        )
+
+    # Hide online rows when wallet-only type or wallet-only purpose is selected
+    if type_filter in ("CREDIT", "DEBIT"):
+        online_qs = online_qs.none()
+    if purpose_filter and purpose_filter not in ("ONLINE", ""):
+        online_qs = online_qs.none()
+
+    online_rows = []
+    for order in online_qs:
+        online_rows.append(
+            {
+                "source": "online",
+                "pk": order.pk,
+                "date": order.created_at,
+                "user": order.user,
+                "amount": order.total_amount,
+                "type": "ONLINE",
+                "purpose": "ONLINE_PAYMENT",
+                "description": f"Razorpay payment for Order #{order.order_id}",
+                "order_id": order.order_id,
+                "razorpay_id": order.razorpay_payment_id or "",
+                "raw": order,
+            }
+        )
+
+    # ── 3. MERGE + SORT ──────────────────────────────────────
+    all_rows = sorted(
+        chain(wallet_rows, online_rows),
+        key=lambda r: r["date"],
+        reverse=True,
+    )
+
+    # ── 4. PAGINATE ──────────────────────────────────────────
+    paginator = Paginator(all_rows, 10)
     page = paginator.get_page(request.GET.get("page"))
 
-    # Custom purpose choices for dropdown — replaces model choices
+    # ── 5. FILTER CHOICES FOR DROPDOWNS ──────────────────────
+    type_choices = [
+        ("", "All Types"),
+        ("CREDIT", "Credit (Wallet In)"),
+        ("DEBIT", "Debit (Wallet Out)"),
+        ("ONLINE", "Online Payment (Razorpay)"),
+    ]
+
     purpose_choices = [
+        ("", "All Purposes"),
+        ("ONLINE", "Online Payment"),
         ("RECHARGE", "Wallet Recharge"),
-        ("PURCHASE", "Order Payment"),
+        ("PURCHASE", "Wallet Purchase"),
         ("REFUND_ORDER", "Order Cancel Refund"),
         ("REFUND_ITEM", "Item Cancel Refund"),
         ("REFUND_RETURN", "Return Refund"),
-        ("ADMIN_ADJUST", "Admin Adjustment"),
+        ("REFERRAL", "Referral Bonus"),
     ]
 
     return render(
@@ -570,13 +706,32 @@ def admin_transactions_list(request):
             "search_query": search,
             "type_filter": type_filter,
             "purpose_filter": purpose_filter,
-            "type_choices": WalletTransaction.TRANSACTION_TYPE,
+            "type_choices": type_choices,
             "purpose_choices": purpose_choices,
         },
     )
 
 
 def admin_transaction_detail(request, pk):
+    """
+    Detail view: works for both wallet transactions (source=wallet)
+    and online order payments (source=online).
+    Query param ?source=online means it's an Order pk.
+    """
+    source = request.GET.get("source", "wallet")
+
+    if source == "online":
+        order = get_object_or_404(Order.objects.select_related("user"), pk=pk)
+        return render(
+            request,
+            "management/admin_transaction_detail.html",
+            {
+                "source": "online",
+                "order": order,
+            },
+        )
+
+    # Default: wallet transaction
     txn = get_object_or_404(
         WalletTransaction.objects.select_related("wallet__user"), pk=pk
     )
@@ -584,6 +739,7 @@ def admin_transaction_detail(request, pk):
         request,
         "management/admin_transaction_detail.html",
         {
+            "source": "wallet",
             "txn": txn,
         },
     )
@@ -657,7 +813,6 @@ def sales_report(request):
     )
 
 
-
 def sales_report_pdf(request):
 
     report_type = request.GET.get("type", "daily")
@@ -687,39 +842,21 @@ def sales_report_pdf(request):
 
     elif report_type == "custom":
         if start_date and end_date:
-            orders = orders.filter(
-                created_at__date__range=[start_date, end_date]
-            )
+            orders = orders.filter(created_at__date__range=[start_date, end_date])
 
     # Summary calculations
 
     total_orders = orders.count()
 
-    total_sales = (
-        orders.aggregate(total=Sum("total_amount"))["total"]
-        or 0
-    )
+    total_sales = orders.aggregate(total=Sum("total_amount"))["total"] or 0
 
-    total_product_discount = (
-        orders.aggregate(total=Sum("discount"))["total"]
-        or 0
-    )
+    total_product_discount = orders.aggregate(total=Sum("discount"))["total"] or 0
 
-    total_coupon_discount = (
-        orders.aggregate(total=Sum("coupon_discount"))["total"]
-        or 0
-    )
+    total_coupon_discount = orders.aggregate(total=Sum("coupon_discount"))["total"] or 0
 
-    total_discount = (
-        total_product_discount +
-        total_coupon_discount
-    )
+    total_discount = total_product_discount + total_coupon_discount
 
-    net_revenue = (
-        total_sales -
-        total_product_discount -
-        total_coupon_discount
-    )
+    net_revenue = total_sales - total_product_discount - total_coupon_discount
 
     context = {
         "orders": orders,
@@ -745,10 +882,336 @@ def sales_report_pdf(request):
         content_type="application/pdf",
     )
 
-    response["Content-Disposition"] = (
-        'attachment; filename="sales_report.pdf"'
-    )
+    response["Content-Disposition"] = 'attachment; filename="sales_report.pdf"'
 
     return response
 
 
+@staff_member_required(login_url="user_login")
+def admin_revenue_list(request):
+    from django.db.models import Sum, Count, F, Q
+    from django.utils import timezone
+    from datetime import timedelta
+
+    # ── Time filter ──────────────────────────────────────────
+    filter_type = request.GET.get("filter", "all")
+    start_date = request.GET.get("start_date", "")
+    end_date = request.GET.get("end_date", "")
+    sort_by = request.GET.get("sort", "revenue")  # revenue | units | orders
+    view_type = request.GET.get("view", "product")  # product | category
+
+    today = timezone.now()
+
+    # Base: only paid, non-cancelled order items
+    base_qs = OrderItem.objects.filter(
+        order__payment_status="PAID",
+    ).exclude(item_status="CANCELLED")
+
+    if filter_type == "daily":
+        base_qs = base_qs.filter(order__created_at__date=today.date())
+    elif filter_type == "weekly":
+        base_qs = base_qs.filter(order__created_at__gte=today - timedelta(days=7))
+    elif filter_type == "monthly":
+        base_qs = base_qs.filter(
+            order__created_at__year=today.year,
+            order__created_at__month=today.month,
+        )
+    elif filter_type == "yearly":
+        base_qs = base_qs.filter(order__created_at__year=today.year)
+    elif filter_type == "custom" and start_date and end_date:
+        base_qs = base_qs.filter(order__created_at__date__range=[start_date, end_date])
+
+    # ── Aggregate per product OR per category ────────────────
+    if view_type == "category":
+        # NOTE: products can belong to multiple categories (M2M), so a
+        # single order item can contribute to more than one category's
+        # totals here. This mirrors how the product list page already
+        # handles categories — it is a deliberate "contribution" view,
+        # not a strict partition of revenue.
+        rows = (
+            base_qs.values(
+                "product_variant__product__categories__id",
+                "product_variant__product__categories__name",
+            )
+            .annotate(
+                total_revenue=Sum("subtotal"),
+                total_units=Sum("quantity"),
+                total_orders=Count("order", distinct=True),
+            )
+            .filter(product_variant__product__categories__id__isnull=False)
+        )
+    else:
+        rows = (
+            base_qs.values(
+                "product_variant__product__id",
+                "product_variant__product__name",
+            )
+            .annotate(
+                total_revenue=Sum("subtotal"),
+                total_units=Sum("quantity"),
+                total_orders=Count("order", distinct=True),
+            )
+            .filter(product_variant__product__id__isnull=False)
+        )
+
+    # ── Sorting ──────────────────────────────────────────────
+    if sort_by == "units":
+        rows = rows.order_by("-total_units")
+    elif sort_by == "orders":
+        rows = rows.order_by("-total_orders")
+    else:
+        rows = rows.order_by("-total_revenue")
+
+    # ── Totals for summary cards ─────────────────────────────
+    totals = base_qs.aggregate(
+        grand_revenue=Sum("subtotal"),
+        grand_units=Sum("quantity"),
+        grand_orders=Count("order", distinct=True),
+    )
+
+    # ── Refund total for the period ──────────────────────────
+    refund_qs = WalletTransaction.objects.filter(
+        transaction_type="CREDIT",
+        purpose="REFUND",
+    )
+    if filter_type == "daily":
+        refund_qs = refund_qs.filter(created_at__date=today.date())
+    elif filter_type == "weekly":
+        refund_qs = refund_qs.filter(created_at__gte=today - timedelta(days=7))
+    elif filter_type == "monthly":
+        refund_qs = refund_qs.filter(
+            created_at__year=today.year, created_at__month=today.month
+        )
+    elif filter_type == "yearly":
+        refund_qs = refund_qs.filter(created_at__year=today.year)
+    elif filter_type == "custom" and start_date and end_date:
+        refund_qs = refund_qs.filter(created_at__date__range=[start_date, end_date])
+
+    total_refunds = refund_qs.aggregate(t=Sum("amount"))["t"] or 0
+
+    # ── Paginate ─────────────────────────────────────────────
+    paginator = Paginator(list(rows), 12)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    # ── Period tabs for the filter form ───────────────────────
+    # FIX: this was missing from context, which is why the time-filter
+    # glass panel rendered as an empty box — the {% for key, label in
+    # filter_tabs %} loop in the template had nothing to iterate over.
+    filter_tabs = [
+        ("all", "All Time"),
+        ("daily", "Today"),
+        ("weekly", "This Week"),
+        ("monthly", "This Month"),
+        ("yearly", "This Year"),
+        ("custom", "Custom"),
+    ]
+
+    context = {
+        "products": page_obj,  # kept name for template back-compat (product OR category rows)
+        "totals": totals,
+        "total_refunds": total_refunds,
+        "filter_type": filter_type,
+        "filter_tabs": filter_tabs,  # <-- NEW
+        "start_date": start_date,
+        "end_date": end_date,
+        "sort_by": sort_by,
+        "view_type": view_type,
+    }
+    return render(request, "management/revenue_list.html", context)
+
+
+@staff_member_required(login_url="user_login")
+def admin_revenue_product_detail(request, product_id):
+    from django.db.models import Sum, Count, F, Q
+    from products.models import Product
+ 
+    product = get_object_or_404(Product, id=product_id)
+ 
+    # ── All order items for this product ────────────────────
+    all_items = (
+        OrderItem.objects.filter(product_variant__product=product)
+        .select_related("order", "order__user", "product_variant")
+        .order_by("-order__created_at")
+    )
+ 
+    # ── Summary stats (NEVER affected by the table filters below —
+    #    these always reflect the product's full history) ─────
+    active_items = all_items.exclude(item_status__in=["CANCELLED"])
+ 
+    paid_items = all_items.filter(order__payment_status="PAID").exclude(
+        item_status="CANCELLED"
+    )
+ 
+    stats = {
+        "total_revenue": paid_items.aggregate(t=Sum("subtotal"))["t"] or 0,
+        "total_units_sold": paid_items.aggregate(t=Sum("quantity"))["t"] or 0,
+        "total_orders": paid_items.aggregate(t=Count("order", distinct=True))["t"] or 0,
+        "cancelled_units": all_items.filter(item_status="CANCELLED").aggregate(
+            t=Sum("quantity")
+        )["t"]
+        or 0,
+        "returned_units": all_items.filter(item_status__in=["RETURNED"]).aggregate(
+            t=Sum("quantity")
+        )["t"]
+        or 0,
+        "return_requested": all_items.filter(item_status="RETURN_REQUESTED").aggregate(
+            t=Sum("quantity")
+        )["t"]
+        or 0,
+        "refund_total": WalletTransaction.objects.filter(
+            purpose="REFUND",
+            order_id__in=all_items.values_list("order__order_id", flat=True),
+        ).aggregate(t=Sum("amount"))["t"]
+        or 0,
+    }
+ 
+    # Net revenue after refunds
+    stats["net_revenue"] = stats["total_revenue"] - stats["refund_total"]
+ 
+    # ── Per-variant breakdown (also unaffected by table filters) ─
+    variant_breakdown = (
+        paid_items.values("product_variant__id", "product_variant__size")
+        .annotate(
+            variant_revenue=Sum("subtotal"),
+            variant_units=Sum("quantity"),
+            variant_orders=Count("order", distinct=True),
+        )
+        .order_by("-variant_revenue")
+    )
+ 
+    # ── Order-level list (all statuses by default) ───────────
+    order_rows = all_items.select_related("order__user", "product_variant").order_by(
+        "-order__created_at"
+    )
+ 
+    # ── NEW: Order/Item status filters for the order history table ─
+    order_status_filter = request.GET.get("order_status", "").strip()
+    item_status_filter = request.GET.get("item_status", "").strip()
+ 
+    if order_status_filter:
+        order_rows = order_rows.filter(order__order_status=order_status_filter)
+ 
+    if item_status_filter:
+        order_rows = order_rows.filter(item_status=item_status_filter)
+ 
+    paginator = Paginator(order_rows, 15)
+    page_obj = paginator.get_page(request.GET.get("page"))
+ 
+    context = {
+        "product": product,
+        "stats": stats,
+        "variant_breakdown": variant_breakdown,
+        "order_rows": page_obj,
+        "order_status_filter": order_status_filter,  # <-- NEW
+        "item_status_filter": item_status_filter,  # <-- NEW
+        "order_status_choices": Order.ORDER_STATUS,  # <-- NEW: for the dropdown
+        "item_status_choices": [  # <-- NEW: for the dropdown
+            ("ACTIVE", "Active"),
+            ("CANCELLED", "Cancelled"),
+            ("RETURN_REQUESTED", "Return Requested"),
+            ("RETURNED", "Returned"),
+            ("RETURN_REJECTED", "Return Rejected"),
+        ],
+    }
+    return render(request, "management/revenue_product_detail.html", context)
+
+
+@staff_member_required(login_url="user_login")
+def admin_revenue_category_detail(request, category_id):
+    """
+    Mirrors admin_revenue_product_detail, but rolled up at the category
+    level. Shows every paid/active order item for products inside this
+    category, plus a per-product breakdown (instead of per-variant).
+    """
+    from django.db.models import Sum, Count
+    from products.models import Category
+
+    category = get_object_or_404(Category, id=category_id)
+
+    # ── All order items for products in this category ───────
+    all_items = (
+        OrderItem.objects.filter(product_variant__product__categories=category)
+        .select_related("order", "order__user", "product_variant", "product_variant__product")
+        .distinct()
+        .order_by("-order__created_at")
+    )
+
+    paid_items = all_items.filter(order__payment_status="PAID").exclude(
+        item_status="CANCELLED"
+    )
+
+    # ── Summary stats (NEVER affected by the table filters below —
+    #    these always reflect the category's full history) ─────
+    stats = {
+        "total_revenue": paid_items.aggregate(t=Sum("subtotal"))["t"] or 0,
+        "total_units_sold": paid_items.aggregate(t=Sum("quantity"))["t"] or 0,
+        "total_orders": paid_items.aggregate(t=Count("order", distinct=True))["t"] or 0,
+        "cancelled_units": all_items.filter(item_status="CANCELLED").aggregate(
+            t=Sum("quantity")
+        )["t"]
+        or 0,
+        "returned_units": all_items.filter(item_status__in=["RETURNED"]).aggregate(
+            t=Sum("quantity")
+        )["t"]
+        or 0,
+        "return_requested": all_items.filter(item_status="RETURN_REQUESTED").aggregate(
+            t=Sum("quantity")
+        )["t"]
+        or 0,
+        "refund_total": WalletTransaction.objects.filter(
+            purpose="REFUND",
+            order_id__in=all_items.values_list("order__order_id", flat=True).distinct(),
+        ).aggregate(t=Sum("amount"))["t"]
+        or 0,
+    }
+
+    stats["net_revenue"] = stats["total_revenue"] - stats["refund_total"]
+
+    # ── Per-product breakdown within this category (also unaffected
+    #    by the table filters below) ──────────────────────────
+    product_breakdown = (
+        paid_items.values(
+            "product_variant__product__id",
+            "product_variant__product__name",
+        )
+        .annotate(
+            product_revenue=Sum("subtotal"),
+            product_units=Sum("quantity"),
+            product_orders=Count("order", distinct=True),
+        )
+        .order_by("-product_revenue")
+    )
+
+    # ── Order-level list (all statuses by default) ──────────
+    order_rows = all_items.order_by("-order__created_at")
+
+    # ── NEW: Order/Item status filters for the order history table ─
+    order_status_filter = request.GET.get("order_status", "").strip()
+    item_status_filter = request.GET.get("item_status", "").strip()
+
+    if order_status_filter:
+        order_rows = order_rows.filter(order__order_status=order_status_filter)
+
+    if item_status_filter:
+        order_rows = order_rows.filter(item_status=item_status_filter)
+
+    paginator = Paginator(order_rows, 15)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    context = {
+        "category": category,
+        "stats": stats,
+        "product_breakdown": product_breakdown,
+        "order_rows": page_obj,
+        "order_status_filter": order_status_filter,  # <-- NEW
+        "item_status_filter": item_status_filter,  # <-- NEW
+        "order_status_choices": Order.ORDER_STATUS,  # <-- NEW: for the dropdown
+        "item_status_choices": [  # <-- NEW: for the dropdown
+            ("ACTIVE", "Active"),
+            ("CANCELLED", "Cancelled"),
+            ("RETURN_REQUESTED", "Return Requested"),
+            ("RETURNED", "Returned"),
+            ("RETURN_REJECTED", "Return Rejected"),
+        ],
+    }
+    return render(request, "management/revenue_category_detail.html", context)

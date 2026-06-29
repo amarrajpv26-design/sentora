@@ -62,8 +62,37 @@
                     </h1>
 
                     <p class="mt-5 text-white/45 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-                        Your order has been placed successfully and is now being prepared for shipment.
-                    </p>
+    Your order has been placed successfully and is now being prepared for shipment.
+</p>
+
+<!-- PAYMENT CONFIRMATION MESSAGE -->
+{% if order.payment_method == 'WALLET' %}
+<div class="mt-5 inline-flex items-center gap-3 px-6 py-3.5 rounded-full
+            border border-green-500/20 bg-green-500/[0.08]">
+    <span class="text-xl">👛</span>
+    <p class="text-green-400 text-sm font-semibold">
+        ₹{{ order.total_amount }} paid successfully via Wallet
+    </p>
+</div>
+
+{% elif order.payment_method == 'ONLINE' %}
+<div class="mt-5 inline-flex items-center gap-3 px-6 py-3.5 rounded-full
+            border border-green-500/20 bg-green-500/[0.08]">
+    <span class="text-xl">💳</span>
+    <p class="text-green-400 text-sm font-semibold">
+        ₹{{ order.total_amount }} paid successfully via Online Payment
+    </p>
+</div>
+
+{% elif order.payment_method == 'COD' %}
+<div class="mt-5 inline-flex items-center gap-3 px-6 py-3.5 rounded-full
+            border border-yellow-500/20 bg-yellow-500/[0.08]">
+    <span class="text-xl">💵</span>
+    <p class="text-yellow-400 text-sm font-semibold">
+        ₹{{ order.total_amount }} to be paid on delivery
+    </p>
+</div>
+{% endif %}
 
                     <!-- ORDER ID -->
                     <!-- ORDER ID -->

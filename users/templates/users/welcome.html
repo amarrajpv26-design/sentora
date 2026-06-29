@@ -1054,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </section>
         </main>
-        <footer class="bg-neutral-dark border-t border-neutral-border">
+        <footer class="border-t border-neutral-border/60">
 
     <div class="max-w-[1440px] mx-auto px-8 lg:px-12 py-28">
 
@@ -1110,11 +1110,29 @@ document.addEventListener('DOMContentLoaded', function () {
                             New Arrivals
                         </a>
                     </li>
-
+                    
                     <li>
-                        <a href="#"
+                        <a href="{% url 'shop:product_list' %}?category={{ private_reserve.id }}"
                            class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
-                            Maison Private
+                            Private Reserve
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'shop:product_list' %}?category={{ limited_edition.id }}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Limited Editions
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'shop:best_sellers' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Best Sellers
+                        </a>
+                    </li>
+                     <li>
+                        <a href="{% url 'shop:archive_collection' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Archive Collection
                         </a>
                     </li>
 
@@ -1132,21 +1150,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 <ul class="space-y-4">
 
                     <li>
-                        <a href="#"
+                        <a href="{% url 'our_story' %}"
                            class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
                             Our Story
                         </a>
                     </li>
 
                     <li>
-                        <a href="#"
+                        <a href="{% url 'philosophy' %}"
                            class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
                             Philosophy
                         </a>
                     </li>
 
                     <li>
-                        <a href="#"
+                        <a href="{% url 'boutiques' %}"
                            class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
                             Boutiques
                         </a>
@@ -1166,23 +1184,41 @@ document.addEventListener('DOMContentLoaded', function () {
                 <ul class="space-y-4">
 
                     <li>
-                        <a href="#"
+                        <a href="{% url 'contact' %}"
                            class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
-                            Contact
+                            Contact Us
                         </a>
                     </li>
 
                     <li>
-                        <a href="#"
+                        <a href="{% url 'shipping_policy' %}"
                            class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
-                            Shipping
+                            Shipping Policy
                         </a>
                     </li>
 
                     <li>
-                        <a href="#"
+                        <a href="{% url 'return_refund_policy' %}"
                            class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
-                            Returns
+                            Return & Refund Policy
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'privacy_policy' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Privacy Policy
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'terms_conditions' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                            Terms & Conditions
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'about_scentora' %}"
+                           class="footer-link text-xs uppercase tracking-[0.25em] text-slate-500 hover:text-primary">
+                           About Scentora
                         </a>
                     </li>
 
@@ -1197,17 +1233,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
             <div class="flex justify-center gap-12">
 
-                <a href="#"
+                <a href="https://www.instagram.com/_.oblivorn._/?hl=en"
                    class="footer-link text-[10px] uppercase tracking-[0.35em] text-slate-500 hover:text-primary">
                     Instagram
                 </a>
 
-                <a href="#"
+                <a href="https://in.pinterest.com/"
                    class="footer-link text-[10px] uppercase tracking-[0.35em] text-slate-500 hover:text-primary">
                     Pinterest
                 </a>
 
-                <a href="#"
+                <a href="https://x.com/"
                    class="footer-link text-[10px] uppercase tracking-[0.35em] text-slate-500 hover:text-primary">
                     X
                 </a>

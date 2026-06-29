@@ -31,7 +31,7 @@
     <div>
       <p class="text-[10px] text-gold/50 uppercase tracking-[4px] font-black mb-2">Marketing</p>
       <h1 class="text-4xl font-black tracking-tight text-white">Offer Engine</h1>
-      <p class="text-white/30 text-sm mt-1">Product, category & referral offers — all in one place.</p>
+      <p class="text-white/30 text-sm mt-1">Product, category, brand & referral offers — all in one place.</p>
     </div>
     <div class="flex gap-3">
       <a href="{% url 'offers:product_offer_create' %}"
@@ -42,63 +42,74 @@
          class="flex items-center gap-2 px-4 py-2.5 bg-gold/10 border border-gold/20 text-gold text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-gold/20 transition-all">
         <i class="bi bi-collection"></i> Category Offer
       </a>
+      <a href="{% url 'offers:brand_offer_create' %}"
+         class="flex items-center gap-2 px-4 py-2.5 bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-orange-500/20 transition-all">
+        <i class="bi bi-award"></i> Brand Offer
+      </a>
       <a href="{% url 'offers:referral_offer_create' %}"
          class="flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 text-white/60 text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all">
         <i class="bi bi-share"></i> Referral Offer
       </a>
     </div>
   </div>
-{% if messages %}
-<div class="space-y-3">
+
+  {% if messages %}
+  <div class="space-y-3">
     {% for message in messages %}
-    <div class="
-        px-4 py-3 rounded-xl text-sm font-medium border
-        {% if message.tags == 'success' %}
-            bg-green-500/10 text-green-400 border-green-500/20
-        {% elif message.tags == 'error' %}
-            bg-red-500/10 text-red-400 border-red-500/20
-        {% elif message.tags == 'warning' %}
-            bg-yellow-500/10 text-yellow-400 border-yellow-500/20
-        {% else %}
-            bg-blue-500/10 text-blue-400 border-blue-500/20
-        {% endif %}
-    ">
-        {{ message }}
+    <div class="px-4 py-3 rounded-xl text-sm font-medium border
+      {% if message.tags == 'success' %}bg-green-500/10 text-green-400 border-green-500/20
+      {% elif message.tags == 'error' %}bg-red-500/10 text-red-400 border-red-500/20
+      {% elif message.tags == 'warning' %}bg-yellow-500/10 text-yellow-400 border-yellow-500/20
+      {% else %}bg-blue-500/10 text-blue-400 border-blue-500/20{% endif %}">
+      {{ message }}
     </div>
     {% endfor %}
-</div>
-{% endif %}
-  <!-- Stats Row -->
-  <div class="grid grid-cols-3 gap-5">
-{% with live_product=product_offers.paginator.count live_cat=category_offers.paginator.count live_ref=referral_offers.paginator.count %}
+  </div>
+  {% endif %}
+
+  <!-- Stats Row — 4 independent cards -->
+  <div class="grid grid-cols-4 gap-5">
+
     <div class="offer-card rounded-2xl p-6 flex items-center gap-4">
       <div class="w-12 h-12 rounded-xl bg-gold/10 flex items-center justify-center">
         <i class="bi bi-tag text-gold text-xl"></i>
       </div>
       <div>
-        <p class="text-3xl font-black text-white">{{ live_product }}</p>
+        <p class="text-3xl font-black text-white">{{ product_offers.paginator.count }}</p>
         <p class="text-xs text-white/30 uppercase tracking-widest font-bold">Product Offers</p>
       </div>
     </div>
+
     <div class="offer-card rounded-2xl p-6 flex items-center gap-4">
       <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
         <i class="bi bi-collection text-blue-400 text-xl"></i>
       </div>
       <div>
-        <p class="text-3xl font-black text-white">{{ live_cat }}</p>
+        <p class="text-3xl font-black text-white">{{ category_offers.paginator.count }}</p>
         <p class="text-xs text-white/30 uppercase tracking-widest font-bold">Category Offers</p>
       </div>
     </div>
+
+    <div class="offer-card rounded-2xl p-6 flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
+        <i class="bi bi-award text-orange-400 text-xl"></i>
+      </div>
+      <div>
+        <p class="text-3xl font-black text-white">{{ brand_offers.paginator.count }}</p>
+        <p class="text-xs text-white/30 uppercase tracking-widest font-bold">Brand Offers</p>
+      </div>
+    </div>
+
     <div class="offer-card rounded-2xl p-6 flex items-center gap-4">
       <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
         <i class="bi bi-share text-purple-400 text-xl"></i>
       </div>
       <div>
-        <p class="text-3xl font-black text-white">{{ live_ref }}</p>
+        <p class="text-3xl font-black text-white">{{ referral_offers.paginator.count }}</p>
         <p class="text-xs text-white/30 uppercase tracking-widest font-bold">Referral Offers</p>
       </div>
     </div>
-    {% endwith %}
+
   </div>
 
   <!-- Tab Nav -->
@@ -110,6 +121,10 @@
     <button onclick="showTab('category')" id="tab-category"
       class="tab-btn pb-3 text-xs font-black uppercase tracking-widest text-white/30">
       Category Offers
+    </button>
+    <button onclick="showTab('brand')" id="tab-brand"
+      class="tab-btn pb-3 text-xs font-black uppercase tracking-widest text-white/30">
+      Brand Offers
     </button>
     <button onclick="showTab('referral')" id="tab-referral"
       class="tab-btn pb-3 text-xs font-black uppercase tracking-widest text-white/30">
@@ -124,11 +139,9 @@
       {% for offer in product_offers %}
       {% with is_live=offer.is_live %}
       <div class="offer-card rounded-2xl p-5 flex items-center gap-5">
-        <!-- Status dot -->
         <div class="w-2 h-2 rounded-full flex-shrink-0
           {% if is_live %}bg-green-400{% elif not offer.is_active %}bg-white/10{% elif offer.start_date > now %}bg-yellow-400{% else %}bg-red-400{% endif %}">
         </div>
-        <!-- Info -->
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-3 mb-1">
             <h3 class="font-bold text-white text-sm truncate">{{ offer.name }}</h3>
@@ -146,48 +159,33 @@
             {{ offer.start_date|date:"d M Y" }} → {{ offer.end_date|date:"d M Y" }}
           </p>
         </div>
-        <!-- Actions -->
         <div class="flex items-center gap-2 flex-shrink-0">
           <a href="{% url 'offers:product_offer_edit' offer.pk %}"
-             class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white/50 hover:text-white border border-white/10 hover:border-white/20 rounded-lg transition-all">
-            Edit
-          </a>
+             class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white/50 hover:text-white border border-white/10 hover:border-white/20 rounded-lg transition-all">Edit</a>
           <a href="{% url 'offers:product_offer_toggle' offer.pk %}"
              class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-lg transition-all
              {% if offer.is_active %}text-green-400 border border-green-500/20 hover:bg-green-500/10{% else %}text-white/30 border border-white/10 hover:bg-white/5{% endif %}">
             {% if offer.is_active %}Active{% else %}Inactive{% endif %}
           </a>
           <a href="{% url 'offers:product_offer_delete' offer.pk %}"
-             class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-red-400/50 hover:text-red-400 border border-red-500/10 hover:border-red-500/30 rounded-lg transition-all">
-            Delete
-          </a>
+             class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-red-400/50 hover:text-red-400 border border-red-500/10 hover:border-red-500/30 rounded-lg transition-all">Delete</a>
         </div>
       </div>
       {% endwith %}
       {% endfor %}
       {% if product_offers.has_other_pages %}
-<div class="flex items-center justify-center gap-3 mt-6">
-
-    {% if product_offers.has_previous %}
-<a href="?product_page={{ product_offers.previous_page_number }}&tab=product"
-       class="px-3 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white">
-        Previous
-    </a>
-    {% endif %}
-
-    <span class="text-white/50 text-sm">
-        Page {{ product_offers.number }} of {{ product_offers.paginator.num_pages }}
-    </span>
-
-    {% if product_offers.has_next %}
-<a href="?product_page={{ product_offers.next_page_number }}&tab=product"
-       class="px-3 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white">
-        Next
-    </a>
-    {% endif %}
-
-</div>
-{% endif %}
+      <div class="flex items-center justify-center gap-3 mt-6">
+        {% if product_offers.has_previous %}
+        <a href="?product_page={{ product_offers.previous_page_number }}&tab=product"
+           class="px-3 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white">Previous</a>
+        {% endif %}
+        <span class="text-white/50 text-sm">Page {{ product_offers.number }} of {{ product_offers.paginator.num_pages }}</span>
+        {% if product_offers.has_next %}
+        <a href="?product_page={{ product_offers.next_page_number }}&tab=product"
+           class="px-3 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white">Next</a>
+        {% endif %}
+      </div>
+      {% endif %}
     </div>
     {% else %}
     <div class="text-center py-20 text-white/20">
@@ -240,33 +238,88 @@
       {% endwith %}
       {% endfor %}
       {% if category_offers.has_other_pages %}
-<div class="flex items-center justify-center gap-3 mt-6">
-
-    {% if category_offers.has_previous %}
-<a href="?category_page={{ category_offers.previous_page_number }}&tab=category"       class="px-3 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white">
-        Previous
-    </a>
-    {% endif %}
-
-    <span class="text-white/50 text-sm">
-        Page {{ category_offers.number }} of {{ category_offers.paginator.num_pages }}
-    </span>
-
-    {% if category_offers.has_next %}
-<a href="?category_page={{ category_offers.next_page_number }}&tab=category"
-       class="px-3 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white">
-        Next
-    </a>
-    {% endif %}
-
-</div>
-{% endif %}
+      <div class="flex items-center justify-center gap-3 mt-6">
+        {% if category_offers.has_previous %}
+        <a href="?category_page={{ category_offers.previous_page_number }}&tab=category"
+           class="px-3 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white">Previous</a>
+        {% endif %}
+        <span class="text-white/50 text-sm">Page {{ category_offers.number }} of {{ category_offers.paginator.num_pages }}</span>
+        {% if category_offers.has_next %}
+        <a href="?category_page={{ category_offers.next_page_number }}&tab=category"
+           class="px-3 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white">Next</a>
+        {% endif %}
+      </div>
+      {% endif %}
     </div>
     {% else %}
     <div class="text-center py-20 text-white/20">
       <i class="bi bi-collection text-5xl block mb-4 opacity-20"></i>
       <p class="text-sm font-bold uppercase tracking-widest">No category offers yet</p>
       <a href="{% url 'offers:category_offer_create' %}" class="mt-4 inline-block text-gold/60 text-xs hover:text-gold transition-colors">+ Create one</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- ── BRAND OFFERS TAB ── -->
+  <div id="panel-brand" class="hidden">
+    {% if brand_offers %}
+    <div class="space-y-3">
+      {% for offer in brand_offers %}
+      {% with is_live=offer.is_live %}
+      <div class="offer-card rounded-2xl p-5 flex items-center gap-5">
+        <div class="w-2 h-2 rounded-full flex-shrink-0
+          {% if is_live %}bg-green-400{% elif not offer.is_active %}bg-white/10{% elif offer.start_date > now %}bg-yellow-400{% else %}bg-red-400{% endif %}">
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-3 mb-1">
+            <h3 class="font-bold text-white text-sm truncate">{{ offer.name }}</h3>
+            <span class="text-[10px] px-2 py-0.5 rounded-full font-black uppercase tracking-wider
+              {% if is_live %}badge-live{% elif not offer.is_active %}badge-off{% elif offer.start_date > now %}badge-sched{% else %}badge-dead{% endif %}">
+              {% if is_live %}Live{% elif not offer.is_active %}Off{% elif offer.start_date > now %}Scheduled{% else %}Expired{% endif %}
+            </span>
+          </div>
+          <p class="text-xs text-white/40">
+            <span class="text-orange-400/70 font-semibold">{{ offer.brand.name }}</span>
+            &nbsp;·&nbsp;
+            {% if offer.discount_type == "PERCENTAGE" %}{{ offer.discount_value }}% off
+            {% else %}₹{{ offer.discount_value }} off{% endif %}
+            &nbsp;·&nbsp;
+            {{ offer.start_date|date:"d M Y" }} → {{ offer.end_date|date:"d M Y" }}
+          </p>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <a href="{% url 'offers:brand_offer_edit' offer.pk %}"
+             class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-white/50 hover:text-white border border-white/10 hover:border-white/20 rounded-lg transition-all">Edit</a>
+          <a href="{% url 'offers:brand_offer_toggle' offer.pk %}"
+             class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-lg transition-all
+             {% if offer.is_active %}text-green-400 border border-green-500/20 hover:bg-green-500/10{% else %}text-white/30 border border-white/10 hover:bg-white/5{% endif %}">
+            {% if offer.is_active %}Active{% else %}Inactive{% endif %}
+          </a>
+          <a href="{% url 'offers:brand_offer_delete' offer.pk %}"
+             class="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-red-400/50 hover:text-red-400 border border-red-500/10 hover:border-red-500/30 rounded-lg transition-all">Delete</a>
+        </div>
+      </div>
+      {% endwith %}
+      {% endfor %}
+      {% if brand_offers.has_other_pages %}
+      <div class="flex items-center justify-center gap-3 mt-6">
+        {% if brand_offers.has_previous %}
+        <a href="?brand_page={{ brand_offers.previous_page_number }}&tab=brand"
+           class="px-3 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white">Previous</a>
+        {% endif %}
+        <span class="text-white/50 text-sm">Page {{ brand_offers.number }} of {{ brand_offers.paginator.num_pages }}</span>
+        {% if brand_offers.has_next %}
+        <a href="?brand_page={{ brand_offers.next_page_number }}&tab=brand"
+           class="px-3 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white">Next</a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="text-center py-20 text-white/20">
+      <i class="bi bi-award text-5xl block mb-4 opacity-20"></i>
+      <p class="text-sm font-bold uppercase tracking-widest">No brand offers yet</p>
+      <a href="{% url 'offers:brand_offer_create' %}" class="mt-4 inline-block text-gold/60 text-xs hover:text-gold transition-colors">+ Create one</a>
     </div>
     {% endif %}
   </div>
@@ -312,28 +365,18 @@
       </div>
       {% endfor %}
       {% if referral_offers.has_other_pages %}
-<div class="flex items-center justify-center gap-3 mt-6">
-
-    {% if referral_offers.has_previous %}
-<a href="?referral_page={{ referral_offers.previous_page_number }}&tab=referral"
-       class="px-3 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white">
-        Previous
-    </a>
-    {% endif %}
-
-    <span class="text-white/50 text-sm">
-        Page {{ referral_offers.number }} of {{ referral_offers.paginator.num_pages }}
-    </span>
-
-    {% if referral_offers.has_next %}
-<a href="?referral_page={{ referral_offers.next_page_number }}&tab=referral"
-       class="px-3 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white">
-        Next
-    </a>
-    {% endif %}
-
-</div>
-{% endif %}
+      <div class="flex items-center justify-center gap-3 mt-6">
+        {% if referral_offers.has_previous %}
+        <a href="?referral_page={{ referral_offers.previous_page_number }}&tab=referral"
+           class="px-3 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white">Previous</a>
+        {% endif %}
+        <span class="text-white/50 text-sm">Page {{ referral_offers.number }} of {{ referral_offers.paginator.num_pages }}</span>
+        {% if referral_offers.has_next %}
+        <a href="?referral_page={{ referral_offers.next_page_number }}&tab=referral"
+           class="px-3 py-2 border border-white/10 rounded-lg text-white/60 hover:text-white">Next</a>
+        {% endif %}
+      </div>
+      {% endif %}
     </div>
     {% else %}
     <div class="text-center py-20 text-white/20">
@@ -350,7 +393,7 @@
 {% block extra_js %}
 <script>
 function showTab(name) {
-  ['product','category','referral'].forEach(t => {
+  ['product', 'category', 'brand', 'referral'].forEach(t => {
     document.getElementById('panel-' + t).classList.add('hidden');
     const btn = document.getElementById('tab-' + t);
     btn.classList.remove('active');
@@ -364,12 +407,9 @@ function showTab(name) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    const params = new URLSearchParams(window.location.search);
-    const tab = params.get('tab');
-
-    if (tab) {
-        showTab(tab);
-    }
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get('tab');
+  if (tab) showTab(tab);
 });
 </script>
 {% endblock %}

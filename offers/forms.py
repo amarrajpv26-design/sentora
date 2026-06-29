@@ -86,3 +86,39 @@ class ReferralOfferForm(forms.ModelForm):
             "max_uses",
             "is_active",
         ]
+    
+from .models import ProductOffer, CategoryOffer, ReferralOffer, BrandOffer
+
+class BrandOfferForm(forms.ModelForm):
+    class Meta:
+        model = BrandOffer
+        fields = [
+            "name",
+            "description",
+            "brand",
+            "discount_type",
+            "discount_value",
+            "start_date",
+            "end_date",
+            "is_active",
+        ]
+        widgets = {
+            "start_date": forms.DateTimeInput(
+                attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
+            ),
+            "end_date": forms.DateTimeInput(
+                attrs={"type": "datetime-local"}, format="%Y-%m-%dT%H:%M"
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            if self.instance.start_date:
+                self.initial["start_date"] = self.instance.start_date.strftime(
+                    "%Y-%m-%dT%H:%M"
+                )
+            if self.instance.end_date:
+                self.initial["end_date"] = self.instance.end_date.strftime(
+                    "%Y-%m-%dT%H:%M"
+                )

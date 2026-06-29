@@ -2,9 +2,6 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 <style>
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: #0a0a0a; }
-  ::-webkit-scrollbar-thumb { background: #f4b41a; border-radius: 10px; }
   .luxury-shimmer {
     background: linear-gradient(90deg, #f4b41a, #fff, #f4b41a);
     background-size: 200% auto;
@@ -33,14 +30,161 @@
 
 {% block breadcrumb %}
 <span class="text-white/30 font-medium uppercase tracking-[3px] text-[10px]">
-  <a href="{% url 'management:admin_transactions_list' %}" class="hover:text-gold transition-all">Wallet Transactions</a>
+  <a href="{% url 'management:admin_transactions_list' %}" class="hover:text-gold transition-all">
+    Transaction Ledger
+  </a>
 </span>
 <span class="text-white/20 mx-2">/</span>
-<span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">#{{ txn.pk }}</span>
+{% if source == 'online' %}
+  <span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">
+    Online Payment · {{ order.order_id }}
+  </span>
+{% else %}
+  <span class="luxury-shimmer font-bold uppercase tracking-[3px] text-[10px]">
+    Wallet Transaction #{{ txn.pk }}
+  </span>
+{% endif %}
 {% endblock %}
 
 {% block content %}
 <div class="animate__animated animate__fadeIn max-w-3xl">
+
+  <!-- ═══════════════════════════════════════
+       ONLINE PAYMENT DETAIL (Razorpay Order)
+  ═══════════════════════════════════════ -->
+  {% if source == 'online' %}
+
+  <div class="mb-10 flex items-start justify-between">
+    <div>
+      <h2 class="text-4xl font-extralight text-white tracking-tighter">
+        Online <span class="font-black luxury-shimmer">Payment</span>
+      </h2>
+      <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">
+        {{ order.created_at|date:"F d, Y — H:i" }}
+      </p>
+    </div>
+    <span class="mt-2 px-5 py-2.5 rounded-full text-[10px] uppercase font-black tracking-wider
+                 text-blue-400 bg-blue-500/10 border border-blue-500/20">
+      Razorpay · Paid
+    </span>
+  </div>
+
+  <!-- Amount Card -->
+  <div class="glass-panel rounded-2xl p-8 mb-6 text-center">
+    <p class="text-[9px] text-white/30 uppercase tracking-[4px] font-black mb-3">Payment Amount</p>
+    <p class="text-6xl font-black tracking-tighter text-blue-400">
+      ₹{{ order.total_amount }}
+    </p>
+  </div>
+
+  <!-- Payment Details -->
+  <div class="glass-panel rounded-2xl px-8 py-2 mb-6">
+
+    <div class="detail-row">
+      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Order ID</span>
+      <span class="text-sm font-mono text-white/70 tracking-wider">{{ order.order_id }}</span>
+    </div>
+
+    <div class="detail-row">
+      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Razorpay Order ID</span>
+      <span class="text-xs font-mono text-white/60 tracking-wider">
+        {{ order.razorpay_order_id|default:"—" }}
+      </span>
+    </div>
+
+    <div class="detail-row">
+      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Razorpay Payment ID</span>
+      <span class="text-xs font-mono text-white/60 tracking-wider">
+        {{ order.razorpay_payment_id|default:"—" }}
+      </span>
+    </div>
+
+    <div class="detail-row">
+      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Payment Status</span>
+      <span class="px-4 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider
+                   text-green-400 bg-green-500/10 border border-green-500/20">
+        {{ order.payment_status }}
+      </span>
+    </div>
+
+    <div class="detail-row">
+      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Order Status</span>
+      <span class="px-4 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider
+                   text-gold bg-gold/10 border border-gold/20">
+        {{ order.get_order_status_display }}
+      </span>
+    </div>
+
+  </div>
+
+  <!-- Breakdown -->
+  <div class="glass-panel rounded-2xl px-8 py-2 mb-6">
+
+    <div class="detail-row">
+      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Subtotal</span>
+      <span class="text-sm text-white/70">₹{{ order.subtotal }}</span>
+    </div>
+
+    {% if order.discount > 0 %}
+    <div class="detail-row">
+      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Product Discount</span>
+      <span class="text-sm text-green-400">- ₹{{ order.discount }}</span>
+    </div>
+    {% endif %}
+
+    {% if order.coupon_discount > 0 %}
+    <div class="detail-row">
+      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
+        Coupon Discount
+        {% if order.applied_coupon %}
+        <span class="text-white/20 ml-1">({{ order.applied_coupon.code }})</span>
+        {% endif %}
+      </span>
+      <span class="text-sm text-green-400">- ₹{{ order.coupon_discount }}</span>
+    </div>
+    {% endif %}
+
+    <div class="detail-row">
+      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Shipping</span>
+      <span class="text-sm text-white/70">
+        {% if order.shipping_charge == 0 %}Free{% else %}₹{{ order.shipping_charge }}{% endif %}
+      </span>
+    </div>
+
+    <div class="detail-row">
+      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Grand Total Paid</span>
+      <span class="text-lg font-black text-blue-400">₹{{ order.total_amount }}</span>
+    </div>
+
+  </div>
+
+  <!-- Customer -->
+  <div class="glass-panel rounded-2xl px-8 py-2 mb-10">
+
+    <div class="detail-row">
+      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Customer</span>
+      <div class="text-right">
+        <div class="text-sm text-white font-bold">{{ order.user.username }}</div>
+        <div class="text-[10px] text-white/30 mt-0.5">{{ order.user.email }}</div>
+      </div>
+    </div>
+
+    <div class="detail-row">
+      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Delivery Name</span>
+      <span class="text-sm text-white/70">{{ order.full_name }}</span>
+    </div>
+
+    <div class="detail-row">
+      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Phone</span>
+      <span class="text-sm text-white/70">{{ order.phone_number }}</span>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       WALLET TRANSACTION DETAIL
+  ═══════════════════════════════════════ -->
+  {% else %}
 
   <div class="mb-10 flex items-start justify-between">
     <div>
@@ -52,12 +196,16 @@
       </p>
     </div>
     <span class="mt-2 px-5 py-2.5 rounded-full text-[10px] uppercase font-black tracking-wider
-      {% if txn.transaction_type == 'CREDIT' %}text-green-400 bg-green-500/10 border border-green-500/20
-      {% else %}text-red-400 bg-red-500/10 border border-red-500/20{% endif %}">
+      {% if txn.transaction_type == 'CREDIT' %}
+        text-green-400 bg-green-500/10 border border-green-500/20
+      {% else %}
+        text-red-400 bg-red-500/10 border border-red-500/20
+      {% endif %}">
       {{ txn.transaction_type }}
     </span>
   </div>
 
+  <!-- Amount Card -->
   <div class="glass-panel rounded-2xl p-8 mb-6 text-center">
     <p class="text-[9px] text-white/30 uppercase tracking-[4px] font-black mb-3">Transaction Amount</p>
     <p class="text-6xl font-black tracking-tighter
@@ -66,43 +214,51 @@
     </p>
   </div>
 
+  <!-- Transaction Details -->
   <div class="glass-panel rounded-2xl px-8 py-2 mb-6">
 
     <div class="detail-row">
       <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Purpose</span>
-      <span class="px-4 py-2 rounded-full text-[10px] uppercase font-black tracking-wider
-  {% if txn.purpose == 'RECHARGE' %}text-blue-400 bg-blue-500/10
-  {% elif txn.purpose == 'REFUND' %}text-amber-400 bg-amber-500/10
-  {% elif txn.purpose == 'PURCHASE' %}text-purple-400 bg-purple-500/10
-  {% else %}text-white/60 bg-white/5{% endif %}">
-  {% if txn.purpose == 'REFUND' %}
-    {% if 'item cancellation' in txn.description %}Item Cancel Refund
-    {% elif 'cancellation' in txn.description %}Order Cancel Refund
-    {% elif 'returned' in txn.description %}Return Refund
-    {% else %}Refund{% endif %}
-  {% else %}
-    {{ txn.get_purpose_display }}
-  {% endif %}
-</span>
+      <span class="px-4 py-1.5 rounded-full text-[10px] uppercase font-black tracking-wider
+        {% if txn.purpose == 'RECHARGE' %}text-blue-400 bg-blue-500/10
+        {% elif txn.purpose == 'REFUND' %}text-amber-400 bg-amber-500/10
+        {% elif txn.purpose == 'PURCHASE' %}text-purple-400 bg-purple-500/10
+        {% elif txn.purpose == 'REFERRAL_BONUS' %}text-yellow-400 bg-yellow-500/10
+        {% else %}text-white/60 bg-white/5{% endif %}">
+        {% if txn.purpose == 'REFUND' %}
+          {% if 'item cancellation' in txn.description %}Item Cancel Refund
+          {% elif 'cancellation' in txn.description %}Order Cancel Refund
+          {% elif 'returned' in txn.description %}Return Refund
+          {% else %}Refund{% endif %}
+        {% elif txn.purpose == 'REFERRAL_BONUS' %}Referral Bonus
+        {% else %}{{ txn.get_purpose_display }}{% endif %}
+      </span>
     </div>
 
     <div class="detail-row">
       <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Description</span>
-      <span class="text-sm text-white/70 font-light text-right max-w-xs">{{ txn.description|default:"—" }}</span>
+      <span class="text-sm text-white/70 font-light text-right max-w-xs">
+        {{ txn.description|default:"—" }}
+      </span>
     </div>
 
     <div class="detail-row">
       <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Razorpay Payment ID</span>
-      <span class="text-xs font-mono text-white/60 tracking-wider">{{ txn.razorpay_payment_id|default:"—" }}</span>
+      <span class="text-xs font-mono text-white/60 tracking-wider">
+        {{ txn.razorpay_payment_id|default:"—" }}
+      </span>
     </div>
 
     <div class="detail-row">
       <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Linked Order ID</span>
-      <span class="text-xs font-mono text-white/60 tracking-wider">{{ txn.order_id|default:"—" }}</span>
+      <span class="text-xs font-mono text-white/60 tracking-wider">
+        {{ txn.order_id|default:"—" }}
+      </span>
     </div>
 
   </div>
 
+  <!-- Wallet / Customer -->
   <div class="glass-panel rounded-2xl px-8 py-2 mb-10">
 
     <div class="detail-row">
@@ -114,7 +270,9 @@
     </div>
 
     <div class="detail-row">
-      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">Wallet Balance (Current)</span>
+      <span class="text-[10px] text-white/30 uppercase tracking-[3px] font-black">
+        Wallet Balance (Current)
+      </span>
       <span class="text-sm font-black text-gold">₹{{ txn.wallet.balance }}</span>
     </div>
 
@@ -125,7 +283,12 @@
 
   </div>
 
-  <a href="{% url 'management:admin_transactions_list' %}" class="inline-flex items-center gap-3 text-[10px] uppercase font-black tracking-[3px] text-white/30 hover:text-gold transition-all">
+  {% endif %}
+
+  <!-- Back Link -->
+  <a href="{% url 'management:admin_transactions_list' %}"
+     class="inline-flex items-center gap-3 text-[10px] uppercase font-black
+            tracking-[3px] text-white/30 hover:text-gold transition-all">
     <i class="bi bi-arrow-left"></i> Back to Ledger
   </a>
 

@@ -1,458 +1,625 @@
 {% extends 'admin_panel/base_admin.html' %}
 {% load static %}
 {% block extra_css %}
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
-    .glass-panel { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
-/* Update this in your <style> section */
-.luxury-input { 
-    background: rgba(0, 0, 0, 0.4); 
-    border: 1px solid rgba(255, 255, 255, 0.05); 
-    color: white; 
-    transition: all 0.3s ease;
-    min-height: 58px; /* Forces it to match the text input height */
-}    .luxury-input:focus { border-color: #f4b41a; box-shadow: 0 0 15px rgba(244, 180, 26, 0.1); outline: none; }
-    
-    .variant-row { background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.03); transition: all 0.3s ease; }
-    .variant-row:hover { border-color: rgba(244, 180, 26, 0.2); background: rgba(255, 255, 255, 0.02); }
+    .glass-panel { background: rgba(255,255,255,0.02); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+    .luxury-input {
+        background: rgba(0,0,0,0.4);
+        border: 1px solid rgba(255,255,255,0.05);
+        color: white;
+        transition: all 0.3s ease;
+        min-height: 58px;
+    }
+    .luxury-input:focus { border-color: #f4b41a; box-shadow: 0 0 15px rgba(244,180,26,0.1); outline: none; }
+    .luxury-input.input-error { border-color: rgba(239,68,68,0.6); box-shadow: 0 0 10px rgba(239,68,68,0.1); }
 
-    .image-preview-slot { width: 100%; aspect-ratio: 3/4; background: rgba(0,0,0,0.4); border: 1px dashed rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-    .image-preview-slot img { width: 100%; height: 100%; object-fit: cover; }
-    
-    .luxury-shimmer { background: linear-gradient(90deg, #fff, #f4b41a, #fff); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: shimmer 3s linear infinite; }
+    .variant-row { background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); transition: all 0.3s ease; }
+    .variant-row:hover { border-color: rgba(244,180,26,0.2); background: rgba(255,255,255,0.02); }
+    .variant-row.row-error { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.03); }
+
+    .image-preview-slot { width:100%; aspect-ratio:3/4; background:rgba(0,0,0,0.4); border:1px dashed rgba(255,255,255,0.1); border-radius:12px; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+    .image-preview-slot img { width:100%; height:100%; object-fit:cover; }
+
+    .luxury-shimmer { background: linear-gradient(90deg,#fff,#f4b41a,#fff); background-size:200% auto; -webkit-background-clip:text; -webkit-text-fill-color:transparent; animation: shimmer 3s linear infinite; }
     @keyframes shimmer { to { background-position: 200% center; } }
+
     select.luxury-input {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1.5rem center;
-    background-size: 1rem;
-    padding-right: 3rem; /* Make space for the arrow */
-}
-</style>
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1.5rem center;
+        background-size: 1rem;
+        padding-right: 3rem;
+    }
+
+    /* Toggle switch */
+    .toggle-track { width:44px; height:24px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:100px; position:relative; cursor:pointer; transition:all 0.3s ease; }
+    .toggle-track.active { background:rgba(244,180,26,0.2); border-color:rgba(244,180,26,0.4); }
+    .toggle-thumb { width:16px; height:16px; background:rgba(255,255,255,0.2); border-radius:50%; position:absolute; top:3px; left:3px; transition:all 0.3s ease; }
+    .toggle-track.active .toggle-thumb { left:21px; background:#f4b41a; }
+
+    /* Inline error tag */
+    .field-error { color:#f87171; font-size:9px; text-transform:uppercase; letter-spacing:2px; font-weight:900; margin-top:6px; display:none; }
+    .field-error.visible { display:block; }
+
+    /* Error banner */
+    #errorBanner { display:none; }
+    #errorBanner.visible { display:block; }
+    </style>
 {% endblock %}
+
 {% block content %}
 <div class="max-w-7xl mx-auto animate__animated animate__fadeIn pb-20">
-<div class="mb-10 flex justify-between items-end">
-<div>
-<a href="{% url 'admin_product_list' %}" class="group flex items-center gap-3 text-white/50 text-[10px] uppercase tracking-[3px] font-bold mb-4 hover:text-gold transition-all">
-<i class="bi bi-arrow-left"></i> Back to Registry
-</a>
-<h2 class="text-4xl font-extralight text-white tracking-tighter">
-Initialize <span class="font-black luxury-shimmer">New Scent</span>
-</h2>
-</div>
-{% if messages %}
-<div class="fixed top-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md space-y-4 animate__animated animate__fadeInDown">
-{% for message in messages %}
-<div class="glass-panel border-gold/30 p-5 rounded-2xl flex items-center gap-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-<div class="w-8 h-8 rounded-full bg-gold/10 flex items-center justify-center text-gold">
-<i class="bi bi-check2-all"></i>
-</div>
-<div class="flex-1">
-<p class="text-[10px] text-white/40 uppercase tracking-[2px] font-black">System Notification</p>
-<p class="text-xs text-white/90 font-bold tracking-wide mt-0.5">{{ message }}</p>
-</div>
-<button onclick="this.parentElement.remove()" class="text-white/20 hover:text-white transition-colors">
-<i class="bi bi-x-lg text-xs"></i>
-</button>
-</div>
-{% endfor %}
-</div>
-{% endif %}
-<p class="text-white/20 text-[9px] uppercase tracking-[4px] font-black mb-1">Product Manifest v1.0</p>
-</div>
-<form method="POST" enctype="multipart/form-data" id="product-form">
-{% csrf_token %}
-<div class="grid grid-cols-12 gap-8 items-start">
-<div class="col-span-8 space-y-8">
-<div class="glass-panel rounded-[32px] p-10 space-y-8">
-<h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-4 border-b border-white/5 pb-4">
-Core Identity
-</h3>
-<div class="grid grid-cols-2 gap-6">
-<div class="col-span-2">
-<label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Scent Name</label>
-<input type="text" name="name" required class="luxury-input py-4 px-6 rounded-xl text-sm w-full font-bold" placeholder="e.g., Midnight Oud">
-</div>
-<div>
-<label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Brand/House</label>
-<input type="text" name="brand_name" list="brand-suggestions" class="luxury-input py-4 px-6 rounded-xl text-sm w-full font-bold" placeholder="e.g., Tom Ford" required>
-<datalist id="brand-suggestions">
-{% for brand in brands %}<option value="{{ brand.name }}">{% endfor %}
-</datalist>
-</div>
-<div>
-<label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Primary Vault</label>
-<select name="category" class="luxury-input py-4 px-6 rounded-xl text-sm w-full appearance-none">
-{% for cat in categories %}<option value="{{ cat.id }}">{{ cat.name }}</option>{% endfor %}
-</select>
-</div>
-</div>
-<div>
-<label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Scent Narrative</label>
-<textarea name="description" rows="4" class="luxury-input py-4 px-6 rounded-xl text-sm w-full" placeholder="Describe the soul of this fragrance..."></textarea>
-</div>
-<div class="pt-6 border-t border-white/5">
-    <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-6">Olfactory Pyramid</h3>
-    <div class="grid grid-cols-3 gap-6">
+
+    <!-- Header -->
+    <div class="mb-10 flex justify-between items-end">
         <div>
-            <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Top Notes</label>
-            <input type="text"
-                   name="top_notes"
-                   class="luxury-input py-3 px-4 rounded-lg text-xs w-full"
-                   placeholder="Citrus...">
+            <a href="{% url 'admin_product_list' %}" class="group flex items-center gap-3 text-white/50 text-[10px] uppercase tracking-[3px] font-bold mb-4 hover:text-gold transition-all">
+                <i class="bi bi-arrow-left"></i> Back to Registry
+            </a>
+            <h2 class="text-4xl font-extralight text-white tracking-tighter">
+                Initialize <span class="font-black luxury-shimmer">New Scent</span>
+            </h2>
         </div>
-        <div>
-            <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Heart Notes</label>
-            <input type="text"
-                   name="heart_notes"
-                   class="luxury-input py-3 px-4 rounded-lg text-xs w-full"
-                   placeholder="Rose...">
-        </div>
-        <div>
-            <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Base Notes</label>
-            <input type="text"
-                   name="base_notes"
-                   class="luxury-input py-3 px-4 rounded-lg text-xs w-full"
-                   placeholder="Amber...">
-        </div>
+        <p class="text-white/20 text-[9px] uppercase tracking-[4px] font-black mb-1">Product Manifest v1.0</p>
     </div>
-</div>
-</div>
-<div class="glass-panel rounded-[32px] p-10">
-    <div class="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
-        <div>
-            <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px]">Product Varient</h3>
-            <p class="text-white/20 text-[8px] uppercase tracking-[2px] mt-1">Manage volumes and pricing</p>
+
+    <!-- Server-side messages -->
+    {% if messages %}
+    <div class="mb-6 space-y-3">
+        {% for message in messages %}
+        <div class="p-4 rounded-xl text-[11px] font-black uppercase tracking-widest flex items-start justify-between
+            {% if message.tags == 'error' %}bg-red-500/10 text-red-400 border border-red-500/20
+            {% elif message.tags == 'success' %}bg-gold/10 text-gold border border-gold/20
+            {% else %}bg-white/5 text-white/70 border border-white/10{% endif %}">
+            <span>{{ message }}</span>
+            <button type="button" onclick="this.parentElement.remove()" class="ml-4 text-lg text-white/30 hover:text-white">&times;</button>
         </div>
-        <button type="button"
-                id="add-variant-btn"
-                class="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-[2px] text-gold hover:bg-gold hover:text-black transition-all">
-            <i class="bi bi-plus-lg me-1"></i> Add Size
-        </button>
+        {% endfor %}
     </div>
-    <div id="variant-container" class="space-y-4">
-        <div class="variant-row p-6 rounded-2xl grid grid-cols-12 gap-4 items-end relative group animate__animated animate__fadeIn">
-            <div class="col-span-3">
-                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Volume</label>
-                <select name="v_size[]"
-                        required
-                        class="luxury-input py-3 px-4 rounded-lg text-xs w-full font-bold appearance-none">
-                    <option value="" disabled selected>Select Size</option>
-                    <option value="8ml">8ml (Travel)</option>
-                    <option value="20ml">20ml (Discovery)</option>
-                    <option value="50ml">50ml (Signature)</option>
-                    <option value="100ml">100ml (Grand)</option>
-                </select>
-            </div>
-            <div class="col-span-3">
-                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Price (₹)</label>
-                <input type="number"
-                       name="v_price[]"
-                       required
-                       min="0"
-                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full"
-                       placeholder="0.00">
-            </div>
-            <div class="col-span-2">
-                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Offer</label>
-                <input type="number"
-                       name="v_offer[]"
-                       min="0"
-                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full"
-                       placeholder="Sale">
-            </div>
-            <div class="col-span-3">
-                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Stock</label>
-                <input type="number"
-                       name="v_stock[]"
-                       required
-                       min="0"
-                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full"
-                       placeholder="0">
-            </div>
-            <div class="col-span-1 flex justify-center pb-2">
-                <button type="button"
-                        onclick="removeVariantRow(this)"
-                        class="text-white/10 hover:text-red-500 transition-colors">
-                    <i class="bi bi-x-circle text-lg"></i>
-                </button>
-            </div>
-        </div>
+    {% endif %}
+
+    <!-- JS error banner -->
+    <div id="errorBanner" class="mb-6 p-5 rounded-xl bg-red-500/10 border border-red-500/20">
+        <p class="text-[10px] font-black uppercase tracking-[3px] text-red-400 mb-2">Please fix the following</p>
+        <ul id="errorList" class="space-y-1 list-none"></ul>
     </div>
-</div>
-</div>
-<div class="col-span-4 sticky top-10 space-y-6">
-    <div class="glass-panel rounded-[32px] p-8">
-        <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-6 border-b border-white/5 pb-4">
-            Visual Gallery (3:4)
-        </h3>
-        <div class="grid grid-cols-2 gap-4" id="gallery-grid">
-            <div class="col-span-2">
-                <div class="image-preview-slot relative group" id="preview-0">
-                    <button type="button"
-                            onclick="removeImage(0)"
-                            class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
-                        <i class="bi bi-x"></i>
-                    </button>
-                    <label for="img-0"
-                           class="cursor-pointer text-center p-4 w-full h-full flex flex-col items-center justify-center">
-                        <i class="bi bi-camera text-2xl text-white/10 block mb-2"></i>
-                        <span class="text-[8px] text-white/20 uppercase font-black tracking-widest">Main Master Image</span>
-                    </label>
-                    <input type="file"
-                           id="img-0"
-                           class="hidden image-input"
-                           accept="image/*"
-                           data-index="0">
-                    <input type="hidden" name="cropped_images[]" id="cropped-0">
+
+    <form method="POST" enctype="multipart/form-data" id="product-form" novalidate>
+        {% csrf_token %}
+
+        <!-- ═══════ GRID ═══════ -->
+        <div class="grid grid-cols-12 gap-8 items-start">
+
+            <!-- ══ LEFT COLUMN ══ -->
+            <div class="col-span-8 space-y-8">
+
+                <!-- Core Identity -->
+                <div class="glass-panel rounded-[32px] p-10 space-y-8">
+                    <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-4 border-b border-white/5 pb-4">Core Identity</h3>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <!-- Name -->
+                        <div class="col-span-2">
+                            <label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Scent Name</label>
+                            <input type="text" name="name" id="field-name" required
+                                   value="{{ post.name|default:'' }}"
+                                   class="luxury-input py-4 px-6 rounded-xl text-sm w-full font-bold"
+                                   placeholder="e.g., Midnight Oud">
+                            <p class="field-error" id="err-name">Name is required</p>
+                        </div>
+
+                        <!-- Brand -->
+                        <div>
+                            <label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Brand / House</label>
+                            <input type="text" name="brand_name" id="field-brand" list="brand-suggestions" required
+                                   value="{{ post.brand_name|default:'' }}"
+                                   class="luxury-input py-4 px-6 rounded-xl text-sm w-full font-bold"
+                                   placeholder="e.g., Tom Ford">
+                            <datalist id="brand-suggestions">
+                                {% for brand in brands %}<option value="{{ brand.name }}">{% endfor %}
+                            </datalist>
+                            <p class="field-error" id="err-brand">Brand is required</p>
+                        </div>
+
+                        <!-- Category -->
+                        <div>
+                            <label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Primary Vault</label>
+                            <select name="category" class="luxury-input py-4 px-6 rounded-xl text-sm w-full appearance-none">
+                                {% for cat in categories %}<option value="{{ cat.id }}">{{ cat.name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Scent Narrative</label>
+                        <textarea name="description" id="field-description" rows="4"
+                                  class="luxury-input py-4 px-6 rounded-xl text-sm w-full"
+                                  placeholder="Describe the soul of this fragrance...">{{ post.description|default:'' }}</textarea>
+                        <p class="field-error" id="err-description">Description is required</p>
+                    </div>
+
+                    <!-- Olfactory Pyramid -->
+                    <div class="pt-6 border-t border-white/5">
+                        <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-6">Olfactory Pyramid</h3>
+                        <div class="grid grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Top Notes</label>
+                                <input type="text" name="top_notes" value="{{ post.top_notes|default:'' }}"
+                                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full" placeholder="Citrus...">
+                            </div>
+                            <div>
+                                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Heart Notes</label>
+                                <input type="text" name="heart_notes" value="{{ post.heart_notes|default:'' }}"
+                                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full" placeholder="Rose...">
+                            </div>
+                            <div>
+                                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Base Notes</label>
+                                <input type="text" name="base_notes" value="{{ post.base_notes|default:'' }}"
+                                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full" placeholder="Amber...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ── Featured Toggle ── -->
+                    <div class="pt-6 border-t border-white/5 flex items-center justify-between">
+                        <div>
+                            <p class="text-[9px] text-white/40 uppercase tracking-[3px] font-black">Featured Scent</p>
+                            <p class="text-[8px] text-white/20 mt-1">Highlight this product on the homepage</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span id="featured-label" class="text-[9px] uppercase tracking-[2px] font-black text-white/20">Off</span>
+                            <div id="featured-toggle" class="toggle-track" onclick="toggleFeatured()">
+                                <div class="toggle-thumb"></div>
+                            </div>
+                            <input type="hidden" name="is_featured" id="is_featured_input" value="">
+                        </div>
+                    </div>
                 </div>
-            </div>
-            {% for i in "123" %}
-                <div class="image-preview-slot relative group" id="preview-{{ i }}">
-                    <button type="button"
-                            onclick="removeImage({{ i }})"
-                            class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
-                        <i class="bi bi-x"></i>
-                    </button>
-                    <label for="img-{{ i }}"
-                           class="cursor-pointer text-center w-full h-full flex flex-col items-center justify-center">
-                        <i class="bi bi-plus-lg text-white/10"></i>
-                    </label>
-                    <input type="file"
-                           id="img-{{ i }}"
-                           class="hidden image-input"
-                           accept="image/*"
-                           data-index="{{ i }}">
-                    <input type="hidden" name="cropped_images[]" id="cropped-{{ i }}">
+
+                <!-- Variants -->
+                <div class="glass-panel rounded-[32px] p-10">
+                    <div class="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
+                        <div>
+                            <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px]">Product Variants</h3>
+                            <p class="text-white/20 text-[8px] uppercase tracking-[2px] mt-1">Manage volumes and pricing</p>
+                        </div>
+                        <button type="button" id="add-variant-btn"
+                                class="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-[2px] text-gold hover:bg-gold hover:text-black transition-all">
+                            <i class="bi bi-plus-lg me-1"></i> Add Size
+                        </button>
+                    </div>
+                    <p class="field-error mb-4" id="err-variants">At least one variant is required</p>
+
+                    <div id="variant-container" class="space-y-4">
+                        <!-- Default first row -->
+                        <div class="variant-row p-6 rounded-2xl grid grid-cols-12 gap-4 items-end relative group animate__animated animate__fadeIn">
+                            <div class="col-span-3">
+                                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Volume</label>
+                                <select name="v_size[]" required class="luxury-input py-3 px-4 rounded-lg text-xs w-full font-bold appearance-none">
+                                    <option value="" disabled selected>Select Size</option>
+                                    <option value="8ml">8ml (Travel)</option>
+                                    <option value="20ml">20ml (Discovery)</option>
+                                    <option value="50ml">50ml (Signature)</option>
+                                    <option value="100ml">100ml (Grand)</option>
+                                </select>
+                            </div>
+                            <div class="col-span-3">
+                                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Price (₹)</label>
+                                <input type="number" name="v_price[]" required min="0" step="0.01"
+                                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full" placeholder="0.00">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Offer (₹)</label>
+                                <input type="number" name="v_offer[]" min="0" step="0.01"
+                                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full" placeholder="—">
+                            </div>
+                            <div class="col-span-3">
+                                <label class="block text-[8px] text-white/20 uppercase tracking-[2px] font-black mb-2">Stock</label>
+                                <input type="number" name="v_stock[]" required min="0"
+                                       class="luxury-input py-3 px-4 rounded-lg text-xs w-full" placeholder="0">
+                            </div>
+                            <div class="col-span-1 flex justify-center pb-2">
+                                <button type="button" onclick="removeVariantRow(this)" class="text-white/10 hover:text-red-500 transition-colors">
+                                    <i class="bi bi-x-circle text-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            {% endfor %}
-        </div>
-        <p class="text-[8px] text-white/20 uppercase tracking-[2px] mt-6 text-center italic">High-res portraits only.</p>
-    </div>
-    <div class="glass-panel rounded-[32px] p-8">
-        <button type="submit"
-                class="w-full py-5 bg-gold text-black rounded-2xl font-black text-[11px] uppercase tracking-[3px] hover:shadow-[0_0_30_rgba(244,180,26,0.3)] transition-all mb-4">
-            Commit to Registry
-        </button>
-        <a href="{% url 'admin_product_list' %}"
-           class="block text-center text-[9px] font-black text-white/20 uppercase tracking-[2px] hover:text-white transition-colors">
-            Discard Draft
-        </a>
-    </div>
+
+            </div><!-- /col-span-8 -->
+
+            <!-- ══ RIGHT COLUMN ══ -->
+            <div class="col-span-4 sticky top-10 space-y-6">
+
+                <!-- Gallery -->
+                <div class="glass-panel rounded-[32px] p-8">
+                    <h3 class="text-gold text-[10px] font-black uppercase tracking-[4px] mb-6 border-b border-white/5 pb-4">
+                        Visual Gallery (3:4)
+                    </h3>
+                    <p class="field-error mb-4" id="err-images">Minimum 4 images required</p>
+                    <div class="grid grid-cols-2 gap-4" id="gallery-grid">
+                        <!-- Slot 0 — Main -->
+                        <div class="col-span-2">
+                            <div class="image-preview-slot relative group" id="preview-0">
+                                <button type="button" onclick="removeImage(0)"
+                                        class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                                <label for="img-0" class="cursor-pointer text-center p-4 w-full h-full flex flex-col items-center justify-center">
+                                    <i class="bi bi-camera text-2xl text-white/10 block mb-2"></i>
+                                    <span class="text-[8px] text-white/20 uppercase font-black tracking-widest">Main Master Image</span>
+                                </label>
+                                <input type="file" id="img-0" class="hidden image-input" accept="image/*" data-index="0">
+                                <input type="hidden" name="cropped_images[]" id="cropped-0">
+                            </div>
+                        </div>
+                        <!-- Slots 1–3 -->
+                        {% for i in "123" %}
+                        <div class="image-preview-slot relative group" id="preview-{{ i }}">
+                            <button type="button" onclick="removeImage({{ i }})"
+                                    class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
+                                <i class="bi bi-x"></i>
+                            </button>
+                            <label for="img-{{ i }}" class="cursor-pointer text-center w-full h-full flex flex-col items-center justify-center">
+                                <i class="bi bi-plus-lg text-white/10"></i>
+                            </label>
+                            <input type="file" id="img-{{ i }}" class="hidden image-input" accept="image/*" data-index="{{ i }}">
+                            <input type="hidden" name="cropped_images[]" id="cropped-{{ i }}">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <p class="text-[8px] text-white/20 uppercase tracking-[2px] mt-6 text-center italic">High-res portraits only. 4 required.</p>
+                </div>
+
+                <!-- Submit -->
+                <div class="glass-panel rounded-[32px] p-8">
+                    <button type="submit"
+                            class="w-full py-5 bg-gold text-black rounded-2xl font-black text-[11px] uppercase tracking-[3px] hover:shadow-[0_0_30px_rgba(244,180,26,0.3)] transition-all mb-4">
+                        Commit to Registry
+                    </button>
+                    <a href="{% url 'admin_product_list' %}"
+                       class="block text-center text-[9px] font-black text-white/20 uppercase tracking-[2px] hover:text-white transition-colors">
+                        Discard Draft
+                    </a>
+                </div>
+
+            </div><!-- /col-span-4 -->
+        </div><!-- /grid -->
+    </form>
 </div>
-<div id="cropper-modal"
-     class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
+
+<!-- Cropper Modal -->
+<div id="cropper-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
     <div class="glass-panel rounded-[32px] p-8 max-w-xl w-full border-gold/20">
         <h3 class="text-white font-black text-[11px] uppercase tracking-[3px] mb-6">Refine Composition</h3>
         <div class="max-h-[500px] overflow-hidden rounded-xl bg-black">
-            <img id="image-to-crop" style="max-width: 100%;">
+            <img id="image-to-crop" style="max-width:100%;">
         </div>
         <div class="flex justify-end gap-6 mt-8">
-            <button type="button"
-                    id="cancel-crop"
-                    class="text-[10px] text-white/30 uppercase font-black tracking-widest">Cancel</button>
-            <button type="button"
-                    id="apply-crop"
-                    class="px-10 py-3 bg-gold text-black rounded-xl font-black text-[10px] uppercase tracking-widest">
+            <button type="button" id="cancel-crop" class="text-[10px] text-white/30 uppercase font-black tracking-widest">Cancel</button>
+            <button type="button" id="apply-crop" class="px-10 py-3 bg-gold text-black rounded-xl font-black text-[10px] uppercase tracking-widest">
                 Verify Crop
             </button>
         </div>
     </div>
 </div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <script>
-    // Auto-dismiss messages after 5 seconds
-    setTimeout(() => {
-        const alerts = document.querySelectorAll('.animate__fadeInDown');
-        alerts.forEach(alert => {
-            alert.classList.replace('animate__fadeInDown', 'animate__fadeOutUp');
-            setTimeout(() => alert.remove(), 1000);
-        });
-    }, 5000);
+// ─────────────────────────────────────────────────────
+//  FEATURED TOGGLE
+// ─────────────────────────────────────────────────────
+function toggleFeatured() {
+    const track = document.getElementById('featured-toggle');
+    const label = document.getElementById('featured-label');
+    const input = document.getElementById('is_featured_input');
+    const isActive = track.classList.toggle('active');
+    label.textContent = isActive ? 'On' : 'Off';
+    label.style.color = isActive ? '#f4b41a' : '';
+    input.value = isActive ? 'on' : '';
+}
 
-    // Logic for Variants (Max 4)
-    const addBtn = document.getElementById('add-variant-btn');
-    if (addBtn) {
-        addBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const container = document.getElementById('variant-container');
-            const rows = container.getElementsByClassName('variant-row');
-            
-            if (rows.length >= 4) {
-                alert("Maximum 4 sizes allowed.");
-                return;
-            }
+// ─────────────────────────────────────────────────────
+//  VARIANT LOGIC
+// ─────────────────────────────────────────────────────
+const SIZE_ORDER = { '8ml': 8, '20ml': 20, '50ml': 50, '100ml': 100 };
 
-            const newRow = rows[0].cloneNode(true);
-            newRow.querySelectorAll('input[type="number"]').forEach(preventNegative);
-            newRow.querySelectorAll('input').forEach(i => i.value = '');
-            newRow.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
-            container.appendChild(newRow);
-        });
+document.getElementById('add-variant-btn').addEventListener('click', function (e) {
+    e.preventDefault();
+    const container = document.getElementById('variant-container');
+    const rows = container.getElementsByClassName('variant-row');
+    if (rows.length >= 4) {
+        showError(['Maximum 4 size variants allowed.']);
+        return;
     }
+    const newRow = rows[0].cloneNode(true);
+    newRow.querySelectorAll('input').forEach(i => i.value = '');
+    newRow.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+    newRow.querySelectorAll('input[type="number"]').forEach(attachNegativeGuard);
+    newRow.classList.remove('row-error');
+    container.appendChild(newRow);
+});
 
-    function removeVariantRow(button) {
-        const rows = document.getElementsByClassName('variant-row');
-        if (rows.length > 1) {
-            button.closest('.variant-row').remove();
+function removeVariantRow(btn) {
+    const rows = document.getElementsByClassName('variant-row');
+    if (rows.length > 1) btn.closest('.variant-row').remove();
+}
+
+// ─────────────────────────────────────────────────────
+//  CLIENT-SIDE VARIANT VALIDATION
+//  Mirrors server logic exactly
+// ─────────────────────────────────────────────────────
+function validateVariants() {
+    const rows = Array.from(document.querySelectorAll('.variant-row'));
+    const errors = [];
+    const variants = [];
+    const seenSizes = new Set();
+
+    // Clear previous row errors
+    rows.forEach(r => r.classList.remove('row-error'));
+
+    rows.forEach((row, idx) => {
+        const size  = row.querySelector('select[name="v_size[]"]')?.value?.trim() || '';
+        const priceRaw = row.querySelector('input[name="v_price[]"]')?.value?.trim() || '';
+        const offerRaw = row.querySelector('input[name="v_offer[]"]')?.value?.trim() || '';
+
+        if (!size || !priceRaw) return; // empty row
+
+        // Rule 1 – duplicate size
+        if (seenSizes.has(size)) {
+            errors.push(`Duplicate variant: '${size}' can only appear once.`);
+            row.classList.add('row-error');
+            return;
         }
-    }
+        seenSizes.add(size);
 
-    // --- Dynamic Image Gallery Logic ---
-    let cropper;
-    let currentSlotIndex;
-    let nextSlotIndex = 4; // Tracks the ID for the next dynamic slot
-    const modal = document.getElementById('cropper-modal');
-    const imageToCrop = document.getElementById('image-to-crop');
+        const price = parseFloat(priceRaw);
+        const offer = offerRaw !== '' ? parseFloat(offerRaw) : null;
 
-    // Reusable function to open cropper
-    function handleFileSelect(input) {
-        if (!input.files || !input.files[0]) return;
-        currentSlotIndex = input.dataset.index;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            imageToCrop.src = event.target.result;
-            modal.classList.remove('hidden');
-            if (cropper) cropper.destroy();
-            cropper = new Cropper(imageToCrop, { aspectRatio: 3/4, viewMode: 2 });
-        };
-        reader.readAsDataURL(input.files[0]);
-    }
-
-    // Attach listener to initial 4 slots
-    function bindInitialInputs() {
-        document.querySelectorAll('.image-input').forEach(input => {
-            input.addEventListener('change', function() { handleFileSelect(this); });
-        });
-    }
-    bindInitialInputs();
-
-    document.getElementById('apply-crop').addEventListener('click', () => {
-        const canvas = cropper.getCroppedCanvas({ width: 600, height: 800 });
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-
-        const previewBox = document.getElementById(`preview-${currentSlotIndex}`);
-        const fileInput = document.getElementById(`img-${currentSlotIndex}`);
-
-        let previewImg = previewBox.querySelector('img');
-        if (!previewImg) {
-            previewImg = document.createElement('img');
-            previewImg.className = "cursor-pointer absolute inset-0 w-full h-full object-cover z-0";
-            previewBox.appendChild(previewImg);
+        // Rule 2 – offer < price within this variant
+        if (offer !== null && offer >= price) {
+            errors.push(`${size}: Offer price (₹${offer}) must be less than the regular price (₹${price}).`);
+            row.classList.add('row-error');
         }
 
-        previewImg.src = dataUrl;
-        previewImg.onclick = () => fileInput.click();
-        document.getElementById(`cropped-${currentSlotIndex}`).value = dataUrl;
-
-        // --- Infinite Slot Logic ---
-        // If the slot just filled is the current "last" slot, add a new one
-        const totalSlots = document.querySelectorAll('.image-preview-slot').length;
-        if (parseInt(currentSlotIndex) === totalSlots - 1) {
-            addNewImageSlot(totalSlots);
-        }
-
-        modal.classList.add('hidden');
-        if (cropper) { cropper.destroy(); cropper = null; }
+        variants.push({ size, order: SIZE_ORDER[size] ?? 999, price, offer, row });
     });
 
-    // Function to create a new slot
-    function addNewImageSlot(index) {
-        const grid = document.getElementById('gallery-grid');
-        const newSlot = document.createElement('div');
-        newSlot.className = "image-preview-slot relative group animate__animated animate__fadeIn";
-        newSlot.id = `preview-${index}`;
-        
-        newSlot.innerHTML = `
-            <button type="button" onclick="removeImage(${index})" class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
-                <i class="bi bi-x"></i>
-            </button>
-            <label for="img-${index}" class="cursor-pointer text-center w-full h-full flex flex-col items-center justify-center">
-                <i class="bi bi-plus-lg text-white/10"></i>
-            </label>
-            <input type="file" id="img-${index}" class="hidden image-input" accept="image/*" data-index="${index}">
-            <input type="hidden" name="cropped_images[]" id="cropped-${index}">
-        `;
-        
-        grid.appendChild(newSlot);
-        
-        // Bind event to the new input
-        newSlot.querySelector('.image-input').addEventListener('change', function() {
-            handleFileSelect(this);
-        });
+    if (variants.length === 0) {
+        errors.push('At least one product variant is required.');
     }
 
-    // Function for the Cross Button (Remove Image)
-    function removeImage(index) {
-    const previewBox = document.getElementById(`preview-${index}`);
-    const img = previewBox.querySelector('img');
+    if (errors.length) return errors;
+
+    // Sort by size for cross-variant check
+    variants.sort((a, b) => a.order - b.order);
+
+    // Rule 3 – strictly increasing price AND offer across sizes
+    for (let i = 1; i < variants.length; i++) {
+        const prev = variants[i - 1];
+        const curr = variants[i];
+
+        if (curr.price <= prev.price) {
+            errors.push(
+                `${curr.size} price (₹${curr.price}) must be greater than ${prev.size} price (₹${prev.price}).`
+            );
+            curr.row.classList.add('row-error');
+        }
+
+        if (curr.offer !== null && prev.offer !== null) {
+            if (curr.offer <= prev.offer) {
+                errors.push(
+                    `${curr.size} offer (₹${curr.offer}) must be greater than ${prev.size} offer (₹${prev.offer}).`
+                );
+                curr.row.classList.add('row-error');
+            }
+        }
+
+        // Larger size has offer, smaller does not — offer must beat smaller's regular price
+        if (curr.offer !== null && prev.offer === null) {
+            if (curr.offer <= prev.price) {
+                errors.push(
+                    `${curr.size} offer (₹${curr.offer}) must be greater than ${prev.size} price (₹${prev.price}).`
+                );
+                curr.row.classList.add('row-error');
+            }
+        }
+    }
+
+    return errors;
+}
+
+// ─────────────────────────────────────────────────────
+//  IMAGE GALLERY LOGIC
+// ─────────────────────────────────────────────────────
+let cropper;
+let currentSlotIndex;
+const modal = document.getElementById('cropper-modal');
+const imageToCrop = document.getElementById('image-to-crop');
+
+function handleFileSelect(input) {
+    if (!input.files || !input.files[0]) return;
+    currentSlotIndex = input.dataset.index;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        imageToCrop.src = e.target.result;
+        modal.classList.remove('hidden');
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(imageToCrop, { aspectRatio: 3/4, viewMode: 2 });
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+
+document.querySelectorAll('.image-input').forEach(input => {
+    input.addEventListener('change', function () { handleFileSelect(this); });
+});
+
+document.getElementById('apply-crop').addEventListener('click', () => {
+    const canvas = cropper.getCroppedCanvas({ width: 600, height: 800 });
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+
+    const previewBox = document.getElementById(`preview-${currentSlotIndex}`);
+    const fileInput  = document.getElementById(`img-${currentSlotIndex}`);
+
+    let previewImg = previewBox.querySelector('img');
+    if (!previewImg) {
+        previewImg = document.createElement('img');
+        previewImg.className = 'cursor-pointer absolute inset-0 w-full h-full object-cover z-0';
+        previewBox.appendChild(previewImg);
+    }
+    previewImg.src = dataUrl;
+    previewImg.onclick = () => fileInput.click();
+    document.getElementById(`cropped-${currentSlotIndex}`).value = dataUrl;
+
+    // Add new slot if this was the last empty one
+    const totalSlots = document.querySelectorAll('.image-preview-slot').length;
+    if (parseInt(currentSlotIndex) === totalSlots - 1) {
+        addNewImageSlot(totalSlots);
+    }
+
+    modal.classList.add('hidden');
+    if (cropper) { cropper.destroy(); cropper = null; }
+});
+
+function addNewImageSlot(index) {
+    const grid = document.getElementById('gallery-grid');
+    const div  = document.createElement('div');
+    div.className = 'image-preview-slot relative group animate__animated animate__fadeIn';
+    div.id = `preview-${index}`;
+    div.innerHTML = `
+        <button type="button" onclick="removeImage(${index})"
+                class="absolute top-2 right-2 z-10 w-6 h-6 bg-red-500/80 text-white rounded-full items-center justify-center hidden group-hover:flex hover:bg-red-600 transition-all">
+            <i class="bi bi-x"></i>
+        </button>
+        <label for="img-${index}" class="cursor-pointer text-center w-full h-full flex flex-col items-center justify-center">
+            <i class="bi bi-plus-lg text-white/10"></i>
+        </label>
+        <input type="file" id="img-${index}" class="hidden image-input" accept="image/*" data-index="${index}">
+        <input type="hidden" name="cropped_images[]" id="cropped-${index}">
+    `;
+    grid.appendChild(div);
+    div.querySelector('.image-input').addEventListener('change', function () { handleFileSelect(this); });
+}
+
+function removeImage(index) {
+    const previewBox  = document.getElementById(`preview-${index}`);
+    const img         = previewBox.querySelector('img');
     const hiddenInput = document.getElementById(`cropped-${index}`);
-    const fileInput = document.getElementById(`img-${index}`);
+    const fileInput   = document.getElementById(`img-${index}`);
 
     if (img) img.remove();
-    if (hiddenInput) hiddenInput.value = "";
-    if (fileInput) fileInput.value = "";
+    if (hiddenInput) hiddenInput.value = '';
+    if (fileInput) fileInput.value = '';
 
-    // remove dynamic empty slots
-    if (index >= 4) {
+    // Remove dynamic slots (index >= 4) if empty
+    if (parseInt(index) >= 4) {
         previewBox.classList.add('animate__zoomOut');
         setTimeout(() => {
             previewBox.remove();
-
-            const emptySlots =
-                [...document.querySelectorAll(".image-preview-slot")]
-                .filter(slot => !slot.querySelector("img"));
-
-            // ensure one empty slot exists
-            if (emptySlots.length === 0) {
-                addNewImageSlot(
-                    document.querySelectorAll(".image-preview-slot").length
-                );
-            }
+            const empties = [...document.querySelectorAll('.image-preview-slot')].filter(s => !s.querySelector('img'));
+            if (empties.length === 0) addNewImageSlot(document.querySelectorAll('.image-preview-slot').length);
         }, 300);
     }
 }
-    document.getElementById('cancel-crop').addEventListener('click', () => {
-        modal.classList.add('hidden');
-        if (cropper) { cropper.destroy(); cropper = null; }
-        const currentInput = document.getElementById(`img-${currentSlotIndex}`);
-        if (currentInput) currentInput.value = '';
+
+document.getElementById('cancel-crop').addEventListener('click', () => {
+    modal.classList.add('hidden');
+    if (cropper) { cropper.destroy(); cropper = null; }
+    const inp = document.getElementById(`img-${currentSlotIndex}`);
+    if (inp) inp.value = '';
+});
+
+// ─────────────────────────────────────────────────────
+//  FORM SUBMIT VALIDATION
+// ─────────────────────────────────────────────────────
+document.getElementById('product-form').addEventListener('submit', function (e) {
+    clearErrors();
+    const allErrors = [];
+
+    // Name
+    const nameVal = document.getElementById('field-name').value.trim();
+    if (!nameVal) {
+        allErrors.push('Product name is required.');
+        showFieldError('err-name', 'Name is required');
+        document.getElementById('field-name').classList.add('input-error');
+    }
+
+    // Brand
+    const brandVal = document.getElementById('field-brand').value.trim();
+    if (!brandVal) {
+        allErrors.push('Brand / House is required.');
+        showFieldError('err-brand', 'Brand is required');
+        document.getElementById('field-brand').classList.add('input-error');
+    }
+
+    // Description
+    const descVal = document.getElementById('field-description').value.trim();
+    if (!descVal) {
+        allErrors.push('Scent narrative (description) is required.');
+        showFieldError('err-description', 'Description is required');
+        document.getElementById('field-description').classList.add('input-error');
+    }
+
+    // Variants
+    const variantErrors = validateVariants();
+    if (variantErrors.length) {
+        allErrors.push(...variantErrors);
+        document.getElementById('err-variants').classList.add('visible');
+    }
+
+    // Images — require exactly 4 (slots 0-3)
+    let imgCount = 0;
+    [0, 1, 2, 3].forEach(i => {
+        const v = document.getElementById(`cropped-${i}`)?.value;
+        if (v && v.trim() !== '') imgCount++;
     });
+    if (imgCount < 4) {
+        allErrors.push('All 4 product images are required before submitting.');
+        document.getElementById('err-images').classList.add('visible');
+    }
 
-    document.getElementById("product-form").addEventListener("submit", function(e) {
-    const firstFour = [0, 1, 2, 3];
-    let uploadedCount = 0;
-
-    firstFour.forEach(i => {
-        const value = document.getElementById(`cropped-${i}`)?.value;
-        if (value && value.trim() !== "") {
-            uploadedCount++;
-        }
-    });
-
-    if (uploadedCount < 4) {
+    if (allErrors.length) {
         e.preventDefault();
-        alert("Please upload all 4 required images before submitting.");
+        showError(allErrors);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return false;
     }
 });
 
-function preventNegative(input) {
-    input.addEventListener("input", () => {
-        if (input.value < 0) {
-            input.value = 0;
-        }
-    });
-
-    input.addEventListener("blur", () => {
-        if (input.value === "" || input.value < 0) {
-            input.value = 0;
-        }
-    });
+function clearErrors() {
+    document.querySelectorAll('.field-error').forEach(el => el.classList.remove('visible'));
+    document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+    document.querySelectorAll('.row-error').forEach(el => el.classList.remove('row-error'));
+    document.getElementById('errorBanner').classList.remove('visible');
+    document.getElementById('errorList').innerHTML = '';
 }
-document.querySelectorAll('input[type="number"]').forEach(preventNegative);
+
+function showFieldError(id, msg) {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = msg; el.classList.add('visible'); }
+}
+
+function showError(messages) {
+    const banner = document.getElementById('errorBanner');
+    const list   = document.getElementById('errorList');
+    list.innerHTML = messages.map(m =>
+        `<li class="flex items-start gap-2 text-[10px] text-red-300 font-bold uppercase tracking-[1px]">
+            <i class="bi bi-x-circle mt-[2px] flex-shrink-0"></i><span>${m}</span>
+        </li>`
+    ).join('');
+    banner.classList.add('visible');
+}
+
+// ─────────────────────────────────────────────────────
+//  NEGATIVE GUARD
+// ─────────────────────────────────────────────────────
+function attachNegativeGuard(input) {
+    input.addEventListener('input', () => { if (input.value !== '' && Number(input.value) < 0) input.value = 0; });
+    input.addEventListener('blur',  () => { if (input.value === '' || Number(input.value) < 0) input.value = 0; });
+}
+document.querySelectorAll('input[type="number"]').forEach(attachNegativeGuard);
 </script>
 {% endblock %}

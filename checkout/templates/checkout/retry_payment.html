@@ -1,0 +1,561 @@
+{% extends 'users/index.html' %}
+{% load static %}
+{% block content %}
+
+<div class="min-h-screen bg-[#050505] text-white relative overflow-hidden">
+
+    <!-- BACKGROUND EFFECTS -->
+    <div class="fixed inset-0 pointer-events-none">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[900px] bg-white/[0.03] blur-[180px] rounded-full"></div>
+        <div class="absolute bottom-[-20%] right-[-10%] w-[700px] h-[700px] bg-yellow-400/[0.06] blur-[160px] rounded-full"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.04),transparent_35%)]"></div>
+    </div>
+
+    <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 py-12 lg:py-16">
+
+        <!-- HEADER -->
+        <div class="mb-12">
+
+            <a href="{% url 'order_detail' order.order_id %}"
+               class="group inline-flex items-center gap-3 px-5 py-2.5 rounded-full border border-white/10
+                      bg-white/[0.03] backdrop-blur-2xl text-sm font-semibold text-white/50
+                      hover:text-white hover:bg-white/[0.07] hover:border-white/20
+                      transition-all duration-300 mb-10">
+                <span class="group-hover:-translate-x-1 transition duration-300">←</span>
+                Back to Order
+            </a>
+
+            {# ── Badge + headline changes depending on whether user came from COD "Pay Now" or a failed payment ── #}
+            {% if order.payment_method == 'COD' %}
+
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full
+                            border border-yellow-500/20 bg-yellow-500/[0.07] backdrop-blur-2xl mb-6">
+                    <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                    <span class="text-[10px] tracking-[0.35em] uppercase text-yellow-400/80 font-semibold">
+                        Pay Now
+                    </span>
+                </div>
+
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none">
+                    Switch to
+                    <span class="text-white/50">Online Payment</span>
+                </h1>
+
+                <p class="mt-5 text-white/40 text-base max-w-xl leading-relaxed">
+                    Your order <span class="text-white/70 font-mono font-semibold">{{ order.order_id }}</span>
+                    is on Cash on Delivery. Pay securely online now via card, UPI, or wallet.
+                </p>
+
+            {% else %}
+
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full
+                            border border-red-500/20 bg-red-500/[0.07] backdrop-blur-2xl mb-6">
+                    <div class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></div>
+                    <span class="text-[10px] tracking-[0.35em] uppercase text-red-400/80 font-semibold">
+                        Payment Failed
+                    </span>
+                </div>
+
+                <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none">
+                    Complete Your
+                    <span class="text-white/50">Payment</span>
+                </h1>
+
+                <p class="mt-5 text-white/40 text-base max-w-xl leading-relaxed">
+                    Your order <span class="text-white/70 font-mono font-semibold">{{ order.order_id }}</span>
+                    is waiting. Choose a payment method to confirm it.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+        <!-- DJANGO MESSAGES -->
+        {% if messages %}
+        <div class="space-y-4 mb-10">
+            {% for message in messages %}
+            <div class="rounded-[2rem] border border-white/10 bg-white/[0.04] backdrop-blur-3xl px-7 py-5">
+                <p class="text-sm text-white/70">{{ message }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_0.8fr] gap-8">
+
+            <!-- LEFT: PAYMENT METHOD FORM -->
+            <div>
+                <form action="{% url 'retry_payment' order.order_id %}" method="POST" id="retryForm">
+                    {% csrf_token %}
+
+                    <div class="relative overflow-hidden rounded-[2.5rem] border border-white/10
+                                bg-white/[0.03] backdrop-blur-3xl shadow-[0_30px_120px_rgba(0,0,0,0.45)]">
+
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/[0.03] via-transparent to-transparent"></div>
+
+                        <div class="relative p-6 sm:p-8 lg:p-10">
+
+                            <div class="mb-8">
+                                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full
+                                            border border-white/10 bg-white/[0.04] mb-5">
+                                    <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                                    <span class="text-[10px] uppercase tracking-[0.35em] text-white/50 font-bold">
+                                        Payment
+                                    </span>
+                                </div>
+
+                                <h2 class="text-3xl font-black tracking-tight">
+                                    Choose Payment Method
+                                </h2>
+
+                                <p class="mt-3 text-white/40 text-sm">
+                                    {% if order.payment_method == 'COD' %}
+                                        Select an online payment method to pay now.
+                                    {% else %}
+                                        Select how you'd like to complete this payment.
+                                    {% endif %}
+                                </p>
+                            </div>
+
+                            <!-- PAYMENT OPTIONS -->
+                            <div class="space-y-4">
+
+                                {# ── COD option: hidden when user came from COD "Pay Now" (no point switching back to COD) ── #}
+                                {% if order.payment_method != 'COD' %}
+                                <label class="block cursor-pointer group">
+                                    <input type="radio" name="payment_method" value="COD"
+                                           class="hidden peer" />
+
+                                    <div class="relative overflow-hidden rounded-[2rem] border border-white/10
+                                                bg-white/[0.03] p-6 transition-all duration-300
+                                                peer-checked:border-white/30 peer-checked:bg-white/[0.07]
+                                                hover:bg-white/[0.05] hover:border-white/20 hover:-translate-y-0.5
+                                                shadow-[0_10px_50px_rgba(0,0,0,0.3)]">
+
+                                        <div class="absolute inset-0 opacity-0 peer-checked:opacity-100 transition duration-500
+                                                    bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_50%)]">
+                                        </div>
+
+                                        <div class="relative flex items-center gap-5">
+                                            <div class="w-12 h-12 rounded-2xl border border-white/10 bg-white/[0.05]
+                                                        flex items-center justify-center text-xl shrink-0">
+                                                💵
+                                            </div>
+                                            <div class="flex-1">
+                                                <h3 class="text-base font-bold text-white">Cash on Delivery</h3>
+                                                <p class="text-white/40 text-sm mt-1">Pay when your order arrives</p>
+                                            </div>
+                                            <div class="radio-indicator w-5 h-5 rounded-full border-2 border-white/20
+                                                        flex items-center justify-center shrink-0 transition-all duration-300">
+                                                <div class="radio-dot w-2.5 h-2.5 rounded-full bg-white scale-0 transition-transform duration-300"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+                                {% endif %}
+
+                                {# ── ONLINE: always shown; pre-selected when coming from COD or from a failed payment ── #}
+                                <label class="block cursor-pointer group">
+                                    <input type="radio" name="payment_method" value="ONLINE"
+                                           class="hidden peer" checked />
+
+                                    <div class="relative overflow-hidden rounded-[2rem] border border-white/30
+                                                bg-white/[0.07] p-6 transition-all duration-300
+                                                peer-checked:border-white/30 peer-checked:bg-white/[0.07]
+                                                hover:bg-white/[0.05] hover:border-white/20 hover:-translate-y-0.5
+                                                shadow-[0_10px_50px_rgba(0,0,0,0.3)]">
+
+                                        <div class="absolute inset-0 opacity-100 transition duration-500
+                                                    bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_50%)]">
+                                        </div>
+
+                                        <div class="relative flex items-center gap-5">
+                                            <div class="w-12 h-12 rounded-2xl border border-white/10 bg-white/[0.05]
+                                                        flex items-center justify-center text-xl shrink-0">
+                                                💳
+                                            </div>
+                                            <div class="flex-1">
+                                                <h3 class="text-base font-bold text-white">Online Payment</h3>
+                                                <p class="text-white/40 text-sm mt-1">Cards, UPI, Netbanking via Razorpay</p>
+                                            </div>
+                                            <div class="radio-indicator w-5 h-5 rounded-full border-2 border-white/20
+                                                        flex items-center justify-center shrink-0 transition-all duration-300">
+                                                <div class="radio-dot w-2.5 h-2.5 rounded-full bg-white scale-100 transition-transform duration-300"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+
+                                {# ── WALLET: shown always; disabled if balance insufficient ── #}
+                                <label class="block {% if not wallet_sufficient %}opacity-60{% else %}cursor-pointer{% endif %} group">
+                                    <input type="radio" name="payment_method" value="WALLET"
+                                           class="hidden peer"
+                                           {% if not wallet_sufficient %}disabled{% endif %} />
+
+                                    <div class="relative overflow-hidden rounded-[2rem] border border-white/10
+                                                bg-white/[0.03] p-6 transition-all duration-300
+                                                peer-checked:border-white/30 peer-checked:bg-white/[0.07]
+                                                {% if wallet_sufficient %}hover:bg-white/[0.05] hover:border-white/20 hover:-translate-y-0.5{% endif %}
+                                                shadow-[0_10px_50px_rgba(0,0,0,0.3)]">
+
+                                        <div class="absolute inset-0 opacity-0 peer-checked:opacity-100 transition duration-500
+                                                    bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_50%)]">
+                                        </div>
+
+                                        <div class="relative flex items-center gap-5">
+                                            <div class="w-12 h-12 rounded-2xl border border-white/10 bg-white/[0.05]
+                                                        flex items-center justify-center text-xl shrink-0">
+                                                👛
+                                            </div>
+                                            <div class="flex-1">
+                                                <h3 class="text-base font-bold text-white">Wallet</h3>
+                                                {% if wallet_sufficient %}
+                                                <p class="text-green-400 text-sm font-medium mt-1">
+                                                    Balance: ₹{{ wallet_balance }} &nbsp;✓ Sufficient
+                                                </p>
+                                                {% else %}
+                                                <p class="text-red-400 text-sm mt-1">
+                                                    Balance: ₹{{ wallet_balance }}
+                                                    &nbsp;·&nbsp; Need ₹{{ wallet_shortfall }} more
+                                                </p>
+                                                {% endif %}
+                                            </div>
+                                            <div class="radio-indicator w-5 h-5 rounded-full border-2 border-white/20
+                                                        flex items-center justify-center shrink-0 transition-all duration-300">
+                                                <div class="radio-dot w-2.5 h-2.5 rounded-full bg-white scale-0 transition-transform duration-300"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </label>
+
+                            </div>
+
+                            <!-- SUBMIT BUTTON -->
+                            <button type="submit" id="payBtn"
+                                    class="group relative overflow-hidden w-full mt-8 py-5 rounded-[1.7rem]
+                                           bg-white text-black font-black text-lg tracking-wide
+                                           hover:scale-[1.02] active:scale-[0.99]
+                                           transition-all duration-500
+                                           shadow-[0_25px_80px_rgba(255,255,255,0.12)]">
+                                <span class="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent
+                                             translate-x-[-120%] group-hover:translate-x-[120%] transition duration-1000"></span>
+                                <span class="relative flex items-center justify-center gap-3" id="payBtnText">
+                                    <span>Pay Online</span>
+                                    <span class="group-hover:translate-x-1 transition duration-300">→</span>
+                                </span>
+                            </button>
+
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <!-- RIGHT: ORDER SUMMARY -->
+            <div class="space-y-6">
+
+                <div class="relative overflow-hidden rounded-[2.5rem] border border-white/10
+                            bg-white/[0.03] backdrop-blur-3xl shadow-[0_30px_120px_rgba(0,0,0,0.45)]">
+
+                    <div class="absolute inset-0 bg-gradient-to-br from-white/[0.03] via-transparent to-transparent"></div>
+
+                    <div class="relative p-6 sm:p-8">
+
+                        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full
+                                    border border-white/10 bg-white/[0.04] mb-6">
+                            <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                            <span class="text-[10px] uppercase tracking-[0.35em] text-white/50 font-bold">Summary</span>
+                        </div>
+
+                        <h2 class="text-2xl font-black tracking-tight mb-8">Order Details</h2>
+
+                        <!-- Items -->
+                        <div class="space-y-4 mb-8">
+                            {% for item in order.items.all %}
+                            <div class="flex items-center gap-4 py-3 border-b border-white/[0.06] last:border-0">
+
+                                <div class="w-14 h-14 rounded-2xl overflow-hidden border border-white/10 bg-white/[0.04] shrink-0">
+                                    {% if item.product_variant and item.product_variant.variant_image %}
+                                        <img src="{{ item.product_variant.variant_image.url }}"
+                                             class="w-full h-full object-cover" alt="">
+                                    {% else %}
+                                        {% with item.product_variant.product.images.first as pimg %}
+                                            {% if pimg %}
+                                                <img src="{{ pimg.image.url }}"
+                                                     class="w-full h-full object-cover" alt="">
+                                            {% else %}
+                                                <div class="w-full h-full flex items-center justify-center text-white/20 text-[9px]">NO IMG</div>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold text-white truncate">{{ item.product_name }}</p>
+                                    <p class="text-xs text-white/40 mt-1">Qty {{ item.quantity }}</p>
+                                </div>
+
+                                <p class="text-sm font-bold text-white shrink-0">₹{{ item.subtotal }}</p>
+
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Totals -->
+                        <div class="space-y-4">
+
+                            <div class="flex justify-between items-center">
+                                <p class="text-white/40 text-sm">Subtotal</p>
+                                <p class="text-sm font-medium">₹{{ order.subtotal }}</p>
+                            </div>
+
+                            {% if order.discount > 0 %}
+                            <div class="flex justify-between items-center">
+                                <p class="text-white/40 text-sm">Discount</p>
+                                <p class="text-sm font-medium text-green-400">- ₹{{ order.discount }}</p>
+                            </div>
+                            {% endif %}
+
+                            {% if order.coupon_discount > 0 %}
+                            <div class="flex justify-between items-center">
+                                <p class="text-white/40 text-sm">
+                                    Coupon
+                                    {% if order.applied_coupon %}
+                                    <span class="text-white/25 text-xs ml-1">({{ order.applied_coupon.code }})</span>
+                                    {% endif %}
+                                </p>
+                                <p class="text-sm font-medium text-green-400">- ₹{{ order.coupon_discount }}</p>
+                            </div>
+                            {% endif %}
+
+                            <div class="flex justify-between items-center">
+                                <p class="text-white/40 text-sm">Shipping</p>
+                                <p class="text-sm font-medium">
+                                    {% if order.shipping_charge == 0 %}Free{% else %}₹{{ order.shipping_charge }}{% endif %}
+                                </p>
+                            </div>
+
+                            <div class="pt-6 mt-2 border-t border-white/[0.08] flex justify-between items-end">
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-[0.35em] text-white/30 mb-2">Grand Total</p>
+                                    <p class="text-white/50 text-xs">Amount payable</p>
+                                </div>
+                                <h3 class="text-4xl font-black tracking-tight">₹{{ order.total_amount }}</h3>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Security Note -->
+                <div class="rounded-[2rem] border border-white/[0.06] bg-white/[0.02] p-5 flex items-start gap-4">
+                    <div class="w-9 h-9 rounded-xl border border-green-500/20 bg-green-500/[0.08]
+                                flex items-center justify-center text-base shrink-0 mt-0.5">
+                        🔒
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-white/70">Secure Payment</p>
+                        <p class="text-xs text-white/30 mt-1 leading-relaxed">
+                            Your payment is encrypted and processed securely. We never store card details.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirmModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center"
+     style="background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);">
+
+    <div id="confirmModalBox"
+         class="relative overflow-hidden rounded-[2.7rem] border border-white/10
+                bg-[#090909]/95 backdrop-blur-3xl p-12 max-w-md w-full mx-6
+                shadow-[0_40px_120px_rgba(0,0,0,0.7)]"
+         style="transition:all 0.4s cubic-bezier(.23,1,.32,1);transform:translateY(28px);opacity:0;">
+
+        <div class="absolute inset-0 bg-gradient-to-br from-white/[0.04] via-transparent to-transparent pointer-events-none"></div>
+
+        <div class="relative">
+            <div class="w-12 h-px mb-8" style="background:linear-gradient(to right,#D4AF37,transparent)"></div>
+            <p class="text-[10px] uppercase tracking-[0.5em] text-white/25 mb-5">Confirm Action</p>
+            <h2 id="confirmModalTitle" class="text-3xl font-extralight tracking-tight leading-snug mb-4">
+                Confirm payment?
+            </h2>
+            <p id="confirmModalBody" class="text-white/40 text-sm leading-relaxed mb-10">
+                You're about to complete this payment.
+            </p>
+            <div class="flex gap-4">
+                <button onclick="submitRetryForm()"
+                        class="flex-1 py-4 rounded-2xl bg-white text-black font-black tracking-wide text-sm
+                               hover:bg-white/90 transition-all duration-300 hover:scale-[1.02]">
+                    Yes, Confirm
+                </button>
+                <button onclick="closeConfirmModal()"
+                        class="flex-1 py-4 rounded-2xl border border-white/10 bg-white/[0.03]
+                               hover:bg-white/[0.07] text-white/60 font-semibold tracking-wide text-sm
+                               transition-all duration-300">
+                    Go Back
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RAZORPAY HIDDEN FORM -->
+<form id="rzp-hidden-form" method="POST" action="{% url 'payment_verify' %}">
+    {% csrf_token %}
+    <input type="hidden" name="order_id"            id="rzp_order_id_val">
+    <input type="hidden" name="razorpay_payment_id" id="rzp_payment_id">
+    <input type="hidden" name="razorpay_order_id"   id="rzp_order_id">
+    <input type="hidden" name="razorpay_signature"  id="rzp_signature">
+</form>
+
+<script>
+
+// ── Button label map ──
+const labels = {
+    COD:    'Confirm Cash on Delivery',
+    ONLINE: 'Pay Online →',
+    WALLET: 'Pay via Wallet →',
+};
+
+const payBtnText = document.getElementById('payBtnText');
+
+function getChecked() {
+    return document.querySelector('input[name="payment_method"]:checked');
+}
+
+// ── Sync card border + radio dot styles via JS
+// (Tailwind peer-checked can't cross sibling boundaries for the dot div)
+function syncStyles() {
+    document.querySelectorAll('input[name="payment_method"]').forEach(input => {
+        const card = input.closest('label').querySelector('.relative.overflow-hidden');
+        const dot  = input.closest('label').querySelector('.radio-dot');
+        const ring = input.closest('label').querySelector('.radio-indicator');
+
+        if (input.checked) {
+            card && card.classList.add('!border-white/30', '!bg-white/[0.07]');
+            dot  && dot.classList.replace('scale-0', 'scale-100');
+            ring && ring.classList.add('!border-white');
+        } else {
+            card && card.classList.remove('!border-white/30', '!bg-white/[0.07]');
+            dot  && dot.classList.replace('scale-100', 'scale-0');
+            ring && ring.classList.remove('!border-white');
+        }
+    });
+    // Update button label
+    const sel = getChecked();
+    if (sel) {
+        payBtnText.innerHTML = `<span>${labels[sel.value] || 'Confirm Payment'}</span>`;
+    }
+}
+
+document.querySelectorAll('input[name="payment_method"]').forEach(input => {
+    input.addEventListener('change', syncStyles);
+});
+
+// Run on load
+syncStyles();
+
+// ── Confirm modal ──
+document.getElementById('retryForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const method = getChecked()?.value || 'ONLINE';
+    const msgs = {
+        COD:    { title: 'Keep Cash on Delivery?',  body: 'Your order will remain as COD. You\'ll pay when it arrives.' },
+        ONLINE: { title: 'Proceed to payment?',      body: 'You\'ll be taken to Razorpay to complete your payment securely.' },
+        WALLET: { title: 'Pay via Wallet?',           body: '₹{{ order.total_amount }} will be deducted from your wallet instantly.' },
+    };
+    const m = msgs[method] || msgs.ONLINE;
+    document.getElementById('confirmModalTitle').textContent = m.title;
+    document.getElementById('confirmModalBody').textContent  = m.body;
+    openConfirmModal();
+});
+
+function openConfirmModal() {
+    const modal = document.getElementById('confirmModal');
+    const box   = document.getElementById('confirmModalBox');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => { box.style.transform = 'translateY(0)'; box.style.opacity = '1'; }, 10);
+}
+
+function closeConfirmModal() {
+    const modal = document.getElementById('confirmModal');
+    const box   = document.getElementById('confirmModalBox');
+    box.style.transform = 'translateY(28px)';
+    box.style.opacity   = '0';
+    setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 380);
+}
+
+function submitRetryForm() {
+    closeConfirmModal();
+    setTimeout(() => { document.getElementById('retryForm').submit(); }, 200);
+}
+
+document.getElementById('confirmModal').addEventListener('click', function(e) {
+    if (e.target === this) closeConfirmModal();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeConfirmModal();
+});
+
+// ── Razorpay trigger — only fires when view returns trigger_payment=True ──
+{% if trigger_payment %}
+const rzpScript = document.createElement('script');
+rzpScript.src = 'https://checkout.razorpay.com/v1/checkout.js';
+
+rzpScript.onload = function() {
+    const options = {
+        key:         "{{ razorpay_key_id }}",
+        amount:      "{{ razorpay_amount }}",
+        currency:    "INR",
+        name:        "Scentora",
+        description: "Order Payment",
+        order_id:    "{{ razorpay_order_id }}",
+
+        handler: function(response) {
+            document.getElementById("rzp_order_id_val").value = "{{ order.order_id }}";
+            document.getElementById("rzp_payment_id").value   = response.razorpay_payment_id;
+            document.getElementById("rzp_order_id").value     = response.razorpay_order_id;
+            document.getElementById("rzp_signature").value    = response.razorpay_signature;
+            document.getElementById("rzp-hidden-form").submit();
+        },
+
+        callback_url: "{{ request.scheme }}://{{ request.get_host }}/checkout/payment/verify/?order_id={{ order.order_id }}",
+        redirect: true,
+
+        prefill: {
+            name:    "{{ order.full_name }}",
+            contact: "{{ order.phone_number }}"
+        },
+
+        theme: { color: "#090909" },
+
+        modal: {
+            ondismiss: function() {
+                window.location.href = "/checkout/payment/failed/?order_id={{ order.order_id }}";
+            }
+        }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.on('payment.failed', function() {
+        window.location.href = "/checkout/payment/failed/?order_id={{ order.order_id }}";
+    });
+    rzp.open();
+};
+
+document.head.appendChild(rzpScript);
+{% endif %}
+
+</script>
+
+{% endblock %}
