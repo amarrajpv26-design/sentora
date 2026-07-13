@@ -49,28 +49,28 @@
     <div class="floating-blur bottom-0 right-[-120px] w-[500px] h-[500px] bg-yellow-400/[0.04]"></div>
     <div class="gold-glow top-[10%] right-[5%]"></div>
 
-    <div class="relative z-10 max-w-4xl mx-auto px-6 lg:px-10 py-16">
+    <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-10 py-10 sm:py-16">
 
         <!-- HEADER -->
-        <div class="fade-up mb-14">
+        <div class="fade-up mb-10 sm:mb-14">
             <p class="text-[10px] uppercase tracking-[0.55em] text-white/25 font-bold mb-5">Wallet</p>
-            <h1 class="text-5xl md:text-6xl font-light tracking-tight leading-none"
+            <h1 class="text-3xl sm:text-5xl md:text-6xl font-light tracking-tight leading-tight sm:leading-none break-words"
                 style="font-family:'Cormorant Garamond',serif;">Recharge Wallet</h1>
             <div class="mt-5 w-16 h-px" style="background:linear-gradient(to right,#D4AF37,transparent)"></div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 sm:gap-10">
 
             <!-- LEFT -->
             <div class="lg:col-span-3 space-y-8">
-                <div class="glass-panel rounded-[2.5rem] p-8 fade-up delay-1">
+                <div class="glass-panel rounded-[2.5rem] p-5 sm:p-8 fade-up delay-1">
                     <p class="text-[10px] uppercase tracking-[0.4em] text-white/30 mb-6">Select Amount</p>
-                    <div class="grid grid-cols-3 gap-3 mb-8">
-                        <button type="button" onclick="selectChip(this,100)"  class="amount-chip rounded-2xl py-4 text-center font-semibold text-sm">₹100</button>
-                        <button type="button" onclick="selectChip(this,500)"  class="amount-chip rounded-2xl py-4 text-center font-semibold text-sm">₹500</button>
-                        <button type="button" onclick="selectChip(this,1000)" class="amount-chip rounded-2xl py-4 text-center font-semibold text-sm">₹1000</button>
-                        <button type="button" onclick="selectChip(this,2000)" class="amount-chip rounded-2xl py-4 text-center font-semibold text-sm">₹2000</button>
-                        <button type="button" onclick="selectChip(this,5000)" class="amount-chip rounded-2xl py-4 text-center font-semibold text-sm">₹5000</button>
+                    <div class="grid grid-cols-3 gap-2 sm:gap-3 mb-8">
+                        <button type="button" onclick="selectChip(this,100)"  class="amount-chip rounded-2xl py-3 sm:py-4 text-center font-semibold text-xs sm:text-sm">₹100</button>
+                        <button type="button" onclick="selectChip(this,500)"  class="amount-chip rounded-2xl py-3 sm:py-4 text-center font-semibold text-xs sm:text-sm">₹500</button>
+                        <button type="button" onclick="selectChip(this,1000)" class="amount-chip rounded-2xl py-3 sm:py-4 text-center font-semibold text-xs sm:text-sm">₹1000</button>
+                        <button type="button" onclick="selectChip(this,2000)" class="amount-chip rounded-2xl py-3 sm:py-4 text-center font-semibold text-xs sm:text-sm">₹2000</button>
+                        <button type="button" onclick="selectChip(this,5000)" class="amount-chip rounded-2xl py-3 sm:py-4 text-center font-semibold text-xs sm:text-sm">₹5000</button>
                     </div>
                     <div>
                         <p class="text-[10px] uppercase tracking-[0.4em] text-white/30 mb-3">Custom Amount</p>
@@ -99,21 +99,21 @@
 
             <!-- RIGHT -->
             <div class="lg:col-span-2 fade-up delay-3">
-                <div class="sticky top-28 glass-panel rounded-[2.5rem] p-8">
+                <div class="lg:sticky lg:top-28 glass-panel rounded-[2.5rem] p-5 sm:p-8">
                     <p class="text-[10px] uppercase tracking-[0.4em] text-white/30 mb-8">Payment Summary</p>
                     <div class="space-y-5 mb-8">
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center gap-3">
                             <p class="text-white/40 text-sm">Recharge Amount</p>
                             <p id="summaryAmount" class="font-semibold text-white">—</p>
                         </div>
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center gap-3">
                             <p class="text-white/40 text-sm">Charges</p>
                             <p class="text-green-400 text-sm font-medium">Free</p>
                         </div>
                     </div>
-                    <div class="pt-6 border-t soft-divider flex justify-between items-end">
+                    <div class="pt-6 border-t soft-divider flex flex-wrap justify-between items-end gap-3">
                         <p class="text-[10px] uppercase tracking-[0.35em] text-white/25">Total Payable</p>
-                        <h3 id="summaryTotal" class="text-4xl font-light tracking-tight"
+                        <h3 id="summaryTotal" class="text-3xl sm:text-4xl font-light tracking-tight"
                             style="font-family:'Cormorant Garamond',serif;color:#D4AF37;">—</h3>
                     </div>
                     <div class="mt-10 flex items-center gap-4 p-5 rounded-2xl border border-white/5 bg-white/[0.02]">

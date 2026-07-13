@@ -12,3 +12,4 @@ static_root/
 # Environments
 venv/
 env/node_modules/
+node_modules/

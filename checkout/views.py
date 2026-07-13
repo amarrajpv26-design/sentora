@@ -22,15 +22,7 @@ from offers.utils import handle_order_referral_events
 
 
 def get_applied_coupon_discount(request, subtotal):
-    """
-    Returns (applied_coupon, coupon_discount_amount) for the coupon currently
-    stored in the session, re-validated against the given subtotal.
-
-    If the coupon no longer exists or is no longer valid (expired,
-    deactivated, usage limit reached, min purchase no longer met, etc.),
-    it is silently removed from the session, the user is informed, and
-    (None, Decimal('0.00')) is returned.
-    """
+    
     coupon_id = request.session.get("coupon_id")
 
     if not coupon_id:
@@ -56,11 +48,7 @@ def get_applied_coupon_discount(request, subtotal):
 
 
 def record_coupon_usage(order):
-    """
-    Records a CouponUsage entry and increments the coupon's used_count.
-    Called only once a payment is actually confirmed (COD/Wallet immediately,
-    Online on payment verification).
-    """
+    
     if not order.applied_coupon:
         return
 

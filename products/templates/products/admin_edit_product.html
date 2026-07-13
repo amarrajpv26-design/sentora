@@ -405,10 +405,12 @@ function validateVariants() {
         seenSizes.add(size);
 
         const price = parseFloat(priceRaw);
-        const offer = offerRaw !== '' ? parseFloat(offerRaw) : null;
+const parsedOffer = offerRaw !== '' ? parseFloat(offerRaw) : null;
+// Treat 0 (or blank) as "no offer" so it's never compared against other variants
+const offer = (parsedOffer !== null && parsedOffer > 0) ? parsedOffer : null;
 
-        // Rule 2 – offer < price within variant
-        if (offer !== null && offer >= price) {
+// Rule 2 – offer < price within variant
+if (offer !== null && offer >= price) {
             errors.push(`${size}: Offer (₹${offer}) must be less than price (₹${price}).`);
             row.classList.add('row-error');
         }

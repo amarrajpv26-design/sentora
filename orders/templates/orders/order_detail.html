@@ -178,17 +178,17 @@ body{
     <div class="floating-blur bottom-0 right-[-120px] w-[500px] h-[500px] bg-yellow-400/[0.04]"></div>
     <div class="gold-glow top-[20%] right-[10%]"></div>
 
-    <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-10 py-16">
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-10 sm:py-16">
 
         <!-- TOP -->
-        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-10 mb-16">
+        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-10 mb-12 sm:mb-16">
 
             <div>
                 <p class="text-[10px] uppercase tracking-[0.55em] text-white/25 font-bold mb-5">
                     ORDER DETAILS
                 </p>
 
-                <h1 class="text-5xl md:text-6xl xl:text-7xl font-extralight tracking-tight leading-none">
+                <h1 class="text-3xl sm:text-5xl md:text-6xl xl:text-7xl font-extralight tracking-tight leading-tight sm:leading-none break-words">
                     {{ order.order_id }}
                 </h1>
 
@@ -214,10 +214,10 @@ body{
                           border border-white/10 bg-white/[0.03]
                           hover:bg-white hover:text-black
                           text-[11px] tracking-[0.25em] uppercase font-bold
-                          backdrop-blur-xl">
+                          backdrop-blur-xl w-full sm:w-auto justify-center">
 
                     <svg xmlns="http://www.w3.org/2000/svg"
-                         class="w-4 h-4"
+                         class="w-4 h-4 shrink-0"
                          fill="none"
                          viewBox="0 0 24 24"
                          stroke="currentColor"
@@ -231,33 +231,33 @@ body{
                 </a>
 
                 <!-- STATUS -->
-                <div class="flex flex-wrap gap-5">
+                <div class="flex flex-wrap gap-5 w-full xl:w-auto">
 
-                    <div class="glass-panel px-8 py-6 rounded-[2rem] min-w-[210px]">
+                    <div class="glass-panel px-6 sm:px-8 py-5 sm:py-6 rounded-[2rem] flex-1 min-w-[150px] sm:min-w-[210px] sm:flex-initial">
                         <p class="text-[10px] uppercase tracking-[0.38em] text-white/30 mb-4">
                             PAYMENT STATUS
                         </p>
 
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-2xl font-semibold tracking-wide">
+                        <div class="flex items-center justify-between gap-3">
+                            <h3 class="text-lg sm:text-2xl font-semibold tracking-wide truncate">
                                 {{ order.payment_status }}
                             </h3>
 
-                            <div class="w-3 h-3 rounded-full bg-green-400 shadow-[0_0_15px_rgba(74,222,128,0.7)]"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-400 shadow-[0_0_15px_rgba(74,222,128,0.7)] shrink-0"></div>
                         </div>
                     </div>
 
-                    <div class="glass-panel px-8 py-6 rounded-[2rem] min-w-[210px]">
+                    <div class="glass-panel px-6 sm:px-8 py-5 sm:py-6 rounded-[2rem] flex-1 min-w-[150px] sm:min-w-[210px] sm:flex-initial">
                         <p class="text-[10px] uppercase tracking-[0.38em] text-white/30 mb-4">
                             ORDER STATUS
                         </p>
 
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-2xl font-semibold tracking-wide">
+                        <div class="flex items-center justify-between gap-3">
+                            <h3 class="text-lg sm:text-2xl font-semibold tracking-wide truncate">
                                 {{ order.get_order_status_display }}
                             </h3>
 
-                            <div class="w-3 h-3 rounded-full bg-yellow-300 shadow-[0_0_15px_rgba(253,224,71,0.7)]"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-300 shadow-[0_0_15px_rgba(253,224,71,0.7)] shrink-0"></div>
                         </div>
                     </div>
 
@@ -269,23 +269,23 @@ body{
 
         <!-- ALERTS -->
         {% if order.cancellation_reason %}
-        <div class="mb-8 rounded-[2.5rem] border border-red-500/20 bg-red-500/[0.05] backdrop-blur-xl p-8">
+        <div class="mb-8 rounded-[2.5rem] border border-red-500/20 bg-red-500/[0.05] backdrop-blur-xl p-6 sm:p-8">
             <p class="text-red-400 text-sm uppercase tracking-[0.25em] mb-4">
                 Cancellation Reason
             </p>
 
-            <p class="text-white/70 leading-relaxed">
+            <p class="text-white/70 leading-relaxed break-words">
                 {{ order.cancellation_reason }}
             </p>
         </div>
         {% endif %}
 
-{% if order.return_reason and order.return_reason != "All items return requested" %}        <div class="mb-8 rounded-[2.5rem] border border-yellow-500/20 bg-yellow-500/[0.05] backdrop-blur-xl p-8">
+{% if order.return_reason and order.return_reason != "All items return requested" %}        <div class="mb-8 rounded-[2.5rem] border border-yellow-500/20 bg-yellow-500/[0.05] backdrop-blur-xl p-6 sm:p-8">
             <p class="text-yellow-300 text-sm uppercase tracking-[0.25em] mb-4">
                 Return Reason
             </p>
 
-            <p class="text-white/70 leading-relaxed">
+            <p class="text-white/70 leading-relaxed break-words">
                 {{ order.return_reason }}
             </p>
         </div>
@@ -303,10 +303,10 @@ body{
             <!-- CLICKABLE HEADER / COLLAPSED STEPPER -->
             <button type="button"
                     onclick="toggleTracking()"
-                    class="w-full text-left p-10 lg:p-12 focus:outline-none">
+                    class="w-full text-left p-6 sm:p-10 lg:p-12 focus:outline-none">
 
-                <div class="flex items-center justify-between mb-12">
-                    <h2 class="text-3xl font-extralight tracking-tight">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-10 sm:mb-12">
+                    <h2 class="text-2xl sm:text-3xl font-extralight tracking-tight">
                         Track Your Order
                     </h2>
                     <div class="flex items-center gap-4">
@@ -324,84 +324,87 @@ body{
                 </div>
 
                 <!-- HORIZONTAL STEPPER -->
-                <div class="relative">
+                <div class="relative overflow-x-auto custom-scroll -mx-1 px-1">
 
-                    <div class="absolute top-6 left-6 right-6 h-[2px] bg-white/[0.08]"></div>
+                    <div class="min-w-[480px] sm:min-w-0 relative">
 
-                    <div class="absolute top-6 left-6 right-6 h-[2px] bg-gradient-to-r from-[#D4AF37] to-yellow-200 transition-all duration-700 origin-left"
-                         style="transform: scaleX(calc({{ step|default:0 }} / 4));"></div>
+                        <div class="absolute top-5 sm:top-6 left-6 right-6 h-[2px] bg-white/[0.08]"></div>
 
-                    <div class="relative flex justify-between">
+                        <div class="absolute top-5 sm:top-6 left-6 right-6 h-[2px] bg-gradient-to-r from-[#D4AF37] to-yellow-200 transition-all duration-700 origin-left"
+                             style="transform: scaleX(calc({{ step|default:0 }} / 4));"></div>
 
-                        {# STEP 0: Order Placed #}
-                        <div class="flex flex-col items-center flex-1">
-                            <div class="w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500
-                                        {% if step >= 0 %}bg-[#D4AF37] border-[#D4AF37] text-black{% else %}bg-white/[0.03] border-white/15 text-white/30{% endif %}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 10-8 0v4M5 9h14l1 11H4L5 9z"/>
-                                </svg>
+                        <div class="relative flex justify-between">
+
+                            {# STEP 0: Order Placed #}
+                            <div class="flex flex-col items-center flex-1">
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500
+                                            {% if step >= 0 %}bg-[#D4AF37] border-[#D4AF37] text-black{% else %}bg-white/[0.03] border-white/15 text-white/30{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 10-8 0v4M5 9h14l1 11H4L5 9z"/>
+                                    </svg>
+                                </div>
+                                <p class="mt-3 sm:mt-4 text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-center {% if step >= 0 %}text-white/80{% else %}text-white/25{% endif %} font-semibold">
+                                    Order<br>Placed
+                                </p>
                             </div>
-                            <p class="mt-4 text-[10px] uppercase tracking-[0.2em] text-center {% if step >= 0 %}text-white/80{% else %}text-white/25{% endif %} font-semibold">
-                                Order<br>Placed
-                            </p>
-                        </div>
 
-                        {# STEP 1: Confirmed #}
-                        <div class="flex flex-col items-center flex-1">
-                            <div class="w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500
-                                        {% if step >= 1 %}bg-[#D4AF37] border-[#D4AF37] text-black{% else %}bg-white/[0.03] border-white/15 text-white/30{% endif %}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                </svg>
+                            {# STEP 1: Confirmed #}
+                            <div class="flex flex-col items-center flex-1">
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500
+                                            {% if step >= 1 %}bg-[#D4AF37] border-[#D4AF37] text-black{% else %}bg-white/[0.03] border-white/15 text-white/30{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                                <p class="mt-3 sm:mt-4 text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-center {% if step >= 1 %}text-white/80{% else %}text-white/25{% endif %} font-semibold">
+                                    Confirmed
+                                </p>
                             </div>
-                            <p class="mt-4 text-[10px] uppercase tracking-[0.2em] text-center {% if step >= 1 %}text-white/80{% else %}text-white/25{% endif %} font-semibold">
-                                Confirmed
-                            </p>
-                        </div>
 
-                        {# STEP 2: Shipped #}
-                        <div class="flex flex-col items-center flex-1">
-                            <div class="w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500
-                                        {% if step >= 2 %}bg-[#D4AF37] border-[#D4AF37] text-black{% else %}bg-white/[0.03] border-white/15 text-white/30{% endif %}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-                                </svg>
+                            {# STEP 2: Shipped #}
+                            <div class="flex flex-col items-center flex-1">
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500
+                                            {% if step >= 2 %}bg-[#D4AF37] border-[#D4AF37] text-black{% else %}bg-white/[0.03] border-white/15 text-white/30{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                    </svg>
+                                </div>
+                                <p class="mt-3 sm:mt-4 text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-center {% if step >= 2 %}text-white/80{% else %}text-white/25{% endif %} font-semibold">
+                                    Shipped
+                                </p>
                             </div>
-                            <p class="mt-4 text-[10px] uppercase tracking-[0.2em] text-center {% if step >= 2 %}text-white/80{% else %}text-white/25{% endif %} font-semibold">
-                                Shipped
-                            </p>
-                        </div>
 
-                        {# STEP 3: Out for Delivery #}
-                        <div class="flex flex-col items-center flex-1">
-                            <div class="w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500
-                                        {% if step >= 3 %}bg-[#D4AF37] border-[#D4AF37] text-black{% else %}bg-white/[0.03] border-white/15 text-white/30{% endif %}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v9a1 1 0 001 1h1m8 0a2 2 0 11-4 0m4 0a2 2 0 104 0m0 0h2a1 1 0 001-1v-3.05a2.5 2.5 0 00-.732-1.768L18 9h-5"/>
-                                </svg>
+                            {# STEP 3: Out for Delivery #}
+                            <div class="flex flex-col items-center flex-1">
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500
+                                            {% if step >= 3 %}bg-[#D4AF37] border-[#D4AF37] text-black{% else %}bg-white/[0.03] border-white/15 text-white/30{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v9a1 1 0 001 1h1m8 0a2 2 0 11-4 0m4 0a2 2 0 104 0m0 0h2a1 1 0 001-1v-3.05a2.5 2.5 0 00-.732-1.768L18 9h-5"/>
+                                    </svg>
+                                </div>
+                                <p class="mt-3 sm:mt-4 text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-center {% if step >= 3 %}text-white/80{% else %}text-white/25{% endif %} font-semibold">
+                                    Out for<br>Delivery
+                                </p>
                             </div>
-                            <p class="mt-4 text-[10px] uppercase tracking-[0.2em] text-center {% if step >= 3 %}text-white/80{% else %}text-white/25{% endif %} font-semibold">
-                                Out for<br>Delivery
-                            </p>
-                        </div>
 
-                        {# STEP 4: Delivered #}
-                        <div class="flex flex-col items-center flex-1">
-                            <div class="w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500
-                                        {% if step >= 4 %}bg-green-400 border-green-400 text-black{% else %}bg-white/[0.03] border-white/15 text-white/30{% endif %}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                </svg>
+                            {# STEP 4: Delivered #}
+                            <div class="flex flex-col items-center flex-1">
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500
+                                            {% if step >= 4 %}bg-green-400 border-green-400 text-black{% else %}bg-white/[0.03] border-white/15 text-white/30{% endif %}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                                <p class="mt-3 sm:mt-4 text-[9px] sm:text-[10px] uppercase tracking-[0.2em] text-center {% if step >= 4 %}text-white/80{% else %}text-white/25{% endif %} font-semibold">
+                                    Delivered
+                                </p>
                             </div>
-                            <p class="mt-4 text-[10px] uppercase tracking-[0.2em] text-center {% if step >= 4 %}text-white/80{% else %}text-white/25{% endif %} font-semibold">
-                                Delivered
-                            </p>
-                        </div>
 
+                        </div>
                     </div>
                 </div>
 
-                <p class="text-center text-white/30 text-xs mt-10 tracking-[0.2em] uppercase">
+                <p class="text-center text-white/30 text-xs mt-8 sm:mt-10 tracking-[0.2em] uppercase">
                     Tap to view detailed tracking
                 </p>
 
@@ -409,15 +412,15 @@ body{
 
             <!-- EXPANDABLE DETAILED TIMELINE -->
             <div id="trackingDetail" class="hidden border-t border-white/10">
-                <div class="p-10 lg:p-12">
+                <div class="p-6 sm:p-10 lg:p-12">
 
-                    <h3 class="text-xl font-semibold tracking-wide mb-8 text-white/80">
+                    <h3 class="text-lg sm:text-xl font-semibold tracking-wide mb-8 text-white/80">
                         Detailed Timeline
                     </h3>
 
                     <div class="space-y-0">
                         {% for entry in status_history %}
-                        <div class="flex gap-6 {% if not forloop.last %}pb-8{% endif %} relative">
+                        <div class="flex gap-4 sm:gap-6 {% if not forloop.last %}pb-8{% endif %} relative">
 
                             {% if not forloop.last %}
                             <div class="absolute left-[7px] top-4 w-[2px] h-full bg-white/10"></div>
@@ -433,7 +436,7 @@ body{
                                         {{ entry.get_status_display }}
                                     </p>
                                     {% if entry.note %}
-                                    <p class="text-white/40 text-sm mt-1">
+                                    <p class="text-white/40 text-sm mt-1 break-words">
                                         {{ entry.note }}
                                     </p>
                                     {% endif %}
@@ -457,24 +460,24 @@ body{
         {% else %}
         <!-- ---- CANCELLED / RETURNED / RETURN_REJECTED: status badge + history dropdown ---- -->
         <div class="glass-panel rounded-[2.7rem] mb-10 overflow-hidden">
-            <button type="button" onclick="toggleTracking()" class="w-full text-left p-10 lg:p-12 focus:outline-none">
-                <div class="flex items-center gap-6">
-                    <div class="w-14 h-14 rounded-full flex items-center justify-center border-2 shrink-0
+            <button type="button" onclick="toggleTracking()" class="w-full text-left p-6 sm:p-10 lg:p-12 focus:outline-none">
+                <div class="flex items-center gap-4 sm:gap-6">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center border-2 shrink-0
                                 {% if order.order_status == 'CANCELLED' %}bg-red-500/15 border-red-500/40 text-red-400
                                 {% elif order.order_status == 'RETURN_REJECTED' %}bg-red-500/15 border-red-500/40 text-red-400
                                 {% else %}bg-yellow-500/15 border-yellow-500/40 text-yellow-300{% endif %}">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </div>
-                    <div class="flex-1">
+                    <div class="flex-1 min-w-0">
                         <p class="text-[10px] uppercase tracking-[0.3em] text-white/30 mb-1">Order Status</p>
-                        <h3 class="text-2xl font-semibold">
+                        <h3 class="text-xl sm:text-2xl font-semibold truncate">
                             {{ order.get_order_status_display }}
                         </h3>
                     </div>
                     <svg id="trackingChevron" xmlns="http://www.w3.org/2000/svg"
-                         class="w-5 h-5 text-white/40 transition-transform duration-300"
+                         class="w-5 h-5 text-white/40 transition-transform duration-300 shrink-0"
                          fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
                     </svg>
@@ -482,13 +485,13 @@ body{
             </button>
 
             <div id="trackingDetail" class="hidden border-t border-white/10">
-                <div class="p-10 lg:p-12">
-                    <h3 class="text-xl font-semibold tracking-wide mb-8 text-white/80">
+                <div class="p-6 sm:p-10 lg:p-12">
+                    <h3 class="text-lg sm:text-xl font-semibold tracking-wide mb-8 text-white/80">
                         Order History
                     </h3>
                     <div class="space-y-0">
                         {% for entry in status_history %}
-                        <div class="flex gap-6 {% if not forloop.last %}pb-8{% endif %} relative">
+                        <div class="flex gap-4 sm:gap-6 {% if not forloop.last %}pb-8{% endif %} relative">
                             {% if not forloop.last %}
                             <div class="absolute left-[7px] top-4 w-[2px] h-full bg-white/10"></div>
                             {% endif %}
@@ -498,7 +501,7 @@ body{
                                 <div>
                                     <p class="font-semibold text-white/90 text-base">{{ entry.get_status_display }}</p>
                                     {% if entry.note %}
-                                    <p class="text-white/40 text-sm mt-1">{{ entry.note }}</p>
+                                    <p class="text-white/40 text-sm mt-1 break-words">{{ entry.note }}</p>
                                     {% endif %}
                                 </div>
                                 <p class="text-white/35 text-sm tracking-wide whitespace-nowrap">
@@ -513,23 +516,23 @@ body{
         </div>
         {% endif %}
 
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-10">
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 sm:gap-10">
 
             <!-- LEFT: ITEMS -->
-            <div class="xl:col-span-2 space-y-8">
+            <div class="xl:col-span-2 space-y-6 sm:space-y-8">
 
                 {% for item in order.items.all %}
                 <div class="glass-panel rounded-[2.7rem] overflow-hidden order-card">
 
-                    <div class="p-8 lg:p-10">
+                    <div class="p-6 sm:p-8 lg:p-10">
 
-                        <div class="flex flex-col lg:flex-row gap-8 justify-between">
+                        <div class="flex flex-col lg:flex-row gap-6 sm:gap-8 justify-between">
 
                             <!-- PRODUCT -->
-                            <div class="flex flex-col sm:flex-row gap-7">
+                            <div class="flex flex-col sm:flex-row gap-5 sm:gap-7">
 
                                 <!-- IMAGE -->
-                                <div class="image-frame w-full sm:w-36 h-36 rounded-[2rem] overflow-hidden bg-white/[0.03] border border-white/10 shrink-0">
+                                <div class="image-frame w-full sm:w-36 h-48 sm:h-36 rounded-[2rem] overflow-hidden bg-white/[0.03] border border-white/10 shrink-0">
 
                                     {% if item.product_variant.variant_image %}
                                         <img src="{{ item.product_variant.variant_image.url }}"
@@ -552,11 +555,11 @@ body{
                                 </div>
 
                                 <!-- DETAILS -->
-                                <div class="flex flex-col justify-between">
+                                <div class="flex flex-col justify-between min-w-0">
 
                                     <div>
 
-                                        <h2 class="text-3xl lg:text-[2.2rem] font-extralight leading-tight tracking-tight">
+                                        <h2 class="text-2xl sm:text-3xl lg:text-[2.2rem] font-extralight leading-tight tracking-tight break-words">
                                             {{ item.product_name }}
                                         </h2>
 
@@ -601,7 +604,7 @@ body{
                             </div>
 
                             <!-- PRICE -->
-                            <div class="lg:text-right flex flex-col justify-between">
+                            <div class="lg:text-right flex flex-row lg:flex-col justify-between lg:justify-between items-end lg:items-end">
 
                                 <div>
 
@@ -609,7 +612,7 @@ body{
                                         TOTAL
                                     </p>
 
-                                    <h3 class="text-5xl font-extralight tracking-tight">
+                                    <h3 class="text-3xl sm:text-4xl lg:text-5xl font-extralight tracking-tight">
                                         ₹{{ item.subtotal }}
                                     </h3>
 
@@ -624,16 +627,16 @@ body{
                         {# Cancel item — only when order is PENDING/CONFIRMED and item is ACTIVE #}
                         {% if order.order_status == 'PENDING' or order.order_status == 'CONFIRMED' %}
                             {% if item.item_status == 'ACTIVE' %}
-                                <div class="mt-10 pt-10 border-t border-white/10">
+                                <div class="mt-8 sm:mt-10 pt-8 sm:pt-10 border-t border-white/10">
                                     <form action="{% url 'cancel_order_item' item.id %}" method="POST" onsubmit="return confirmCancel(event, this, false)">
                                         {% csrf_token %}
                                         <textarea name="reason"
                                                   rows="4"
                                                   placeholder="Reason for cancellation..."
-                                                  class="w-full rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 outline-none resize-none text-white placeholder:text-white/25"></textarea>
+                                                  class="w-full rounded-[2rem] border border-white/10 bg-white/[0.03] p-5 sm:p-6 outline-none resize-none text-white placeholder:text-white/25"></textarea>
 
                                         <button type="submit"
-                                                class="luxury-btn mt-5 px-8 py-4 rounded-2xl bg-red-500 text-white font-bold">
+                                                class="luxury-btn mt-5 w-full sm:w-auto px-8 py-4 rounded-2xl bg-red-500 text-white font-bold">
                                             Cancel Item
                                         </button>
                                     </form>
@@ -643,9 +646,9 @@ body{
 
                         {# Show cancellation reason on cancelled item #}
                         {% if item.item_status == 'CANCELLED' and item.cancellation_reason %}
-                            <div class="mt-10 pt-10 border-t border-white/10">
+                            <div class="mt-8 sm:mt-10 pt-8 sm:pt-10 border-t border-white/10">
                                 <p class="text-[9px] uppercase tracking-[0.25em] text-red-400 mb-3">Cancellation Reason</p>
-                                <p class="w-full rounded-[2rem] border border-red-500/20 bg-red-500/[0.04] p-6 text-white/50 text-sm leading-relaxed">
+                                <p class="w-full rounded-[2rem] border border-red-500/20 bg-red-500/[0.04] p-5 sm:p-6 text-white/50 text-sm leading-relaxed break-words">
                                     {{ item.cancellation_reason }}
                                 </p>
                             </div>
@@ -654,16 +657,16 @@ body{
                         {# Return item — only when order is DELIVERED and item is ACTIVE #}
                         {% if order.order_status == 'DELIVERED' %}
                             {% if item.item_status == 'ACTIVE' %}
-                                <div class="mt-10 pt-10 border-t border-white/10">
+                                <div class="mt-8 sm:mt-10 pt-8 sm:pt-10 border-t border-white/10">
                                     <form action="{% url 'return_order_item' item.id %}" method="POST" onsubmit="return confirmReturn(event, this)">
                                         {% csrf_token %}
                                         <textarea name="reason"
                                                   rows="4"
                                                   required
                                                   placeholder="Reason for return..."
-                                                  class="w-full rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 outline-none resize-none text-white placeholder:text-white/25"></textarea>
+                                                  class="w-full rounded-[2rem] border border-white/10 bg-white/[0.03] p-5 sm:p-6 outline-none resize-none text-white placeholder:text-white/25"></textarea>
                                         <button type="submit"
-                                                class="luxury-btn mt-5 px-8 py-4 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-bold tracking-wide">
+                                                class="luxury-btn mt-5 w-full sm:w-auto px-8 py-4 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-bold tracking-wide">
                                             Return This Item
                                         </button>
                                     </form>
@@ -673,9 +676,9 @@ body{
 
                         {# Show return reason on return-requested item #}
 {% if item.item_status == 'RETURN_REQUESTED' and item.return_reason %}
-    <div class="mt-10 pt-10 border-t border-white/10">
+    <div class="mt-8 sm:mt-10 pt-8 sm:pt-10 border-t border-white/10">
         <p class="text-[9px] uppercase tracking-[0.25em] text-yellow-400 mb-3">Return Reason</p>
-        <p class="w-full rounded-[2rem] border border-yellow-500/20 bg-yellow-500/[0.04] p-6 text-white/50 text-sm leading-relaxed">
+        <p class="w-full rounded-[2rem] border border-yellow-500/20 bg-yellow-500/[0.04] p-5 sm:p-6 text-white/50 text-sm leading-relaxed break-words">
             {{ item.return_reason }}
         </p>
     </div>
@@ -683,18 +686,18 @@ body{
 
 {# Show admin note + return reason when return is approved #}
 {% if item.item_status == 'RETURNED' %}
-    <div class="mt-10 pt-10 border-t border-white/10 space-y-4">
+    <div class="mt-8 sm:mt-10 pt-8 sm:pt-10 border-t border-white/10 space-y-4">
         {% if item.return_reason %}
             <div>
                 <p class="text-[9px] uppercase tracking-[0.25em] text-yellow-400 mb-3">Your Return Reason</p>
-                <p class="w-full rounded-[2rem] border border-yellow-500/20 bg-yellow-500/[0.04] p-6 text-white/50 text-sm leading-relaxed">
+                <p class="w-full rounded-[2rem] border border-yellow-500/20 bg-yellow-500/[0.04] p-5 sm:p-6 text-white/50 text-sm leading-relaxed break-words">
                     {{ item.return_reason }}
                 </p>
             </div>
         {% endif %}
         <div>
             <p class="text-[9px] uppercase tracking-[0.25em] text-green-400 mb-3">Admin Note</p>
-            <p class="w-full rounded-[2rem] border border-green-500/20 bg-green-500/[0.04] p-6 text-white/50 text-sm leading-relaxed italic">
+            <p class="w-full rounded-[2rem] border border-green-500/20 bg-green-500/[0.04] p-5 sm:p-6 text-white/50 text-sm leading-relaxed italic break-words">
                 "{{ item.admin_return_note|default:"Return approved. Refund has been credited to your wallet." }}"
             </p>
         </div>
@@ -703,18 +706,18 @@ body{
 
 {# Show admin note + return reason when return is rejected #}
 {% if item.item_status == 'RETURN_REJECTED' %}
-    <div class="mt-10 pt-10 border-t border-white/10 space-y-4">
+    <div class="mt-8 sm:mt-10 pt-8 sm:pt-10 border-t border-white/10 space-y-4">
         {% if item.return_reason %}
             <div>
                 <p class="text-[9px] uppercase tracking-[0.25em] text-yellow-400 mb-3">Your Return Reason</p>
-                <p class="w-full rounded-[2rem] border border-yellow-500/20 bg-yellow-500/[0.04] p-6 text-white/50 text-sm leading-relaxed">
+                <p class="w-full rounded-[2rem] border border-yellow-500/20 bg-yellow-500/[0.04] p-5 sm:p-6 text-white/50 text-sm leading-relaxed break-words">
                     {{ item.return_reason }}
                 </p>
             </div>
         {% endif %}
         <div>
             <p class="text-[9px] uppercase tracking-[0.25em] text-red-400 mb-3">Rejection Note</p>
-            <p class="w-full rounded-[2rem] border border-red-500/20 bg-red-500/[0.04] p-6 text-white/50 text-sm leading-relaxed italic">
+            <p class="w-full rounded-[2rem] border border-red-500/20 bg-red-500/[0.04] p-5 sm:p-6 text-white/50 text-sm leading-relaxed italic break-words">
                 "{{ item.admin_return_note|default:"Your return request was not approved." }}"
             </p>
         </div>
@@ -731,36 +734,36 @@ body{
             <!-- RIGHT: SUMMARY + SIDEBAR ACTIONS -->
             <div>
 
-                <div class="sticky top-28 glass-panel rounded-[2.7rem] p-10">
+                <div class="xl:sticky xl:top-28 glass-panel rounded-[2.7rem] p-6 sm:p-10">
 
-                    <h2 class="text-4xl font-extralight tracking-tight mb-10">
+                    <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extralight tracking-tight mb-8 sm:mb-10">
                         Order Summary
                     </h2>
 
-                    <div class="space-y-6">
+                    <div class="space-y-5 sm:space-y-6">
 
-                        <div class="summary-row flex justify-between items-center">
+                        <div class="summary-row flex justify-between items-center gap-3">
                             <p class="text-white/40">Total MRP</p>
                             <p class="font-medium">₹{{ order.subtotal|add:order.discount }}</p>
                         </div>
 
-                        <div class="summary-row flex justify-between items-center">
+                        <div class="summary-row flex justify-between items-center gap-3">
                             <p class="text-white/40">Discount</p>
                             <p class="text-green-400 font-medium">- ₹{{ order.discount }}</p>
                         </div>
 
-                        <div class="summary-row flex justify-between items-center">
+                        <div class="summary-row flex justify-between items-center gap-3">
                             <p class="text-white/40">Subtotal</p>
                             <p class="font-medium">₹{{ order.subtotal }}</p>
                         </div>
 
-                        <div class="summary-row flex justify-between items-center">
+                        <div class="summary-row flex justify-between items-center gap-3">
                             <p class="text-white/40">Shipping</p>
                             <p class="font-medium">₹{{ order.shipping_charge }}</p>
                         </div>
 
                         {% if order.coupon_discount > 0 %}
-                        <div class="summary-row flex justify-between items-center">
+                        <div class="summary-row flex justify-between items-center gap-3">
                             <p class="text-white/40">
                                 Coupon Discount
                                 {% if order.applied_coupon %}
@@ -771,18 +774,18 @@ body{
                         </div>
                         {% endif %}
 
-                        <div class="pt-8 border-t soft-divider flex justify-between items-center">
+                        <div class="pt-8 border-t soft-divider flex flex-wrap justify-between items-end gap-4">
 
                             <div>
                                 <p class="text-[10px] uppercase tracking-[0.35em] text-white/30 mb-2">
                                     GRAND TOTAL
                                 </p>
-                                <h3 class="text-xl font-semibold">
+                                <h3 class="text-lg sm:text-xl font-semibold">
                                     Payable Amount
                                 </h3>
                             </div>
 
-                            <h3 class="text-5xl font-extralight tracking-tight">
+                            <h3 class="text-3xl sm:text-4xl lg:text-5xl font-extralight tracking-tight">
                                 ₹{{ order.total_amount }}
                             </h3>
 
@@ -791,13 +794,13 @@ body{
                     </div>
 
                     <!-- ADDRESS -->
-                    <div class="mt-12 pt-10 border-t soft-divider">
+                    <div class="mt-10 sm:mt-12 pt-8 sm:pt-10 border-t soft-divider">
 
-                        <h3 class="text-3xl font-extralight tracking-tight mb-7">
+                        <h3 class="text-xl sm:text-2xl lg:text-3xl font-extralight tracking-tight mb-6 sm:mb-7">
                             Delivery Address
                         </h3>
 
-                        <div class="space-y-4 text-white/60 leading-relaxed">
+                        <div class="space-y-4 text-white/60 leading-relaxed break-words">
 
                             <p class="text-white font-semibold text-lg">
                                 {{ order.full_name }}
@@ -821,7 +824,7 @@ body{
 
                     </div>
 
-                    <div class="mt-12 space-y-5">
+                    <div class="mt-10 sm:mt-12 space-y-5">
 
     {# Download invoice — paid orders only #}
     {% if order.payment_status == 'PAID' %}
@@ -833,7 +836,7 @@ body{
 
     {# ── RETRY PAYMENT — failed online payment ── #}
     {% if order.payment_method == 'ONLINE' and order.payment_status == 'FAILED' %}
-    <div class="rounded-[2rem] border border-red-500/20 bg-red-500/[0.05] p-6 space-y-4">
+    <div class="rounded-[2rem] border border-red-500/20 bg-red-500/[0.05] p-5 sm:p-6 space-y-4">
         <div>
             <p class="text-[10px] uppercase tracking-[0.35em] text-red-400 mb-1">Payment Failed</p>
             <p class="text-white/50 text-sm">Your payment could not be processed. Retry to confirm your order.</p>
@@ -849,7 +852,7 @@ body{
     {# ── PAY NOW — COD orders that haven't been paid yet ── #}
     {% if order.payment_method == 'COD' and order.payment_status == 'PENDING' %}
     {% if order.order_status == 'PENDING' or order.order_status == 'CONFIRMED' or order.order_status == 'SHIPPED' or order.order_status == 'OUT_FOR_DELIVERY' %}
-    <div class="rounded-[2rem] border border-yellow-500/20 bg-yellow-500/[0.05] p-6 space-y-4">
+    <div class="rounded-[2rem] border border-yellow-500/20 bg-yellow-500/[0.05] p-5 sm:p-6 space-y-4">
         <div>
             <p class="text-[10px] uppercase tracking-[0.35em] text-yellow-400 mb-1">Cash on Delivery</p>
             <p class="text-white/50 text-sm">Want to pay online instead? Switch to secure online payment now.</p>
@@ -874,7 +877,7 @@ body{
                   onsubmit="return confirmCancel(event, this, true)">
                 {% csrf_token %}
 
-                <div class="rounded-[2rem] border border-white/[0.07] bg-white/[0.02] p-6 space-y-4">
+                <div class="rounded-[2rem] border border-white/[0.07] bg-white/[0.02] p-5 sm:p-6 space-y-4">
                     <div>
                         <p class="text-[10px] uppercase tracking-[0.35em] text-white/30 mb-1">Cancel Order</p>
                         <p class="text-white/40 text-sm">Tell us why you want to cancel this order.</p>
@@ -914,18 +917,18 @@ body{
      class="fixed inset-0 z-50 hidden items-center justify-center"
      style="background:rgba(0,0,0,0.72);backdrop-filter:blur(8px);">
     <div id="cancelModalBox"
-         class="glass-panel rounded-[2.7rem] p-12 max-w-md w-full mx-6 border border-white/10"
+         class="glass-panel rounded-[2.7rem] p-6 sm:p-12 max-w-md w-full mx-4 sm:mx-6 border border-white/10"
          style="transition:all 0.4s ease;transform:translateY(24px);opacity:0;">
         <div class="w-12 h-px mb-8" style="background:linear-gradient(to right,#D4AF37,transparent)"></div>
         <p class="text-[10px] uppercase tracking-[0.5em] text-white/25 mb-5">Confirm Action</p>
-        <h2 id="cancelModalTitle" class="text-3xl font-extralight tracking-tight leading-snug mb-4">
+        <h2 id="cancelModalTitle" class="text-2xl sm:text-3xl font-extralight tracking-tight leading-snug mb-4">
             Cancel this item?
         </h2>
         <p class="text-white/40 text-sm leading-relaxed mb-10">
             This action cannot be undone. The item will be marked as cancelled
             and a refund (if applicable) will be processed.
         </p>
-        <div class="flex gap-4">
+        <div class="flex flex-col sm:flex-row gap-4">
             <button onclick="submitCancelForm()"
                     class="luxury-btn flex-1 py-4 rounded-2xl bg-red-500 hover:bg-red-400 text-white font-bold tracking-wide text-sm">
                 Yes, Cancel
@@ -943,17 +946,17 @@ body{
      class="fixed inset-0 z-50 hidden items-center justify-center"
      style="background:rgba(0,0,0,0.72);backdrop-filter:blur(8px);">
     <div id="returnModalBox"
-         class="glass-panel rounded-[2.7rem] p-12 max-w-md w-full mx-6 border border-white/10"
+         class="glass-panel rounded-[2.7rem] p-6 sm:p-12 max-w-md w-full mx-4 sm:mx-6 border border-white/10"
          style="transition:all 0.4s ease;transform:translateY(24px);opacity:0;">
         <div class="w-12 h-px mb-8" style="background:linear-gradient(to right,#D4AF37,transparent)"></div>
         <p class="text-[10px] uppercase tracking-[0.5em] text-white/25 mb-5">Confirm Action</p>
-        <h2 class="text-3xl font-extralight tracking-tight leading-snug mb-4">
+        <h2 class="text-2xl sm:text-3xl font-extralight tracking-tight leading-snug mb-4">
             Return this item?
         </h2>
         <p class="text-white/40 text-sm leading-relaxed mb-10">
             A return request will be submitted for review. Our team will process it shortly.
         </p>
-        <div class="flex gap-4">
+        <div class="flex flex-col sm:flex-row gap-4">
             <button onclick="submitReturnForm()"
                     class="luxury-btn flex-1 py-4 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-bold tracking-wide text-sm">
                 Yes, Return

@@ -6,7 +6,11 @@ from django.contrib import messages
 from orders.models import Order
 from products.models import ProductVariant
 from django.db import transaction
-from orders.views import recalculate_order_totals, record_status_change
+from orders.views import (
+    recalculate_order_totals,
+    record_status_change,
+    calculate_item_refund,
+)
 from orders.models import Order, OrderItem
 from wallets.models import Wallet, WalletTransaction
 from datetime import timedelta
@@ -40,9 +44,7 @@ def admin_orders_list(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    # NEW: status breakdown counts, computed from the FULL table
-    # (unaffected by search/status filters) so the stat cards always
-    # show the true overall picture, not just what's currently filtered.
+   
     status_counts_qs = Order.objects.values("order_status").annotate(count=Count("id"))
     status_counts = {row["order_status"]: row["count"] for row in status_counts_qs}
     total_orders_count = Order.objects.count()
@@ -80,9 +82,7 @@ def change_order_status(request, order_id):
     new_status = request.POST.get("order_status")
     old_status = order.order_status
 
-    # -----------------------------
-    # 1. ALLOWED STATUS FLOW RULES
-    # -----------------------------
+    
     ALLOWED_TRANSITIONS = {
         "PENDING": ["CONFIRMED", "CANCELLED"],
         "CONFIRMED": ["SHIPPED", "CANCELLED"],
@@ -267,6 +267,7 @@ def handle_item_status_change(request, item_id):
         return redirect("management:admin_orders_list")
 
     item = get_object_or_404(OrderItem, id=item_id)
+    order = item.order
     new_status = request.POST.get("item_status")
     old_status = item.item_status
 
@@ -293,6 +294,33 @@ def handle_item_status_change(request, item_id):
         item.item_status = "CANCELLED"
         item.save()
 
+        
+        if order.payment_status == "PAID":
+            refund_amount = calculate_item_refund(item)
+
+            wallet, _ = Wallet.objects.get_or_create(user=order.user)
+            wallet.balance += refund_amount
+            wallet.save()
+
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                amount=refund_amount,
+                transaction_type="CREDIT",
+                purpose="REFUND",
+                order_id=order.order_id,
+                description=f"Admin cancelled item refund: {item.product_name} (Order #{order.order_id})",
+            )
+
+        recalculate_order_totals(order)
+
+        # If no active items remain, cancel the whole order too
+        if not order.items.filter(item_status="ACTIVE").exists():
+            order.order_status = "CANCELLED"
+            if order.payment_status == "PAID":
+                order.payment_status = "REFUNDED"
+            order.save()
+            record_status_change(order, "CANCELLED", note="Auto-cancelled: last active item cancelled by admin")
+
         messages.success(request, "Item cancelled successfully.")
         return redirect("management:admin_order_detail", item.order.order_id)
 
@@ -307,6 +335,30 @@ def handle_item_status_change(request, item_id):
             messages.error(request, "Insufficient stock to reactivate item.")
             return redirect("management:admin_order_detail", item.order.order_id)
 
+        
+        if order.payment_status in ("PAID", "REFUNDED"):
+            refund_amount = calculate_item_refund(item)
+            wallet, _ = Wallet.objects.get_or_create(user=order.user)
+
+            if wallet.balance < refund_amount:
+                messages.error(
+                    request,
+                    "Cannot reactivate: customer's wallet balance is lower than the refunded amount.",
+                )
+                return redirect("management:admin_order_detail", item.order.order_id)
+
+            wallet.balance -= refund_amount
+            wallet.save()
+
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                amount=refund_amount,
+                transaction_type="DEBIT",
+                purpose="REFUND_REVERSAL",
+                order_id=order.order_id,
+                description=f"Reversed refund: item reactivated by admin: {item.product_name} (Order #{order.order_id})",
+            )
+
         if variant:
             ProductVariant.objects.filter(id=variant.id).update(
                 stock=F("stock") - item.quantity
@@ -315,16 +367,25 @@ def handle_item_status_change(request, item_id):
         item.item_status = "ACTIVE"
         item.save()
 
+        
+        if order.order_status == "CANCELLED":
+            order.order_status = "CONFIRMED"
+            if order.payment_status == "REFUNDED":
+                order.payment_status = "PAID"
+            order.save()
+            record_status_change(order, "CONFIRMED", note="Re-activated: item restored by admin")
+
+        recalculate_order_totals(order)
+
         messages.success(request, "Item reactivated successfully.")
         return redirect("management:admin_order_detail", item.order.order_id)
 
     messages.error(request, "Invalid item status transition.")
     return redirect("management:admin_order_detail", item.order.order_id)
 
-
 @staff_member_required
 def admin_return_requests(request):
-    # 1. Base query: Capture ALL items that belong to a return process workflow
+    
     return_statuses = ["RETURN_REQUESTED", "RETURNED", "RETURN_REJECTED"]
     items = (
         OrderItem.objects.filter(item_status__in=return_statuses)
@@ -332,7 +393,7 @@ def admin_return_requests(request):
         .order_by("-created_at")
     )
 
-    # 2. Extract and Handle Filters
+    
     search_query = request.GET.get("search", "").strip()
     status_filter = request.GET.get("status", "").strip()
 
@@ -347,13 +408,12 @@ def admin_return_requests(request):
     if status_filter:
         items = items.filter(item_status=status_filter)
 
-    # 3. Add Pagination (8 entries per page matches your theme standard)
+    
     paginator = Paginator(items, 8)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    # 4. Generate explicit Return Choices dynamically for your template's select box
-    # This filters down OrderItem choices specifically to your valid return workflows
+    
     return_status_choices = [
         ("RETURN_REQUESTED", "Return Requested"),
         ("RETURNED", "Returned (Approved)"),
@@ -392,7 +452,7 @@ def approve_return_item(request, item_id):
 
     wallet, created = Wallet.objects.get_or_create(user=item.order.user)
 
-    # Check remaining non-returned active products to update complete parent order state
+    
     remaining_items = item.order.items.exclude(
         item_status__in=["RETURNED", "CANCELLED"]
     )
@@ -407,12 +467,14 @@ def approve_return_item(request, item_id):
             note=f"All items returned (item #{item.id} approved)",
         )
 
-    wallet.balance += item.subtotal
+    refund_amount = calculate_item_refund(item)
+
+    wallet.balance += refund_amount
     wallet.save()
 
     WalletTransaction.objects.create(
         wallet=wallet,
-        amount=item.subtotal,
+        amount=refund_amount,
         transaction_type="CREDIT",
         purpose="REFUND",
         order_id=item.order.order_id,
@@ -461,7 +523,6 @@ def reject_return_item(request, item_id):
     return redirect("management:admin_return_request_detail", item_id=item.id)
 
 
-# In your views.py, look at this specific function and change it:
 @staff_member_required
 def admin_return_request_detail(request, item_id):
     # CHANGE item_status="RETURN_REQUESTED" to an __in lookup or remove the raw state requirement
@@ -491,7 +552,8 @@ def approve_full_return(request, order_id):
         messages.error(request, "Invalid return state.")
         return redirect("management:admin_order_detail", order_id=order_id)
 
-    total_refund = 0
+    
+    refund_amount = order.total_amount
 
     for item in order.items.all():
 
@@ -505,15 +567,13 @@ def approve_full_return(request, order_id):
                     stock=F("stock") + item.quantity
                 )
 
-            total_refund += item.subtotal
-
     wallet, _ = Wallet.objects.get_or_create(user=order.user)
-    wallet.balance += total_refund
+    wallet.balance += refund_amount
     wallet.save()
 
     WalletTransaction.objects.create(
         wallet=wallet,
-        amount=total_refund,
+        amount=refund_amount,
         transaction_type="CREDIT",
         purpose="FULL_ORDER_REFUND",
         order_id=order.order_id,
@@ -713,11 +773,7 @@ def admin_transactions_list(request):
 
 
 def admin_transaction_detail(request, pk):
-    """
-    Detail view: works for both wallet transactions (source=wallet)
-    and online order payments (source=online).
-    Query param ?source=online means it's an Order pk.
-    """
+    
     source = request.GET.get("source", "wallet")
 
     if source == "online":
@@ -1024,24 +1080,24 @@ def admin_revenue_list(request):
 def admin_revenue_product_detail(request, product_id):
     from django.db.models import Sum, Count, F, Q
     from products.models import Product
- 
+
     product = get_object_or_404(Product, id=product_id)
- 
+
     # ── All order items for this product ────────────────────
     all_items = (
         OrderItem.objects.filter(product_variant__product=product)
         .select_related("order", "order__user", "product_variant")
         .order_by("-order__created_at")
     )
- 
+
     # ── Summary stats (NEVER affected by the table filters below —
     #    these always reflect the product's full history) ─────
     active_items = all_items.exclude(item_status__in=["CANCELLED"])
- 
+
     paid_items = all_items.filter(order__payment_status="PAID").exclude(
         item_status="CANCELLED"
     )
- 
+
     stats = {
         "total_revenue": paid_items.aggregate(t=Sum("subtotal"))["t"] or 0,
         "total_units_sold": paid_items.aggregate(t=Sum("quantity"))["t"] or 0,
@@ -1064,10 +1120,10 @@ def admin_revenue_product_detail(request, product_id):
         ).aggregate(t=Sum("amount"))["t"]
         or 0,
     }
- 
+
     # Net revenue after refunds
     stats["net_revenue"] = stats["total_revenue"] - stats["refund_total"]
- 
+
     # ── Per-variant breakdown (also unaffected by table filters) ─
     variant_breakdown = (
         paid_items.values("product_variant__id", "product_variant__size")
@@ -1078,25 +1134,25 @@ def admin_revenue_product_detail(request, product_id):
         )
         .order_by("-variant_revenue")
     )
- 
+
     # ── Order-level list (all statuses by default) ───────────
     order_rows = all_items.select_related("order__user", "product_variant").order_by(
         "-order__created_at"
     )
- 
+
     # ── NEW: Order/Item status filters for the order history table ─
     order_status_filter = request.GET.get("order_status", "").strip()
     item_status_filter = request.GET.get("item_status", "").strip()
- 
+
     if order_status_filter:
         order_rows = order_rows.filter(order__order_status=order_status_filter)
- 
+
     if item_status_filter:
         order_rows = order_rows.filter(item_status=item_status_filter)
- 
+
     paginator = Paginator(order_rows, 15)
     page_obj = paginator.get_page(request.GET.get("page"))
- 
+
     context = {
         "product": product,
         "stats": stats,
@@ -1131,7 +1187,9 @@ def admin_revenue_category_detail(request, category_id):
     # ── All order items for products in this category ───────
     all_items = (
         OrderItem.objects.filter(product_variant__product__categories=category)
-        .select_related("order", "order__user", "product_variant", "product_variant__product")
+        .select_related(
+            "order", "order__user", "product_variant", "product_variant__product"
+        )
         .distinct()
         .order_by("-order__created_at")
     )

@@ -529,11 +529,11 @@
         </div>
 
         <header id="app-header" class="sticky top-0 z-50 w-full border-b border-neutral-border bg-background-dark/90 backdrop-blur-md">
-            <div class="w-full px-10 lg:px-16 py-5 flex items-center justify-between">
-                <div class="flex items-center gap-16">
+            <div class="w-full px-4 sm:px-6 lg:px-10 xl:px-16 py-4 lg:py-5 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-6 lg:gap-16">
                     <a class="flex items-center gap-2 group" href="#">
-                        <span class="material-symbols-outlined text-primary text-3xl brand-fluid-icon">fluid</span>
-                        <h1 class="text-2xl font-extrabold tracking-tighter uppercase">Scentora</h1>
+                        <span class="material-symbols-outlined text-primary text-2xl sm:text-3xl brand-fluid-icon">fluid</span>
+                        <h1 class="text-lg sm:text-xl lg:text-2xl font-extrabold tracking-tighter uppercase">Scentora</h1>
                     </a>
                     <nav class="hidden lg:flex items-center">
                         <div class="nav-dock flex items-center gap-1 px-2 py-2 rounded-full">
@@ -561,17 +561,17 @@
                         </div>
                     </nav>
                 </div>
-                <div class="flex items-center gap-6">
+                <div class="flex items-center gap-3 sm:gap-6">
                     <div class="search-capsule hidden md:flex items-center bg-neutral-dark border border-neutral-border rounded-full px-4 py-2 group">
                         <span class="material-symbols-outlined text-slate-500 text-xl group-focus-within:text-primary transition-colors">search</span>
-                        <input class="bg-transparent border-none focus:ring-0 text-xs w-48 placeholder:text-slate-600"
+                        <input class="bg-transparent border-none focus:ring-0 text-xs w-32 lg:w-48 placeholder:text-slate-600"
                                placeholder="Search fragrances..."
                                type="text" />
                     </div>
-                    <div class="flex items-center gap-7 border-l border-neutral-border pl-8">
+                    <div class="hidden sm:flex items-center gap-4 lg:gap-7 border-l border-neutral-border pl-4 lg:pl-8">
                         <!-- Wishlist -->
                         <a href="{% url 'cart:wishlist_detail' %}" class="icon-bubble relative group pt-2 rounded-full">
-                            <span class="material-symbols-outlined text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
+                            <span class="material-symbols-outlined text-[24px] lg:text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
                                 favorite
                             </span>
                             <span class="badge-pop absolute -top-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-black text-[9px] font-black leading-none">
@@ -580,7 +580,7 @@
                         </a>
                         <!-- Cart -->
                         <a href="{% url 'cart:cart_detail' %}" class="icon-bubble relative group pt-2 rounded-full">
-                            <span class="material-symbols-outlined text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
+                            <span class="material-symbols-outlined text-[24px] lg:text-[28px] text-slate-200 group-hover:text-primary transition-all duration-300">
                                 shopping_bag
                             </span>
                             <span class="badge-pop absolute -top-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-primary text-black text-[9px] font-black leading-none">
@@ -589,12 +589,12 @@
                         </a>
                         <!-- Guest Profile -->
                         <div class="relative group">
-                            <button class="flex items-center gap-3 border-l border-neutral-border pl-7">
-                                <div class="flex flex-col items-end hidden sm:flex">
+                            <button class="flex items-center gap-3 border-l border-neutral-border pl-4 lg:pl-7">
+                                <div class="flex-col items-end hidden sm:flex">
                                     <span class="text-[8px] uppercase tracking-[0.35em] text-slate-500">Guest Access</span>
                                     <span class="text-[11px] font-bold uppercase tracking-[0.18em] text-white">Guest</span>
                                 </div>
-                                <div class="guest-avatar-ring w-11 h-11 rounded-full border border-neutral-border overflow-hidden flex items-center justify-center">
+                                <div class="guest-avatar-ring w-10 h-10 lg:w-11 lg:h-11 rounded-full border border-neutral-border overflow-hidden flex items-center justify-center">
                                     <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">person</span>
                                 </div>
                             </button>
@@ -618,11 +618,59 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Mobile hamburger toggle (drives #mobile-menu below) -->
+                    <button id="mobile-menu-btn"
+                            class="icon-bubble lg:hidden flex items-center justify-center w-10 h-10 rounded-full border border-neutral-border"
+                            aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+                        <span class="material-symbols-outlined text-2xl" id="mobile-menu-icon">menu</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile slide-down menu: nav links, search, wishlist/cart, guest actions -->
+            <div id="mobile-menu"
+                 class="lg:hidden max-h-0 overflow-hidden transition-[max-height] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] border-t border-neutral-border/0">
+                <div class="glass px-5 sm:px-6 py-6 space-y-6">
+
+                    <form class="search-capsule flex items-center bg-neutral-dark border border-neutral-border rounded-full px-4 py-3">
+                        <span class="material-symbols-outlined text-slate-500 text-xl">search</span>
+                        <input class="bg-transparent border-none focus:ring-0 text-sm w-full ml-2 placeholder:text-slate-600"
+                               placeholder="Search fragrances..."
+                               type="text" />
+                    </form>
+
+                    <nav class="grid grid-cols-2 gap-3">
+                        <a href="{% url 'home' %}" class="glass-btn text-center py-3 rounded-xl text-[11px] font-bold uppercase tracking-[0.18em] text-slate-200">Home</a>
+                        <a href="{% url 'shop:product_list' %}" class="glass-btn text-center py-3 rounded-xl text-[11px] font-bold uppercase tracking-[0.18em] text-slate-200">Shop</a>
+                        <a href="{% url 'shop:brand_list' %}" class="glass-btn text-center py-3 rounded-xl text-[11px] font-bold uppercase tracking-[0.18em] text-slate-200">Brands</a>
+                        <a href="{% url 'shop:category_list' %}" class="glass-btn text-center py-3 rounded-xl text-[11px] font-bold uppercase tracking-[0.18em] text-slate-200">Category</a>
+                    </nav>
+
+                    <div class="flex items-center justify-around border-t border-neutral-border pt-5">
+                        <a href="{% url 'cart:wishlist_detail' %}" class="icon-bubble relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl">
+                            <span class="material-symbols-outlined text-2xl text-slate-200">favorite</span>
+                            <span class="text-[9px] uppercase tracking-widest text-slate-500">Wishlist ({{ guest_wishlist_count|default:0 }})</span>
+                        </a>
+                        <a href="{% url 'cart:cart_detail' %}" class="icon-bubble relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl">
+                            <span class="material-symbols-outlined text-2xl text-slate-200">shopping_bag</span>
+                            <span class="text-[9px] uppercase tracking-widest text-slate-500">Cart ({{ guest_cart_count|default:0 }})</span>
+                        </a>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <a href="{% url 'user_login' %}" class="glass-btn flex items-center justify-center gap-2 py-3 rounded-xl text-[11px] font-bold uppercase tracking-[0.18em] text-slate-200">
+                            <span class="material-symbols-outlined text-[18px]">login</span> Login
+                        </a>
+                        <a href="{% url 'user_signup' %}" class="glass-btn flex items-center justify-center gap-2 py-3 rounded-xl text-[11px] font-bold uppercase tracking-[0.18em] text-slate-200">
+                            <span class="material-symbols-outlined text-[18px]">person_add</span> Signup
+                        </a>
+                    </div>
+
                 </div>
             </div>
         </header>
         <main>
-            <section id="hero-section" class="relative h-[85vh] w-full overflow-hidden bg-black">
+            <section id="hero-section" class="relative min-h-[560px] h-[70vh] sm:h-[78vh] lg:h-[85vh] w-full overflow-hidden bg-black">
                 <div class="liquid-blob" id="liquid-blob"></div>
                 <div id="hero-carousel"
      class="absolute inset-0 z-0 flex transition-transform duration-[1200ms]">
@@ -641,31 +689,31 @@
 
                 
                 <div class="absolute inset-0 z-10 hero-gradient"></div>
-                <div class="relative z-20 h-full max-w-[1440px] mx-auto px-8 lg:px-12 flex items-center">
-                    <div class="max-w-2xl space-y-8">
+                <div class="relative z-20 h-full max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 flex items-center">
+                    <div class="max-w-2xl space-y-5 sm:space-y-8">
                         <div class="flex items-center gap-4">
                             <span class="hero-eyebrow-line w-12 h-[1px] bg-primary"></span>
-                            <h2 class="hero-reveal-up d1 text-primary font-bold tracking-[0.4em] uppercase text-[10px]">Exquisite Collection 2026</h2>
+                            <h2 class="hero-reveal-up d1 text-primary font-bold tracking-[0.4em] uppercase text-[9px] sm:text-[10px]">Exquisite Collection 2026</h2>
                         </div>
-                        <h1 class="hero-reveal-up d2 font-serif-display text-7xl lg:text-[7.5rem] leading-[0.92] tracking-[-0.02em]">
+                        <h1 class="hero-reveal-up d2 font-serif-display text-4xl sm:text-6xl md:text-7xl lg:text-[7.5rem] leading-[0.95] lg:leading-[0.92] tracking-[-0.02em]">
                             <span class="font-light italic text-slate-300">Crafting Your</span>
                             <br />
                             <span class="font-medium text-white">Identity.</span>
                         </h1>
-                        <p class="hero-reveal-up d3 text-lg text-slate-400 font-light max-w-md leading-relaxed">
+                        <p class="hero-reveal-up d3 text-sm sm:text-lg text-slate-400 font-light max-w-md leading-relaxed">
                             Explore an exclusive sanctuary of rare fragrances, curated from the most prestigious perfume houses in the world.
                         </p>
-                        <div class="hero-reveal-up d4 flex flex-wrap gap-6 pt-4">
+                        <div class="hero-reveal-up d4 flex flex-wrap gap-6 pt-2 sm:pt-4">
                             <a href="{% url 'shop:product_list' %}"
    class="liquid-btn group relative inline-flex items-center justify-center
           overflow-hidden
-          px-14 py-5
+          px-8 sm:px-14 py-4 sm:py-5
           bg-primary
           text-black
           font-black
           uppercase
           tracking-[0.3em]
-          text-[11px]
+          text-[10px] sm:text-[11px]
           rounded-full">
 
     <span class="relative z-10 flex items-center gap-2">
@@ -686,7 +734,7 @@
                     </div>
                 </div>
                 <div id="carousel-dots"
-     class="absolute bottom-10 right-12 z-30 flex gap-3">
+     class="absolute bottom-6 sm:bottom-10 right-6 sm:right-12 z-30 flex gap-3">
 
     {% for image in hero_images %}
     <div
@@ -826,6 +874,36 @@ document.addEventListener('DOMContentLoaded', function () {
         }, { passive: true });
     }
 
+    /* ---- Mobile menu toggle (responsive fix) ---- */
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const menuIcon = document.getElementById('mobile-menu-icon');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (menuBtn && mobileMenu) {
+        let menuOpen = false;
+        menuBtn.addEventListener('click', () => {
+            menuOpen = !menuOpen;
+            if (menuOpen) {
+                mobileMenu.style.maxHeight = mobileMenu.scrollHeight + 'px';
+                menuIcon.textContent = 'close';
+                menuBtn.setAttribute('aria-expanded', 'true');
+            } else {
+                mobileMenu.style.maxHeight = '0px';
+                menuIcon.textContent = 'menu';
+                menuBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024 && menuOpen) {
+                mobileMenu.style.maxHeight = '0px';
+                menuIcon.textContent = 'menu';
+                menuBtn.setAttribute('aria-expanded', 'false');
+                menuOpen = false;
+            } else if (menuOpen) {
+                mobileMenu.style.maxHeight = mobileMenu.scrollHeight + 'px';
+            }
+        });
+    }
+
     /* ---- Toast auto-dismiss (kept from original behavior) ---- */
     const toasts = document.querySelectorAll('.toast-message');
     toasts.forEach((toast) => {
@@ -840,31 +918,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 </script>
-            <section class="bg-neutral-dark border-b border-neutral-border py-16">
-                <div class="max-w-[1440px] mx-auto px-8 lg:px-12">
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-12">
-                        <div class="trust-chip reveal-on-scroll flex flex-col gap-4">
+            <section class="bg-neutral-dark border-b border-neutral-border py-10 sm:py-16">
+                <div class="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12">
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-12">
+                        <div class="trust-chip reveal-on-scroll flex flex-col gap-3 sm:gap-4">
                             <span class="trust-icon-orb"><span class="material-symbols-outlined text-primary text-3xl">verified</span></span>
                             <div>
                                 <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Authentic Heritage</h4>
                                 <p class="text-[10px] text-slate-500 uppercase tracking-widest">100% Genuine Origin</p>
                             </div>
                         </div>
-                        <div class="trust-chip reveal-on-scroll flex flex-col gap-4">
+                        <div class="trust-chip reveal-on-scroll flex flex-col gap-3 sm:gap-4">
                             <span class="trust-icon-orb"><span class="material-symbols-outlined text-primary text-3xl">lock</span></span>
                             <div>
                                 <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Secure Transaction</h4>
                                 <p class="text-[10px] text-slate-500 uppercase tracking-widest">Encrypted Checkout</p>
                             </div>
                         </div>
-                        <div class="trust-chip reveal-on-scroll flex flex-col gap-4">
+                        <div class="trust-chip reveal-on-scroll flex flex-col gap-3 sm:gap-4">
                             <span class="trust-icon-orb"><span class="material-symbols-outlined text-primary text-3xl">local_shipping</span></span>
                             <div>
                                 <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Global Delivery</h4>
                                 <p class="text-[10px] text-slate-500 uppercase tracking-widest">2-3 Day Express</p>
                             </div>
                         </div>
-                        <div class="trust-chip reveal-on-scroll flex flex-col gap-4">
+                        <div class="trust-chip reveal-on-scroll flex flex-col gap-3 sm:gap-4">
                             <span class="trust-icon-orb"><span class="material-symbols-outlined text-primary text-3xl">assignment_return</span></span>
                             <div>
                                 <h4 class="font-bold text-xs uppercase tracking-widest mb-1">Concierge Returns</h4>
@@ -874,22 +952,22 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 </div>
             </section>
-            <section class="py-32 max-w-[1440px] mx-auto px-8 lg:px-12">
-                <div class="reveal-on-scroll flex items-end justify-between mb-20">
-                    <div class="space-y-4">
+            <section class="py-16 sm:py-24 lg:py-32 max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12">
+                <div class="reveal-on-scroll flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12 sm:mb-20">
+                    <div class="space-y-3 sm:space-y-4">
                         <p class="text-primary text-[10px] font-bold uppercase tracking-[0.4em]">Curated for you</p>
-                        <h2 class="font-serif-display text-5xl font-light tracking-[-0.01em] text-white">
+                        <h2 class="font-serif-display text-3xl sm:text-4xl lg:text-5xl font-light tracking-[-0.01em] text-white">
                             Featured <span class="italic font-normal">Masterpieces</span>
                         </h2>
                     </div>
-                    <a class="glass-btn text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-full hover:text-primary"
+                    <a class="glass-btn self-start sm:self-auto text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-full hover:text-primary"
                        href="{% url 'shop:product_list' %}">View Gallery</a>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 sm:gap-x-8 gap-y-10 sm:gap-y-16">
 
     {% for product in featured_products|slice:":6" %}
 
-    <a href="{% url 'shop:product_detail' product.uuid %}" class="product-card reveal-on-scroll group space-y-6 block">
+    <a href="{% url 'shop:product_detail' product.uuid %}" class="product-card reveal-on-scroll group space-y-4 sm:space-y-6 block">
 
         <div class="product-card-media relative aspect-[3/4] overflow-hidden bg-neutral-dark rounded-md">
 
@@ -915,7 +993,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </p>
             {% endif %}
 
-            <h3 class="font-serif-display text-xl font-medium tracking-[-0.005em]">
+            <h3 class="font-serif-display text-lg sm:text-xl font-medium tracking-[-0.005em]">
                 {{ product.name }}
             </h3>
 
@@ -936,18 +1014,18 @@ document.addEventListener('DOMContentLoaded', function () {
 </div>
                 
             </section>
-            <section class="py-32 bg-[#050505]">
-                <div class="max-w-[1440px] mx-auto px-8 lg:px-12">
-                    <div class="reveal-on-scroll flex items-end justify-between mb-16">
-                        <h2 class="font-serif-display text-3xl italic font-light text-slate-200 tracking-[-0.01em]">The Departments</h2>
-                        <a class="glass-btn text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-full hover:text-primary"
+            <section class="py-16 sm:py-24 lg:py-32 bg-[#050505]">
+                <div class="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12">
+                    <div class="reveal-on-scroll flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10 sm:mb-16">
+                        <h2 class="font-serif-display text-2xl sm:text-3xl italic font-light text-slate-200 tracking-[-0.01em]">The Departments</h2>
+                        <a class="glass-btn self-start sm:self-auto text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-full hover:text-primary"
                            href="{% url 'shop:category_list' %}">View All Categories</a>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
 
     {% for category in categories|slice:":6" %}
 
-    <a class="dept-card reveal-on-scroll group relative h-[600px] overflow-hidden rounded-2xl"
+    <a class="dept-card reveal-on-scroll group relative h-[380px] sm:h-[480px] md:h-[600px] overflow-hidden rounded-2xl"
       href="{% url 'shop:product_list' %}?category={{ category.id }}">
 
         {% if category.category_image %}
@@ -960,8 +1038,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
 
-        <div class="absolute bottom-10 left-10 space-y-2">
-            <h3 class="dept-label font-serif-display text-2xl font-medium tracking-[-0.01em]">
+        <div class="absolute bottom-6 sm:bottom-10 left-6 sm:left-10 space-y-2">
+            <h3 class="dept-label font-serif-display text-xl sm:text-2xl font-medium tracking-[-0.01em]">
                 {{ category.name }}
             </h3>
 
@@ -983,18 +1061,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     "brands": Brand.objects.filter(is_active=True).order_by("id")[:6]
                 (matches the same ordering used in shop:brand_list)
             -->
-            <section class="py-32 bg-[#050505] border-t border-neutral-border">
-                <div class="max-w-[1440px] mx-auto px-8 lg:px-12">
-                    <div class="reveal-on-scroll flex items-end justify-between mb-16">
-                        <h2 class="font-serif-display text-3xl italic font-light text-slate-200 tracking-[-0.01em]">The Maisons</h2>
-                        <a class="glass-btn text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-full hover:text-primary"
+            <section class="py-16 sm:py-24 lg:py-32 bg-[#050505] border-t border-neutral-border">
+                <div class="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12">
+                    <div class="reveal-on-scroll flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10 sm:mb-16">
+                        <h2 class="font-serif-display text-2xl sm:text-3xl italic font-light text-slate-200 tracking-[-0.01em]">The Maisons</h2>
+                        <a class="glass-btn self-start sm:self-auto text-xs font-bold uppercase tracking-widest px-6 py-3 rounded-full hover:text-primary"
                            href="{% url 'shop:brand_list' %}">View All Brands</a>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
 
     {% for brand in brands|slice:":6" %}
 
-    <a class="dept-card reveal-on-scroll group relative h-[600px] overflow-hidden rounded-2xl"
+    <a class="dept-card reveal-on-scroll group relative h-[380px] sm:h-[480px] md:h-[600px] overflow-hidden rounded-2xl"
       href="{% url 'shop:product_list' %}?brand={{ brand.id }}">
 
         {% with first_product=brand.products.all|first %}
@@ -1015,8 +1093,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
 
-        <div class="absolute bottom-10 left-10 space-y-2">
-            <h3 class="dept-label font-serif-display text-2xl font-medium tracking-[-0.01em]">
+        <div class="absolute bottom-6 sm:bottom-10 left-6 sm:left-10 space-y-2">
+            <h3 class="dept-label font-serif-display text-xl sm:text-2xl font-medium tracking-[-0.01em]">
                 {{ brand.name }}
             </h3>
 
@@ -1032,17 +1110,17 @@ document.addEventListener('DOMContentLoaded', function () {
 </div>
                 </div>
             </section>
-            <section class="py-32">
-                <div class="reveal-on-scroll max-w-4xl mx-auto px-8 text-center">
-                    <div class="space-y-8">
+            <section class="py-16 sm:py-24 lg:py-32">
+                <div class="reveal-on-scroll max-w-4xl mx-auto px-6 sm:px-8 text-center">
+                    <div class="space-y-6 sm:space-y-8">
                         <span class="newsletter-icon-orb"><span class="material-symbols-outlined text-primary text-4xl font-light">mail</span></span>
-                        <h2 class="font-serif-display text-4xl font-light tracking-[-0.01em]">
+                        <h2 class="font-serif-display text-3xl sm:text-4xl font-light tracking-[-0.01em]">
                             The <span class="italic font-medium text-primary">Scentora</span> Journal
                         </h2>
-                        <p class="text-slate-500 text-sm uppercase tracking-[0.3em] max-w-lg mx-auto leading-loose">
+                        <p class="text-slate-500 text-xs sm:text-sm uppercase tracking-[0.25em] sm:tracking-[0.3em] max-w-lg mx-auto leading-loose">
                             Subscribe for exclusive access to vintage releases and private invitations.
                         </p>
-                        <form class="newsletter-form flex flex-col sm:flex-row gap-0 max-w-md mx-auto border-b border-neutral-border">
+                        <form class="newsletter-form flex flex-col sm:flex-row gap-3 sm:gap-0 max-w-md mx-auto border-b border-neutral-border">
                             <input class="flex-1 bg-transparent border-none text-sm py-4 outline-none placeholder:text-slate-700"
                                    placeholder="Email Address"
                                    type="email" />
@@ -1056,29 +1134,29 @@ document.addEventListener('DOMContentLoaded', function () {
         </main>
         <footer class="border-t border-neutral-border/60">
 
-    <div class="max-w-[1440px] mx-auto px-8 lg:px-12 py-28">
+    <div class="max-w-[1440px] mx-auto px-6 sm:px-8 lg:px-12 py-16 sm:py-20 lg:py-28">
 
         <!-- Brand -->
-        <div class="text-center mb-24">
+        <div class="text-center mb-14 sm:mb-24">
 
             <a href="{% url 'home' %}"
                class="inline-flex items-center gap-3 group mb-6">
 
-                <span class="material-symbols-outlined text-primary text-4xl footer-logo-icon">
+                <span class="material-symbols-outlined text-primary text-3xl sm:text-4xl footer-logo-icon">
                     fluid
                 </span>
 
-                <h2 class="text-4xl font-extrabold tracking-[0.2em] uppercase text-white">
+                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-[0.2em] uppercase text-white">
                     Scentora
                 </h2>
 
             </a>
 
-            <p class="text-primary text-[10px] uppercase tracking-[0.5em] mb-8">
+            <p class="text-primary text-[10px] uppercase tracking-[0.5em] mb-6 sm:mb-8">
                 Maison De Parfum
             </p>
 
-            <p class="max-w-2xl mx-auto text-slate-500 text-sm leading-relaxed font-light">
+            <p class="max-w-2xl mx-auto text-slate-500 text-sm leading-relaxed font-light px-2">
                 A legacy of olfactory excellence. Curating the world's most
                 intimate memories through the art of fine perfumery.
             </p>
@@ -1086,12 +1164,12 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
 
         <!-- Navigation -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-16 text-center mb-24">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-10 sm:gap-16 text-center mb-14 sm:mb-24">
 
             <!-- Collections -->
             <div>
 
-                <h4 class="font-bold text-[10px] uppercase tracking-[0.4em] text-primary mb-8">
+                <h4 class="font-bold text-[10px] uppercase tracking-[0.4em] text-primary mb-6 sm:mb-8">
                     Collections
                 </h4>
 
@@ -1143,7 +1221,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <!-- Maison -->
             <div>
 
-                <h4 class="font-bold text-[10px] uppercase tracking-[0.4em] text-primary mb-8">
+                <h4 class="font-bold text-[10px] uppercase tracking-[0.4em] text-primary mb-6 sm:mb-8">
                     Maison
                 </h4>
 
@@ -1177,7 +1255,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <!-- Concierge -->
             <div>
 
-                <h4 class="font-bold text-[10px] uppercase tracking-[0.4em] text-primary mb-8">
+                <h4 class="font-bold text-[10px] uppercase tracking-[0.4em] text-primary mb-6 sm:mb-8">
                     Concierge
                 </h4>
 
@@ -1229,9 +1307,9 @@ document.addEventListener('DOMContentLoaded', function () {
         </div>
 
         <!-- Social -->
-        <div class="border-t border-neutral-border pt-12 pb-12">
+        <div class="border-t border-neutral-border pt-10 sm:pt-12 pb-10 sm:pb-12">
 
-            <div class="flex justify-center gap-12">
+            <div class="flex flex-wrap justify-center gap-6 sm:gap-12">
 
                 <a href="https://www.instagram.com/_.oblivorn._/?hl=en"
                    class="footer-link text-[10px] uppercase tracking-[0.35em] text-slate-500 hover:text-primary">
@@ -1255,7 +1333,7 @@ document.addEventListener('DOMContentLoaded', function () {
         <!-- Bottom -->
         <div class="border-t border-neutral-border pt-10 flex flex-col lg:flex-row justify-between items-center gap-6">
 
-            <p class="text-slate-600 text-[10px] uppercase tracking-[0.3em]">
+            <p class="text-slate-600 text-[10px] uppercase tracking-[0.3em] text-center">
                 © 2026 Scentora Maison De Parfum. All Rights Reserved.
             </p>
 

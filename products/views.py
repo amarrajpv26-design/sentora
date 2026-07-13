@@ -12,10 +12,10 @@ from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
 import uuid
 
-
 # ──────────────────────────────────────────────
 #  CATEGORY VIEWS  (unchanged)
 # ──────────────────────────────────────────────
+
 
 @staff_member_required
 @never_cache
@@ -66,29 +66,43 @@ def add_category(request):
 
             if Category.objects.filter(name__iexact=category.name).exists():
                 form.add_error("name", f"The vault '{category.name}' already exists.")
-                return render(request, "products/admin_add_category.html", {"form": form})
+                return render(
+                    request, "products/admin_add_category.html", {"form": form}
+                )
 
             if cropped_data:
                 try:
                     format, imgstr = cropped_data.split(";base64,")
                     ext = format.split("/")[-1]
-                    data = ContentFile(base64.b64decode(imgstr), name=f"{category.name}.{ext}")
+                    data = ContentFile(
+                        base64.b64decode(imgstr), name=f"{category.name}.{ext}"
+                    )
                     category.category_image = data
                 except (ValueError, IndexError):
                     messages.error(request, "Invalid image data received.")
-                    return render(request, "products/admin_add_category.html", {"form": form})
+                    return render(
+                        request, "products/admin_add_category.html", {"form": form}
+                    )
 
             try:
                 category.save()
-                messages.success(request, f"Vault '{category.name}' established successfully.")
+                messages.success(
+                    request, f"Vault '{category.name}' established successfully."
+                )
                 return redirect("admin_category_list")
             except ValidationError as e:
                 messages.error(request, e.message)
-                return render(request, "products/admin_add_category.html", {"form": form})
+                return render(
+                    request, "products/admin_add_category.html", {"form": form}
+                )
     else:
         form = CategoryForm()
 
-    return render(request, "products/admin_add_category.html", {"form": form, "title": "Add New Category"})
+    return render(
+        request,
+        "products/admin_add_category.html",
+        {"form": form, "title": "Add New Category"},
+    )
 
 
 @staff_member_required
@@ -108,26 +122,44 @@ def edit_category(request, category_id):
                 .exclude(pk=category.pk)
                 .exists()
             ):
-                form.add_error("name", f"The vault '{updated_category.name}' already exists.")
-                return render(request, "products/admin_edit_category.html", {"form": form, "category": category})
+                form.add_error(
+                    "name", f"The vault '{updated_category.name}' already exists."
+                )
+                return render(
+                    request,
+                    "products/admin_edit_category.html",
+                    {"form": form, "category": category},
+                )
 
             if cropped_data:
                 try:
                     format, imgstr = cropped_data.split(";base64,")
                     ext = format.split("/")[-1]
-                    data = ContentFile(base64.b64decode(imgstr), name=f"{updated_category.name}.{ext}")
+                    data = ContentFile(
+                        base64.b64decode(imgstr), name=f"{updated_category.name}.{ext}"
+                    )
                     updated_category.category_image = data
                 except (ValueError, IndexError):
                     messages.error(request, "Invalid visual data.")
-                    return render(request, "products/admin_edit_category.html", {"form": form, "category": category})
+                    return render(
+                        request,
+                        "products/admin_edit_category.html",
+                        {"form": form, "category": category},
+                    )
 
             try:
                 updated_category.save()
-                messages.success(request, f"Vault '{updated_category.name}' updated successfully.")
+                messages.success(
+                    request, f"Vault '{updated_category.name}' updated successfully."
+                )
                 return redirect("admin_category_list")
             except ValidationError as e:
                 messages.error(request, e.message)
-                return render(request, "products/admin_edit_category.html", {"form": form, "category": category})
+                return render(
+                    request,
+                    "products/admin_edit_category.html",
+                    {"form": form, "category": category},
+                )
     else:
         form = CategoryForm(instance=category)
 
@@ -168,6 +200,7 @@ def toggle_category_status(request, category_id):
 # ──────────────────────────────────────────────
 #  PRODUCT VIEWS
 # ──────────────────────────────────────────────
+
 
 @staff_member_required
 @never_cache
@@ -228,11 +261,15 @@ def product_detail(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
     variants = product.variants.all().order_by("size_ml")
     gallery = product.images.all()
-    return render(request, "products/admin_product_detail.html", {
-        "product": product,
-        "variants": variants,
-        "gallery": gallery,
-    })
+    return render(
+        request,
+        "products/admin_product_detail.html",
+        {
+            "product": product,
+            "variants": variants,
+            "gallery": gallery,
+        },
+    )
 
 
 def _get_or_create_brand(brand_input):
@@ -279,7 +316,9 @@ def _validate_variants_server(sizes, prices, offers):
 
         # Rule 1: duplicate size
         if size in seen_sizes:
-            errors.append(f"Duplicate variant: '{size}' can only be added once per product.")
+            errors.append(
+                f"Duplicate variant: '{size}' can only be added once per product."
+            )
             continue
         seen_sizes.add(size)
 
@@ -292,10 +331,12 @@ def _validate_variants_server(sizes, prices, offers):
         offer = None
         if offer_raw:
             try:
-                offer = float(offer_raw)
+                parsed_offer = float(offer_raw)
             except ValueError:
                 errors.append(f"Invalid offer price for {size}.")
                 continue
+            if parsed_offer > 0:
+                offer = parsed_offer
 
         # Rule 2: offer < price for this variant
         if offer is not None and offer >= price:
@@ -303,12 +344,14 @@ def _validate_variants_server(sizes, prices, offers):
                 f"{size}: Offer price (₹{offer:.0f}) must be less than the regular price (₹{price:.0f})."
             )
 
-        variants.append({
-            "size": size,
-            "order": SIZE_ORDER.get(size, 999),
-            "price": price,
-            "offer": offer,
-        })
+        variants.append(
+            {
+                "size": size,
+                "order": SIZE_ORDER.get(size, 999),
+                "price": price,
+                "offer": offer,
+            }
+        )
 
     if errors:
         return errors
@@ -361,7 +404,7 @@ def add_product(request):
         is_featured = "is_featured" in request.POST
         category_ids = request.POST.getlist("category")
 
-        sizes  = request.POST.getlist("v_size[]")
+        sizes = request.POST.getlist("v_size[]")
         prices = request.POST.getlist("v_price[]")
         offers = request.POST.getlist("v_offer[]")
         stocks = request.POST.getlist("v_stock[]")
@@ -390,11 +433,15 @@ def add_product(request):
         if form_errors:
             for err in form_errors:
                 messages.error(request, err)
-            return render(request, "products/admin_add_product.html", {
-                "brands": Brand.objects.all(),
-                "categories": Category.objects.all(),
-                "post": request.POST,  # pass back for re-filling the form
-            })
+            return render(
+                request,
+                "products/admin_add_product.html",
+                {
+                    "brands": Brand.objects.all(),
+                    "categories": Category.objects.all(),
+                    "post": request.POST,  # pass back for re-filling the form
+                },
+            )
 
         # ── Create Brand & Product ────────────────────────────────────────────
         brand_obj = _get_or_create_brand(brand_input)
@@ -422,13 +469,23 @@ def add_product(request):
             if not size or not price_raw or size in seen:
                 continue
             seen.add(size)
-            variant_data.append({
-                "size": size,
-                "order": SIZE_ORDER.get(size, 999),
-                "price": float(price_raw),
-                "offer": float(offers[i]) if i < len(offers) and offers[i].strip() else None,
-                "stock": int(stocks[i]) if i < len(stocks) and stocks[i].strip() else 0,
-            })
+            variant_data.append(
+                {
+                    "size": size,
+                    "order": SIZE_ORDER.get(size, 999),
+                    "price": float(price_raw),
+                    "offer": (
+                        float(offers[i])
+                        if i < len(offers)
+                        and offers[i].strip()
+                        and float(offers[i]) > 0
+                        else None
+                    ),
+                    "stock": (
+                        int(stocks[i]) if i < len(stocks) and stocks[i].strip() else 0
+                    ),
+                }
+            )
 
         variant_data.sort(key=lambda v: v["order"])
         for v in variant_data:
@@ -450,15 +507,21 @@ def add_product(request):
                     base64.b64decode(imgstr),
                     name=f"{slugify(product.name)}_{uuid.uuid4().hex[:4]}.{ext}",
                 )
-                ProductImage.objects.create(product=product, image=image_file, is_main=(i == 0))
+                ProductImage.objects.create(
+                    product=product, image=image_file, is_main=(i == 0)
+                )
 
         messages.success(request, f"'{product.name}' added to Scentora Registry.")
         return redirect("admin_product_list")
 
-    return render(request, "products/admin_add_product.html", {
-        "brands": Brand.objects.all(),
-        "categories": Category.objects.all(),
-    })
+    return render(
+        request,
+        "products/admin_add_product.html",
+        {
+            "brands": Brand.objects.all(),
+            "categories": Category.objects.all(),
+        },
+    )
 
 
 @staff_member_required
@@ -469,7 +532,9 @@ def edit_product(request, product_id):
         # ── Brand ─────────────────────────────────────────────────────────────
         brand_input = request.POST.get("brand_name", "").strip()
         if brand_input:
-            product.brand = _get_or_create_brand(brand_input)  # FIX: was broken get_or_create
+            product.brand = _get_or_create_brand(
+                brand_input
+            )  # FIX: was broken get_or_create
 
         # ── Core fields ───────────────────────────────────────────────────────
         product.name = request.POST.get("name", product.name).strip()
@@ -480,7 +545,7 @@ def edit_product(request, product_id):
         product.is_featured = "is_featured" in request.POST
 
         # ── Variant validation BEFORE saving anything ─────────────────────────
-        sizes  = request.POST.getlist("v_size[]")
+        sizes = request.POST.getlist("v_size[]")
         prices = request.POST.getlist("v_price[]")
         offers = request.POST.getlist("v_offer[]")
         stocks = request.POST.getlist("v_stock[]")
@@ -512,7 +577,12 @@ def edit_product(request, product_id):
                 continue
 
             price = float(prices[i]) if prices[i] else 0
-            offer = float(offers[i]) if i < len(offers) and offers[i] else None
+            offer_raw_val = offers[i] if i < len(offers) else ""
+            offer = (
+                float(offer_raw_val)
+                if offer_raw_val and float(offer_raw_val) > 0
+                else None
+            )
             stock = stocks[i] if i < len(stocks) and stocks[i] else 0
             variant_id = variant_ids[i] if i < len(variant_ids) else ""
 
@@ -558,7 +628,9 @@ def edit_product(request, product_id):
                 img_status = images_data[i]
                 if img_id and img_id.isdigit():
                     try:
-                        img_obj = ProductImage.objects.get(id=int(img_id), product=product)
+                        img_obj = ProductImage.objects.get(
+                            id=int(img_id), product=product
+                        )
                         if img_status == "REMOVED":
                             if img_obj.image:
                                 img_obj.image.delete(save=False)
@@ -592,14 +664,21 @@ def edit_product(request, product_id):
                 except Exception as e:
                     print(f"Error creating new image: {e}")
 
-        messages.success(request, f"Registry Updated: '{product.name}' has been updated.")
+        messages.success(
+            request, f"Registry Updated: '{product.name}' has been updated."
+        )
         return redirect("admin_product_list")
 
-    return render(request, "products/admin_edit_product.html", {
-        "product": product,
-        "brands": Brand.objects.all(),
-        "categories": Category.objects.all(),
-    })
+    return render(
+        request,
+        "products/admin_edit_product.html",
+        {
+            "product": product,
+            "brands": Brand.objects.all(),
+            "categories": Category.objects.all(),
+        },
+    )
+
 
 @staff_member_required
 @never_cache
@@ -620,8 +699,8 @@ def admin_archive(request):
     )
 
     p_search = request.GET.get("p_search", "")
-    p_brand  = request.GET.get("p_brand", "all")
-    p_cat    = request.GET.get("p_cat", "all")
+    p_brand = request.GET.get("p_brand", "all")
+    p_cat = request.GET.get("p_cat", "all")
 
     if p_search:
         products_list = products_list.filter(
@@ -648,29 +727,30 @@ def admin_archive(request):
     archived_categories = cat_paginator.get_page(request.GET.get("c_page"))
 
     # ── Counts ───────────────────────────────────────────────────────────────
-    total_archived_products   = Product.objects.filter(is_active=False).count()
+    total_archived_products = Product.objects.filter(is_active=False).count()
     total_archived_categories = Category.objects.filter(is_active=False).count()
 
-    brands     = Brand.objects.all().order_by("name")
+    brands = Brand.objects.all().order_by("name")
     categories = Category.objects.filter(is_active=True).order_by("name")
 
-    return render(request, "products/admin_archive.html", {
-        "active_tab": active_tab,
+    return render(
+        request,
+        "products/admin_archive.html",
+        {
+            "active_tab": active_tab,
+            "archived_products": archived_products,
+            "p_search": p_search,
+            "p_brand": p_brand,
+            "p_cat": p_cat,
+            "archived_categories": archived_categories,
+            "c_search": c_search,
+            "total_archived_products": total_archived_products,
+            "total_archived_categories": total_archived_categories,
+            "brands": brands,
+            "categories": categories,
+        },
+    )
 
-        "archived_products": archived_products,
-        "p_search": p_search,
-        "p_brand": p_brand,
-        "p_cat": p_cat,
-
-        "archived_categories": archived_categories,
-        "c_search": c_search,
-
-        "total_archived_products": total_archived_products,
-        "total_archived_categories": total_archived_categories,
-
-        "brands": brands,
-        "categories": categories,
-    })
 
 @staff_member_required
 def toggle_product_status(request, product_id):

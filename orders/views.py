@@ -8,7 +8,7 @@ from weasyprint import HTML
 from wallets.models import Wallet, WalletTransaction
 from django.template.loader import render_to_string
 from django.db.models import Count
-
+from decimal import Decimal, ROUND_HALF_UP
 from django.core.paginator import Paginator
 
 # Maps order_status -> step index used by the horizontal tracking stepper
@@ -200,7 +200,7 @@ def cancel_order_item_view(request, item_id):
     reason = request.POST.get("reason", "")
 
     # Store values before cancellation
-    item_refund_amount = item.subtotal
+    item_refund_amount = calculate_item_refund(item)
     was_paid = order.payment_status == "PAID"
 
     item.item_status = "CANCELLED"
@@ -318,25 +318,63 @@ def return_order_item_view(request, item_id):
     messages.success(request, "Return request submitted for item.")
     return redirect("order_detail", order.order_id)
 
+def get_item_coupon_share(item):
+    """
+    Returns this item's fixed share of the order's coupon discount.
+
+    Uses the sum of ALL items' subtotal (regardless of current status) as
+    the denominator — never order.subtotal, which shrinks every time an
+    item is cancelled. Using a shrinking denominator here was the actual
+    bug: it made each subsequent cancellation claim a bigger slice of the
+    same coupon, effectively re-applying it multiple times. item.subtotal
+    itself is never mutated by cancel/return logic, making it — and the
+    sum across all items — a stable, order-placement-time baseline.
+    """
+    order = item.order
+
+    if not order.coupon_discount:
+        return Decimal("0.00")
+
+    total_items_subtotal = sum(i.subtotal for i in order.items.all())
+    if not total_items_subtotal:
+        return Decimal("0.00")
+
+    share = (item.subtotal / total_items_subtotal) * order.coupon_discount
+    share = min(share, item.subtotal)  # never deduct more than the item is worth
+    return share.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def calculate_item_refund(item):
+    """
+    Refund amount for cancelling/returning a single item: its subtotal
+    minus its fixed proportional share of the order's coupon discount.
+    """
+    return item.subtotal - get_item_coupon_share(item)
 
 def recalculate_order_totals(order):
     active_items = order.items.filter(item_status="ACTIVE")
+
+    if not active_items.exists():
+        # Nothing left active — preserve existing totals as the historical
+        # record of what was actually charged, rather than collapsing
+        # subtotal/total_amount to ~0.
+        return
+
     subtotal = sum(item.subtotal for item in active_items)
     discount = sum(
         (item.price * item.quantity) - item.subtotal for item in active_items
     )
 
-    # Preserve the coupon discount, but never let it exceed the remaining
-    # subtotal (e.g. after cancelling items, a discount that applied to the
-    # original cart may no longer make sense against a smaller total).
-    coupon_discount = order.coupon_discount or 0
-    if coupon_discount > subtotal:
-        coupon_discount = subtotal
-        order.coupon_discount = coupon_discount
+    # Sum each active item's OWN fixed coupon share — never re-derive this
+    # from order.coupon_discount directly, and never mutate
+    # order.coupon_discount itself. That field stays frozen as the
+    # original, full discount given at checkout (sales reports and
+    # invoices depend on that historical figure being stable).
+    active_coupon_share = sum(get_item_coupon_share(item) for item in active_items)
 
     order.subtotal = subtotal
     order.discount = discount
-    order.total_amount = (subtotal + order.shipping_charge) - coupon_discount
+    order.total_amount = (subtotal + order.shipping_charge) - active_coupon_share
     order.save()
 
 

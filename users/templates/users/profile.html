@@ -126,25 +126,25 @@
   }
 </style>
 <main
-  class="flex-grow max-w-[1440px] mx-auto w-full px-10 py-20 luxury-sans text-white/90"
+  class="flex-grow max-w-[1440px] mx-auto w-full px-5 sm:px-8 lg:px-10 py-10 sm:py-14 lg:py-20 luxury-sans text-white/90"
 >
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-20">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 sm:gap-14 lg:gap-20">
     <aside
-      class="lg:col-span-3 space-y-16 reveal-animation"
+      class="lg:col-span-3 space-y-10 sm:space-y-16 reveal-animation"
       style="animation-delay: 0.1s"
     >
-      <div class="space-y-8">
-        <nav class="flex flex-col space-y-2">
+      <div class="space-y-6 sm:space-y-8">
+        <nav class="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible -mx-5 px-5 lg:mx-0 lg:px-0">
           <!-- ACTIVE ITEM -->
           <a
-            class="flex items-center gap-5 px-5 py-4 border-l border-primary bg-primary/5 transition-all duration-500"
+            class="flex items-center gap-3 sm:gap-5 px-4 sm:px-5 py-3 sm:py-4 border-l border-primary bg-primary/5 transition-all duration-500 shrink-0"
             href="{% url 'profile' %}"
           >
             <span class="material-symbols-outlined text-primary font-light"
               >person</span
             >
             <span
-              class="text-xs uppercase tracking-[0.2em] font-semibold text-white"
+              class="text-xs uppercase tracking-[0.2em] font-semibold text-white whitespace-nowrap"
             >
               Personal Info
             </span>
@@ -152,17 +152,17 @@
         </nav>
 
         <!-- SMALL HEADING -->
-        <div class="pt-8 pb-4 px-5">
+        <div class="hidden lg:block pt-8 pb-4 px-5">
           <p class="text-[9px] uppercase tracking-[0.5em] text-white/20">
             Navigate to
           </p>
         </div>
 
         <!-- SECONDARY LINKS -->
-        <div class="flex flex-col space-y-2">
+        <div class="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible -mx-5 px-5 lg:mx-0 lg:px-0">
           <a
             href="{% url 'order_list' %}"
-            class="flex items-center gap-5 px-5 py-4 transition-all duration-500 hover:bg-white/[0.03] group"
+            class="flex items-center gap-3 sm:gap-5 px-4 sm:px-5 py-3 sm:py-4 transition-all duration-500 hover:bg-white/[0.03] group shrink-0"
           >
             <span
               class="material-symbols-outlined text-white/30 group-hover:text-primary"
@@ -170,7 +170,7 @@
               package_2
             </span>
 
-            <span class="text-xs uppercase tracking-[0.2em] font-light">
+            <span class="text-xs uppercase tracking-[0.2em] font-light whitespace-nowrap">
               My Orders
             </span>
           </a>
@@ -178,7 +178,7 @@
 
           <a
             href="{% url 'wallet' %}"
-            class="flex items-center gap-5 px-5 py-4 transition-all duration-500 hover:bg-white/[0.03] group"
+            class="flex items-center gap-3 sm:gap-5 px-4 sm:px-5 py-3 sm:py-4 transition-all duration-500 hover:bg-white/[0.03] group shrink-0"
           >
             <span
               class="material-symbols-outlined text-white/30 group-hover:text-primary"
@@ -186,29 +186,29 @@
               account_balance_wallet
             </span>
 
-            <span class="text-xs uppercase tracking-[0.2em] font-light">
+            <span class="text-xs uppercase tracking-[0.2em] font-light whitespace-nowrap">
               My Wallet
             </span>
           </a>
 
           <a
             href="{% url 'offers:my_referrals' %}"
-            class="flex items-center gap-5 px-5 py-4 transition-all duration-500 hover:bg-white/[0.03] group"
+            class="flex items-center gap-3 sm:gap-5 px-4 sm:px-5 py-3 sm:py-4 transition-all duration-500 hover:bg-white/[0.03] group shrink-0"
           >
             <span
               class="material-symbols-outlined text-white/30 group-hover:text-primary"
               >redeem</span
             >
-            <span class="text-xs uppercase tracking-[0.2em] font-light"
+            <span class="text-xs uppercase tracking-[0.2em] font-light whitespace-nowrap"
               >My Referrals</span
             >
           </a>
         </div>
       </div>
-      <div class="pt-10 border-t border-white/5">
+      <div class="pt-6 sm:pt-10 border-t border-white/5">
         <a
           href="{% url 'logout_confirmation' %}"
-          class="flex items-center gap-5 px-5 py-2 text-red-500/40 hover:text-red-500 transition-all duration-700 group"
+          class="flex items-center gap-3 sm:gap-5 px-4 sm:px-5 py-2 text-red-500/40 hover:text-red-500 transition-all duration-700 group"
         >
           <span
             class="material-symbols-outlined scale-90 group-hover:-translate-x-2 transition-transform font-light"
@@ -221,14 +221,14 @@
       </div>
     </aside>
     <section
-      class="lg:col-span-9 space-y-16 reveal-animation"
+      class="lg:col-span-9 space-y-10 sm:space-y-16 reveal-animation"
       style="animation-delay: 0.3s"
     >
       {% if messages %}
       <div class="space-y-4">
         {% for message in messages %}
         <div
-          class="flex items-center gap-5 py-5 px-10 glass-panel border-primary/20 bg-primary/5"
+          class="flex items-center gap-4 sm:gap-5 py-4 sm:py-5 px-6 sm:px-10 glass-panel border-primary/20 bg-primary/5"
         >
           <span class="material-symbols-outlined text-primary text-sm"
             >verified</span
@@ -242,13 +242,13 @@
         {% endfor %}
       </div>
       {% endif %}
-      <div class="relative pb-10 border-b border-white/10">
+      <div class="relative pb-8 sm:pb-10 border-b border-white/10">
         <h1
-          class="luxury-serif text-7xl font-extralight tracking-tight mb-4 text-white"
+          class="luxury-serif text-4xl sm:text-5xl lg:text-7xl font-extralight tracking-tight mb-3 sm:mb-4 text-white"
         >
           My Profile
         </h1>
-        <p class="text-white/40 text-sm font-light italic tracking-widest">
+        <p class="text-white/40 text-xs sm:text-sm font-light italic tracking-widest">
           Manage your personal information and security settings
         </p>
         <div
@@ -258,10 +258,10 @@
 
       <!-- Profile Overview -->
       <div class="glass-panel overflow-hidden bg-black/40">
-        <div class="p-12 flex flex-col md:flex-row items-center gap-16">
-          <div class="relative group">
+        <div class="p-6 sm:p-10 lg:p-12 flex flex-col md:flex-row items-center gap-8 sm:gap-12 lg:gap-16">
+          <div class="relative group shrink-0">
             <div
-              class="size-48 rounded-full border border-primary/10 p-2 ring-1 ring-primary/5 ring-offset-8 ring-offset-transparent transition-all duration-1000 group-hover:ring-offset-[14px] group-hover:ring-primary/20"
+              class="size-32 sm:size-40 lg:size-48 rounded-full border border-primary/10 p-2 ring-1 ring-primary/5 ring-offset-8 ring-offset-transparent transition-all duration-1000 group-hover:ring-offset-[14px] group-hover:ring-primary/20"
             >
               {% if user.profile_image %}
               <!-- Grayscale removed for full color -->
@@ -274,7 +274,7 @@
                 class="size-full rounded-full bg-neutral-900 flex items-center justify-center border border-white/5"
               >
                 <span
-                  class="material-symbols-outlined text-7xl text-neutral-800 font-thin"
+                  class="material-symbols-outlined text-5xl sm:text-6xl lg:text-7xl text-neutral-800 font-thin"
                   >person</span
                 >
               </div>
@@ -282,34 +282,34 @@
             </div>
             <a
               href="{% url 'edit_profile' %}"
-              class="absolute bottom-2 right-2 bg-primary text-black size-12 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-500"
+              class="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 bg-primary text-black size-10 sm:size-12 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-500"
             >
-              <span class="material-symbols-outlined text-xl"
+              <span class="material-symbols-outlined text-lg sm:text-xl"
                 >photo_camera</span
               >
             </a>
           </div>
-          <div class="text-center md:text-left flex-grow">
+          <div class="text-center md:text-left flex-grow w-full">
             <p
-              class="text-primary text-[9px] font-black uppercase tracking-[0.6em] mb-4"
+              class="text-primary text-[9px] font-black uppercase tracking-[0.4em] sm:tracking-[0.6em] mb-3 sm:mb-4"
             >
               {% if user.is_verified %} Verified Access {% else %} Standard
               Member {% endif %}
             </p>
             <h3
-              class="luxury-serif text-6xl font-light mb-10 tracking-wide text-white"
+              class="luxury-serif text-3xl sm:text-4xl lg:text-6xl font-light mb-6 sm:mb-10 tracking-wide text-white break-words"
             >
               {{ user.first_name|default:user.username }} {{ user.last_name }}
             </h3>
-            <div class="flex flex-wrap justify-center md:justify-start gap-6">
+            <div class="flex flex-wrap justify-center md:justify-start gap-4 sm:gap-6">
               <a
                 href="{% url 'edit_profile' %}"
-                class="px-12 py-4 bg-primary text-black hover:bg-white transition-all duration-500 text-[10px] font-black uppercase tracking-[0.3em]"
+                class="px-8 sm:px-12 py-3 sm:py-4 bg-primary text-black hover:bg-white transition-all duration-500 text-[10px] font-black uppercase tracking-[0.3em]"
                 >Modify Identity</a
               >
               <a
                 href="{% url 'password_change' %}"
-                class="px-12 py-4 border border-white/10 text-white/50 hover:text-white hover:border-white transition-all duration-500 text-[10px] font-black uppercase tracking-[0.3em]"
+                class="px-8 sm:px-12 py-3 sm:py-4 border border-white/10 text-white/50 hover:text-white hover:border-white transition-all duration-500 text-[10px] font-black uppercase tracking-[0.3em]"
                 >Change Password</a
               >
             </div>
@@ -320,7 +320,7 @@
           class="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/5 border-t border-white/10"
         >
           <div
-            class="profile-grid-item field-animate p-12 space-y-4"
+            class="profile-grid-item field-animate p-6 sm:p-8 lg:p-12 space-y-3 sm:space-y-4"
             style="animation-delay: 0.4s"
           >
             <label
@@ -328,11 +328,11 @@
               >Username</label
             >
             <div class="flex items-center gap-4 text-white/80">
-              <p class="text-2xl font-light italic">{{ user.username }}</p>
+              <p class="text-lg sm:text-xl lg:text-2xl font-light italic break-words">{{ user.username }}</p>
             </div>
           </div>
           <div
-            class="profile-grid-item field-animate p-12 space-y-4"
+            class="profile-grid-item field-animate p-6 sm:p-8 lg:p-12 space-y-3 sm:space-y-4"
             style="animation-delay: 0.5s"
           >
             <label
@@ -340,13 +340,13 @@
               >Primary Email</label
             >
             <div class="flex items-center gap-4 text-white/80">
-              <p class="text-xl font-light italic break-all">
+              <p class="text-base sm:text-lg lg:text-xl font-light italic break-all">
                 {{ user.email }}
               </p>
             </div>
           </div>
           <div
-            class="profile-grid-item field-animate p-12 space-y-4"
+            class="profile-grid-item field-animate p-6 sm:p-8 lg:p-12 space-y-3 sm:space-y-4"
             style="animation-delay: 0.6s"
           >
             <label
@@ -354,13 +354,13 @@
               >Phone Number</label
             >
             <div class="flex items-center gap-4 text-white/80">
-              <p class="text-2xl font-light italic">
+              <p class="text-lg sm:text-xl lg:text-2xl font-light italic break-words">
                 {{ user.phone_number|default:"No Data" }}
               </p>
             </div>
           </div>
           <div
-            class="profile-grid-item field-animate p-12 space-y-4"
+            class="profile-grid-item field-animate p-6 sm:p-8 lg:p-12 space-y-3 sm:space-y-4"
             style="animation-delay: 0.7s"
           >
             <label
@@ -368,24 +368,24 @@
               >Birth Record</label
             >
             <div class="flex items-center gap-4 text-white/80">
-              <p class="text-2xl font-light italic">
+              <p class="text-lg sm:text-xl lg:text-2xl font-light italic">
                 {% if user.dob %} {{ user.dob|date:"d . m . Y" }} {% else %} Not
                 Set {% endif %}
               </p>
             </div>
           </div>
           <div
-            class="md:col-span-2 profile-grid-item field-animate p-12 bg-primary/[0.02] border-t border-white/5"
+            class="md:col-span-2 profile-grid-item field-animate p-6 sm:p-8 lg:p-12 bg-primary/[0.02] border-t border-white/5"
             style="animation-delay: 0.8s"
           >
-            <div class="flex justify-between items-center">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-4">
               <label
                 class="text-[9px] font-bold text-primary uppercase tracking-[0.5em]"
                 >Wallet Balance</label
               >
-              <div class="flex items-baseline gap-4">
+              <div class="flex items-baseline gap-3 sm:gap-4">
                 <span class="text-sm text-primary/40 font-light">INR</span>
-                <p class="text-5xl luxury-serif text-primary">
+                <p class="text-3xl sm:text-4xl lg:text-5xl luxury-serif text-primary">
                   ₹{{ wallet.balance }}
                 </p>
               </div>
@@ -394,12 +394,12 @@
         </div>
       </div>
       <!-- Address Section -->
-      <div class="space-y-12">
+      <div class="space-y-8 sm:space-y-12">
         <div
-          class="flex items-end justify-between border-b border-white/5 pb-10"
+          class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-0 border-b border-white/5 pb-8 sm:pb-10"
         >
           <div>
-            <h3 class="luxury-serif text-5xl font-light text-white">
+            <h3 class="luxury-serif text-3xl sm:text-4xl lg:text-5xl font-light text-white">
               Address Book
             </h3>
             <p class="text-[9px] text-white/20 uppercase tracking-[0.4em] mt-3">
@@ -408,13 +408,13 @@
           </div>
           <a
             href="{% url 'add_address' %}"
-            class="px-10 py-3 border border-white/10 text-white/40 hover:text-white hover:border-primary transition-all text-[10px] font-bold uppercase tracking-[0.3em]"
+            class="self-start sm:self-auto px-8 sm:px-10 py-3 border border-white/10 text-white/40 hover:text-white hover:border-primary transition-all text-[10px] font-bold uppercase tracking-[0.3em]"
             >Add New Address</a
           >
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-10">
           {% for address in user.addresses.all %}
-          <div class="glass-panel address-card p-12 relative">
+          <div class="glass-panel address-card p-6 sm:p-8 lg:p-12 relative">
             {% if address.is_default %}
             <div class="absolute top-4 right-4 z-20">
               <div
@@ -427,19 +427,19 @@
             </div>
             {% endif %}
 
-            <div class="mb-10 flex justify-between items-start">
-              <p class="text-xl font-light text-white tracking-wide">
+            <div class="mb-6 sm:mb-10 flex justify-between items-start gap-3">
+              <p class="text-lg sm:text-xl font-light text-white tracking-wide break-words">
                 {{ address.full_name }}
               </p>
               <!-- Lighter border/text on the badge -->
               <span
-                class="text-[8px] text-white/60 uppercase tracking-[0.3em] border border-white/20 px-3 py-1"
+                class="shrink-0 text-[8px] text-white/60 uppercase tracking-[0.3em] border border-white/20 px-3 py-1"
                 >{{ address.get_address_type_display }}</span
               >
             </div>
             <!-- Lighter text for better contrast -->
             <div
-              class="space-y-2 text-white/60 font-light text-sm leading-relaxed mb-12"
+              class="space-y-2 text-white/60 font-light text-sm leading-relaxed mb-8 sm:mb-12"
             >
               <p>{{ address.address_line_1 }}</p>
               {% if address.address_line_2 %}
@@ -452,7 +452,7 @@
                 {{ address.phone_number }}
               </p>
             </div>
-            <div class="flex gap-12 pt-10 border-t border-white/10">
+            <div class="flex gap-8 sm:gap-12 pt-8 sm:pt-10 border-t border-white/10">
               <a
                 href="{% url 'edit_address' address.pk %}"
                 class="text-[9px] text-white/40 uppercase font-black tracking-[0.4em] hover:text-white transition-all"
@@ -469,10 +469,10 @@
           </div>
           {% empty %}
           <div
-            class="col-span-2 py-24 border border-dashed border-white/5 text-center bg-white/[0.01]"
+            class="col-span-1 md:col-span-2 py-16 sm:py-24 border border-dashed border-white/5 text-center bg-white/[0.01]"
           >
             <p
-              class="text-[10px] text-white/20 uppercase tracking-[0.6em] font-light"
+              class="text-[10px] text-white/20 uppercase tracking-[0.6em] font-light px-4"
             >
               No records found in archive
             </p>
@@ -486,31 +486,31 @@
 <!-- Delete Modal -->
 <div
   id="deleteModal"
-  class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md transition-all duration-700"
+  class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md transition-all duration-700 px-4"
 >
   <div
-    class="glass-panel p-20 max-w-lg w-full text-center shadow-2xl border-white/5"
+    class="glass-panel p-8 sm:p-14 lg:p-20 max-w-lg w-full text-center shadow-2xl border-white/5"
   >
     <div
-      class="size-20 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-10 bg-red-500/5"
+      class="size-16 sm:size-20 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6 sm:mb-10 bg-red-500/5"
     >
-      <span class="material-symbols-outlined text-red-500 text-4xl font-thin"
+      <span class="material-symbols-outlined text-red-500 text-3xl sm:text-4xl font-thin"
         >close</span
       >
     </div>
-    <h3 class="luxury-serif text-5xl font-light text-white mb-6">
+    <h3 class="luxury-serif text-3xl sm:text-4xl lg:text-5xl font-light text-white mb-4 sm:mb-6">
       Confirm Removal
     </h3>
-    <p class="text-white/30 text-sm mb-16 font-light italic">
+    <p class="text-white/30 text-sm mb-10 sm:mb-16 font-light italic">
       Discard address for
       <span id="addressName" class="text-white font-semibold"></span>?
     </p>
-    <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-4 sm:gap-6">
       <form id="deleteForm" method="POST">
         {% csrf_token %}
         <button
           type="submit"
-          class="w-full bg-red-900/60 text-white py-5 text-[10px] font-black uppercase tracking-[0.4em] hover:bg-red-700 transition-all duration-500"
+          class="w-full bg-red-900/60 text-white py-4 sm:py-5 text-[10px] font-black uppercase tracking-[0.4em] hover:bg-red-700 transition-all duration-500"
         >
           Permanently Delete
         </button>

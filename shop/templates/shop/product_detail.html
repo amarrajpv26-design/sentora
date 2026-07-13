@@ -3,11 +3,11 @@
 {% block content %}
     <div id="status-toast"
          class="fixed top-12 left-1/2 -translate-x-1/2 z-[100] pointer-events-none opacity-0 transition-all duration-700">
-        <div class="bg-black/90 backdrop-blur-2xl border border-primary/20 px-8 py-4 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex items-center gap-4">
+        <div class="bg-black/90 backdrop-blur-2xl border border-primary/20 px-6 sm:px-8 py-3 sm:py-4 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex items-center gap-3 sm:gap-4 max-w-[90vw]">
             <span id="toast-icon"
-                  class="material-symbols-outlined text-primary text-sm">info</span>
+                  class="material-symbols-outlined text-primary text-sm shrink-0">info</span>
             <span id="toast-message"
-                  class="text-[10px] font-black uppercase tracking-[0.2em] text-white"></span>
+                  class="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-white"></span>
         </div>
     </div>
     
@@ -75,17 +75,23 @@ h1 {
         opacity: 0;
     }
 }
+
+/* Responsive fix: on touch devices the mouse-follow zoom can't trigger,
+   so keep a plain, non-zoomed image (no functional change on desktop). */
+@media (hover: none) {
+    #main-image-container { cursor: default; }
+}
     </style>
     <div class="bg-[#090909] min-h-screen text-white antialiased selection:bg-white selection:text-black">
-        <nav class="relative z-30 pt-32 px-8 lg:px-12 max-w-[1440px] mx-auto">
-            <div class="flex items-center gap-5 flex-wrap">
+        <nav class="relative z-30 pt-20 sm:pt-28 lg:pt-32 px-5 sm:px-8 lg:px-12 max-w-[1440px] mx-auto">
+            <div class="flex items-center gap-3 sm:gap-5 flex-wrap">
                 <!-- HOME -->
                 <a href="{% url 'home' %}" class="group relative">
                     <!-- Glow -->
                     <div class="absolute inset-0 rounded-full bg-primary/10 blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-700">
                     </div>
                     <!-- Bubble -->
-                    <div class="relative flex items-center gap-2.5 px-5 py-2 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-2xl overflow-hidden transition-all duration-500 group-hover:border-primary/30 group-hover:bg-white/[0.05] group-hover:-translate-y-0.5">
+                    <div class="relative flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-2 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-2xl overflow-hidden transition-all duration-500 group-hover:border-primary/30 group-hover:bg-white/[0.05] group-hover:-translate-y-0.5">
                         <!-- Hover Sweep -->
                         <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
                             <div class="absolute inset-y-0 -left-full w-[120%] bg-gradient-to-r from-transparent via-primary/10 to-transparent skew-x-12 group-hover:left-full transition-all duration-1000">
@@ -100,7 +106,7 @@ h1 {
                     </div>
                 </a>
                 <!-- CONNECTOR -->
-                <div class="relative w-12 h-[1px] overflow-hidden">
+                <div class="relative w-8 sm:w-12 h-[1px] overflow-hidden">
                     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
                     <div class="absolute inset-y-0 w-8 bg-gradient-to-r from-transparent via-primary/50 to-transparent animate-[breadcrumbFlow_5s_linear_infinite]">
                     </div>
@@ -111,7 +117,7 @@ h1 {
                     <div class="absolute inset-0 rounded-full bg-primary/10 blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-700">
                     </div>
                     <!-- Bubble -->
-                    <div class="relative flex items-center gap-2.5 px-5 py-2 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-2xl overflow-hidden transition-all duration-500 group-hover:border-primary/30 group-hover:bg-white/[0.05] group-hover:-translate-y-0.5">
+                    <div class="relative flex items-center gap-2 sm:gap-2.5 px-4 sm:px-5 py-2 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-2xl overflow-hidden transition-all duration-500 group-hover:border-primary/30 group-hover:bg-white/[0.05] group-hover:-translate-y-0.5">
                         <!-- Hover Sweep -->
                         <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
                             <div class="absolute inset-y-0 -left-full w-[120%] bg-gradient-to-r from-transparent via-primary/10 to-transparent skew-x-12 group-hover:left-full transition-all duration-1000">
@@ -126,7 +132,7 @@ h1 {
                     </div>
                 </a>
                 <!-- CONNECTOR -->
-                <div class="relative w-12 h-[1px] overflow-hidden">
+                <div class="relative w-8 sm:w-12 h-[1px] overflow-hidden">
                     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
                     <div class="absolute inset-y-0 w-8 bg-gradient-to-r from-transparent via-primary/50 to-transparent animate-[breadcrumbFlow_5s_linear_infinite]">
                     </div>
@@ -136,25 +142,25 @@ h1 {
                     <!-- Active Glow -->
                     <div class="absolute inset-0 rounded-full bg-primary/15 blur-2xl opacity-60"></div>
                     <!-- Active Bubble -->
-                    <div class="relative flex items-center gap-3 px-5 py-2 rounded-full border border-primary/20 bg-primary/[0.06] backdrop-blur-2xl">
+                    <div class="relative flex items-center gap-3 px-4 sm:px-5 py-2 rounded-full border border-primary/20 bg-primary/[0.06] backdrop-blur-2xl">
                         <!-- Pulse -->
                         <div class="relative flex items-center justify-center">
                             <div class="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_rgba(212,175,55,0.9)]"></div>
                             <div class="absolute w-4 h-4 rounded-full border border-primary/20 "></div>
                         </div>
                         <!-- Current Page -->
-                        <span class="text-[9px] uppercase tracking-[0.35em] text-white font-medium truncate max-w-[180px]">
+                        <span class="text-[9px] uppercase tracking-[0.35em] text-white font-medium truncate max-w-[120px] sm:max-w-[180px]">
                             {{ product.name }}
                         </span>
                     </div>
                 </div>
             </div>
         </nav>
-        <main class="max-w-[1440px] mx-auto px-8 lg:px-12 pt-12">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-24">
-                <div class="space-y-8">
+        <main class="max-w-[1440px] mx-auto px-5 sm:px-8 lg:px-12 pt-8 sm:pt-10 lg:pt-12">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 lg:gap-24">
+                <div class="space-y-6 sm:space-y-8">
                     <div id="main-image-container"
-                         class="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-[#111111] border border-white/10 group cursor-crosshair shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
+                         class="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] bg-[#111111] border border-white/10 group cursor-crosshair shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
                         {% if product.images.all %}
                             <img id="main-image"
                                  src="{{ product.images.first.image.url }}"
@@ -165,25 +171,25 @@ h1 {
                             </div>
                         {% endif %}
                         {% if total_stock <= 0 %}
-                            <div class="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center space-y-4">
+                            <div class="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center space-y-4 px-4 text-center">
                                 <span class="material-symbols-outlined text-5xl text-primary/30 font-thin">lock</span>
-                                <span class="text-[10px] font-black uppercase tracking-[0.5em] text-white/60 border border-white/10 px-8 py-4 rounded-full">Vault Currently Closed</span>
+                                <span class="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] sm:tracking-[0.5em] text-white/60 border border-white/10 px-6 sm:px-8 py-3 sm:py-4 rounded-full">Vault Currently Closed</span>
                             </div>
                         {% endif %}
                     </div>
-                    <div class="flex gap-4 justify-center">
+                    <div class="flex gap-3 sm:gap-4 justify-start sm:justify-center overflow-x-auto pb-2">
                         {% for img in product.images.all %}
                             <button onmouseenter="updateMainImage('{{ img.image.url }}', this)"
-                                    class="thumb-nav w-24 aspect-[4/5] rounded-[1.2rem] overflow-hidden border border-white/5 hover:border-primary/50 transition-all duration-500 opacity-60 hover:opacity-100 {% if forloop.first %}border-primary/80 opacity-100{% endif %}">
+                                    class="thumb-nav w-16 sm:w-24 aspect-[4/5] shrink-0 rounded-[0.9rem] sm:rounded-[1.2rem] overflow-hidden border border-white/5 hover:border-primary/50 transition-all duration-500 opacity-60 hover:opacity-100 {% if forloop.first %}border-primary/80 opacity-100{% endif %}">
                                 <img src="{{ img.image.url }}" class="w-full h-full object-cover">
                             </button>
                         {% endfor %}
                     </div>
                 </div>
-                <div class="flex flex-col justify-start pt-4 space-y-12">
-                    <div class="space-y-6">
-                        <div class="flex items-center justify-between border-b border-white/5 pb-6">
-                            <span class="text-[10px] font-black uppercase tracking-[0.6em] text-primary/80">{{ product.brand.name }}</span>
+                <div class="flex flex-col justify-start pt-0 lg:pt-4 space-y-8 sm:space-y-12">
+                    <div class="space-y-4 sm:space-y-6">
+                        <div class="flex items-center justify-between border-b border-white/5 pb-5 sm:pb-6">
+                            <span class="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] sm:tracking-[0.6em] text-primary/80">{{ product.brand.name }}</span>
                             <div class="flex items-center gap-2">
     {% if review_count > 0 %}
         <div class="flex gap-1">
@@ -215,17 +221,17 @@ h1 {
     {% endif %}
 </div>
                         </div>
-                        <h1 class="text-6xl lg:text-8xl font-extralight tracking-tighter leading-[0.85] text-white uppercase">
+                        <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-extralight tracking-tighter leading-[0.9] lg:leading-[0.85] text-white uppercase">
                             {{ product.name }}
                         </h1>
                         <div class="space-y-4">
-                            <div class="flex items-baseline gap-6">
+                            <div class="flex items-baseline gap-4 sm:gap-6 flex-wrap">
                                 <span id="display-price"
-                                      class="text-5xl font-black text-primary tracking-tighter italic">
+                                      class="text-3xl sm:text-4xl lg:text-5xl font-black text-primary tracking-tighter italic">
                                     ₹{{ offer_price|default:min_price }}
                                 </span>
                                 <span id="display-old-price"
-                                      class="text-2xl text-slate-700 line-through decoration-primary/40 font-light {% if not offer_price or offer_price >= min_price %}hidden{% endif %}">
+                                      class="text-lg sm:text-xl lg:text-2xl text-slate-700 line-through decoration-primary/40 font-light {% if not offer_price or offer_price >= min_price %}hidden{% endif %}">
                                     ₹{{ min_price }}
                                 </span>
                                <span id="exclusive-badge"
@@ -238,21 +244,21 @@ h1 {
                             </p>
                         </div>
                     </div>
-                    <div class="apple-card p-10 rounded-[2rem] grid grid-cols-3 gap-8">
+                    <div class="apple-card p-6 sm:p-8 lg:p-10 rounded-[1.5rem] sm:rounded-[2rem] grid grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                         <div class="text-center space-y-2">
                             <span class="text-[8px] font-black uppercase tracking-widest text-primary/50 block">Top</span>
-                            <p class="text-[11px] text-slate-300 uppercase tracking-tighter">{{ product.top_notes }}</p>
+                            <p class="text-[10px] sm:text-[11px] text-slate-300 uppercase tracking-tighter">{{ product.top_notes }}</p>
                         </div>
                         <div class="text-center space-y-2 border-x border-white/5">
                             <span class="text-[8px] font-black uppercase tracking-widest text-primary/50 block">Heart</span>
-                            <p class="text-[11px] text-slate-300 uppercase tracking-tighter">{{ product.heart_notes }}</p>
+                            <p class="text-[10px] sm:text-[11px] text-slate-300 uppercase tracking-tighter">{{ product.heart_notes }}</p>
                         </div>
                         <div class="text-center space-y-2">
                             <span class="text-[8px] font-black uppercase tracking-widest text-primary/50 block">Base</span>
-                            <p class="text-[11px] text-slate-300 uppercase tracking-tighter">{{ product.base_notes }}</p>
+                            <p class="text-[10px] sm:text-[11px] text-slate-300 uppercase tracking-tighter">{{ product.base_notes }}</p>
                         </div>
                     </div>
-                    <div class="space-y-6">
+                    <div class="space-y-5 sm:space-y-6">
                         <div class="flex items-center gap-4">
                             <span id="stock-status"
                                   class="text-[9px] font-black uppercase tracking-[0.3em] {% if total_stock > 0 %}text-green-500{% else %}text-red-500{% endif %}">
@@ -290,8 +296,8 @@ h1 {
                                     </select>
                                 </div>
                                 <div class="flex flex-col gap-4">
-                                    <div class="flex gap-4">
-                                        <div class="flex items-center bg-[#1a1a1a] border border-white/5 rounded-2xl h-[60px] px-4 hover:border-primary/30 transition-all duration-500 group">
+                                    <div class="flex flex-col sm:flex-row gap-4">
+                                        <div class="flex items-center justify-between sm:justify-start bg-[#1a1a1a] border border-white/5 rounded-2xl h-[56px] sm:h-[60px] px-4 hover:border-primary/30 transition-all duration-500 group">
                                             <button type="button"
                                                     class="w-10 h-full flex items-center justify-center text-slate-500 hover:text-primary transition-colors text-lg"
                                                     onclick="changeQty(-1)">-</button>
@@ -311,7 +317,7 @@ h1 {
                                                 id="add-to-cart-btn"
                                                 name="action"
                                                 value="add_to_cart"
-                                                class="apple-btn flex-1 bg-white/5 border border-white/10 text-white backdrop-blur-xl font-black uppercase tracking-[0.4em] text-[10px] rounded-2xl hover:bg-white/10 transition-all">
+                                                class="apple-btn flex-1 py-4 sm:py-0 bg-white/5 border border-white/10 text-white backdrop-blur-xl font-black uppercase tracking-[0.4em] text-[10px] rounded-2xl hover:bg-white/10 transition-all">
                                             Add to Cart
                                         </button>
                                     </div>
@@ -320,7 +326,7 @@ h1 {
                                                 id="buy-now-btn"
                                                 name="action"
                                                 value="buy_now"
-                                                class="apple-btn flex-1 py-6 bg-white text-black font-black uppercase tracking-[0.4em] text-[10px] rounded-2xl hover:shadow-[0_20px_40px_rgba(212,175,55,0.2)] transition-all duration-700 hover:-translate-y-1">
+                                                class="apple-btn flex-1 py-5 sm:py-6 bg-white text-black font-black uppercase tracking-[0.4em] text-[10px] rounded-2xl hover:shadow-[0_20px_40px_rgba(212,175,55,0.2)] transition-all duration-700 hover:-translate-y-1">
                                             Buy Now
                                         </button>
                                         <div id="heart-container-detail-{{ product.uuid }}">
@@ -338,14 +344,14 @@ h1 {
                     </div>
                 </div>
             </div>
-            <section class="mt-32 border-t border-white/5 pt-20">
-    <div class="flex items-baseline justify-between mb-12">
-        <h3 class="text-2xl font-extralight uppercase tracking-widest text-white">
+            <section class="mt-20 sm:mt-28 lg:mt-32 border-t border-white/5 pt-12 sm:pt-16 lg:pt-20">
+    <div class="flex flex-col sm:flex-row sm:items-baseline justify-between gap-4 mb-10 sm:mb-12">
+        <h3 class="text-xl sm:text-2xl font-extralight uppercase tracking-widest text-white">
             User <span class="text-primary italic font-black">Reviews</span>
         </h3>
         {% if can_review %}
             <button onclick="openReviewModal()"
-                    class="text-[10px] font-black uppercase tracking-widest text-primary border-b border-primary/20 pb-1 hover:text-white transition-all">
+                    class="self-start sm:self-auto text-[10px] font-black uppercase tracking-widest text-primary border-b border-primary/20 pb-1 hover:text-white transition-all">
                 Write a Review
             </button>
         {% elif user.is_authenticated %}
@@ -359,10 +365,10 @@ h1 {
     </div>
 
     {% if reviews %}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             {% for review in reviews %}
-                <div class="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5">
-                    <div class="flex justify-between items-start mb-4">
+                <div class="p-6 sm:p-8 rounded-[1.5rem] sm:rounded-[2rem] bg-white/[0.02] border border-white/5">
+                    <div class="flex justify-between items-start mb-4 gap-3">
                         <div>
                             <span class="text-[10px] font-black text-primary uppercase block mb-2">
                                 {{ review.user.username }}
@@ -373,7 +379,7 @@ h1 {
                                 {% endfor %}
                             </div>
                         </div>
-                        <span class="text-[9px] text-slate-600 uppercase">{{ review.created_at|date:"M d, Y" }}</span>
+                        <span class="text-[9px] text-slate-600 uppercase shrink-0">{{ review.created_at|date:"M d, Y" }}</span>
                     </div>
                     {% if review.title %}
                         <p class="text-white text-sm font-semibold mb-2">{{ review.title }}</p>
@@ -383,7 +389,7 @@ h1 {
             {% endfor %}
         </div>
     {% else %}
-        <div class="py-20 text-center border border-dashed border-white/5 rounded-[3rem]">
+        <div class="py-16 sm:py-20 text-center border border-dashed border-white/5 rounded-[2rem] sm:rounded-[3rem] px-4">
             <span class="material-symbols-outlined text-4xl text-slate-800 mb-4">chat_bubble_outline</span>
             <p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600">No Reviews Yet</p>
             <p class="text-[9px] text-slate-700 mt-2">Be the first to share your olfactory journey.</p>
@@ -393,26 +399,26 @@ h1 {
 
 {% if can_review %}
 <div id="reviewModal"
-     class="fixed inset-0 z-50 hidden items-center justify-center"
+     class="fixed inset-0 z-50 hidden items-center justify-center px-4"
      style="background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);">
     <div id="reviewModalBox"
-         class="apple-card rounded-[2.5rem] p-12 max-w-lg w-full mx-6"
+         class="apple-card rounded-[1.75rem] sm:rounded-[2.5rem] p-6 sm:p-10 lg:p-12 max-w-lg w-full mx-0 sm:mx-6 max-h-[90vh] overflow-y-auto"
          style="transition:all 0.4s ease;transform:translateY(24px);opacity:0;">
 
-        <div class="w-12 h-px mb-8" style="background:linear-gradient(to right,#D4AF37,transparent)"></div>
-        <p class="text-[10px] uppercase tracking-[0.5em] text-white/25 mb-2">Share Your Experience</p>
-        <h2 class="text-3xl font-extralight tracking-tight text-white mb-8">{{ product.name }}</h2>
+        <div class="w-12 h-px mb-6 sm:mb-8" style="background:linear-gradient(to right,#D4AF37,transparent)"></div>
+        <p class="text-[9px] sm:text-[10px] uppercase tracking-[0.4em] sm:tracking-[0.5em] text-white/25 mb-2">Share Your Experience</p>
+        <h2 class="text-2xl sm:text-3xl font-extralight tracking-tight text-white mb-6 sm:mb-8">{{ product.name }}</h2>
 
         <form action="{% url 'reviews:submit_review' product.id %}" method="POST">
             {% csrf_token %}
 
-            <div class="mb-8">
+            <div class="mb-6 sm:mb-8">
                 <p class="text-[9px] uppercase tracking-[0.3em] text-white/40 mb-4">Your Rating</p>
                 <div class="flex gap-3" id="star-group">
                     {% for i in "12345" %}
                         <button type="button"
                                 onclick="setRating({{ forloop.counter }})"
-                                class="star-btn text-3xl text-white/15 hover:text-yellow-400 transition-colors duration-200"
+                                class="star-btn text-2xl sm:text-3xl text-white/15 hover:text-yellow-400 transition-colors duration-200"
                                 data-value="{{ forloop.counter }}">★</button>
                     {% endfor %}
                 </div>
@@ -422,15 +428,15 @@ h1 {
             <input type="text"
                    name="title"
                    placeholder="Review title (optional)"
-                   class="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-4 outline-none text-white placeholder:text-white/20 text-sm mb-4 focus:border-primary/40 transition-colors">
+                   class="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-5 sm:px-6 py-3 sm:py-4 outline-none text-white placeholder:text-white/20 text-sm mb-4 focus:border-primary/40 transition-colors">
 
             <textarea name="comment"
                       rows="4"
                       required
                       placeholder="Describe your olfactory experience..."
-                      class="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-4 outline-none resize-none text-white placeholder:text-white/20 text-sm focus:border-primary/40 transition-colors"></textarea>
+                      class="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-5 sm:px-6 py-3 sm:py-4 outline-none resize-none text-white placeholder:text-white/20 text-sm focus:border-primary/40 transition-colors"></textarea>
 
-            <div class="flex gap-4 mt-8">
+            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8">
                 <button type="submit"
                         class="flex-1 py-4 rounded-2xl bg-primary text-black font-black uppercase tracking-[0.2em] text-[10px] hover:bg-yellow-300 transition-all">
                     Submit Review
@@ -445,32 +451,32 @@ h1 {
     </div>
 </div>
 {% endif %}
-            <section class="mt-40 pb-40">
-                <div class="flex items-end justify-between mb-16 px-4">
-                    <div class="space-y-4">
-                        <h2 class="text-4xl lg:text-5xl font-extralight uppercase tracking-tight text-white">
+            <section class="mt-24 sm:mt-32 lg:mt-40 pb-20 sm:pb-32 lg:pb-40">
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10 sm:mb-16 px-2 sm:px-4">
+                    <div class="space-y-3 sm:space-y-4">
+                        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-extralight uppercase tracking-tight text-white">
                             Related <span class="text-primary font-black italic">Essences</span>.
                         </h2>
                         <p class="text-[9px] font-medium tracking-wide text-slate-600">Curated specifically based on your profile</p>
                     </div>
                     <a href="{% url 'shop:product_list' %}"
-                       class="text-[10px] font-black uppercase tracking-[0.3em] text-primary border-b border-primary/20 pb-2 hover:text-white transition-all">Explore Entire Gallery</a>
+                       class="self-start sm:self-auto text-[10px] font-black uppercase tracking-[0.3em] text-primary border-b border-primary/20 pb-2 hover:text-white transition-all">Explore Entire Gallery</a>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-5 sm:gap-8">
                     {% for related in related_products %}
                         <a href="{% url 'shop:product_detail' related.uuid %}"
-                           class="group space-y-6">
-                            <div class="aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-[#141414] border border-white/5 relative">
+                           class="group space-y-4 sm:space-y-6">
+                            <div class="aspect-[4/5] overflow-hidden rounded-[1.5rem] sm:rounded-[2rem] lg:rounded-[2.5rem] bg-[#141414] border border-white/5 relative">
                                 {% if related.images.all %}
                                     <img src="{{ related.images.first.image.url }}"
                                          class="w-full h-full object-cover grayscale-[50%] group-hover:grayscale-0 group-hover:scale-110 transition-all duration-[2s]">
                                 {% endif %}
-                                <div class="absolute bottom-6 left-6 right-6 p-4 bg-black/60 backdrop-blur-md rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                                <div class="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 right-4 sm:right-6 p-3 sm:p-4 bg-black/60 backdrop-blur-md rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700">
                                     <p class="text-[9px] font-black text-primary uppercase tracking-widest text-center">View Essence</p>
                                 </div>
                             </div>
-                            <div class="px-2 text-center">
-                                <h4 class="text-xs font-bold uppercase tracking-widest text-slate-400 group-hover:text-primary transition-colors">
+                            <div class="px-1 sm:px-2 text-center">
+                                <h4 class="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-slate-400 group-hover:text-primary transition-colors">
                                     {{ related.name }}
                                 </h4>
                             </div>

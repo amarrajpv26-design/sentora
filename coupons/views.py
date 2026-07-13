@@ -81,7 +81,7 @@ def admin_coupon_list(request):
     }
     coupons = coupons.order_by(sort_map.get(sort, "-created_at"))
 
-    paginator = Paginator(coupons, 10)
+    paginator = Paginator(coupons, 2)
     coupons_page = paginator.get_page(request.GET.get("page"))
 
     context = {
