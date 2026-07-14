@@ -991,7 +991,7 @@ rzpScript.onload = function() {
         },
 
         // For netbanking/UPI-redirect: Razorpay POSTs back here after bank redirect
-        callback_url: "http://127.0.0.1:8000/checkout/payment/verify/?order_id={{ order.order_id }}",
+        callback_url: "https://scentora.ddns.net/checkout/payment/verify/?order_id={{ order.order_id }}",
         redirect: true,
 
         prefill: {
