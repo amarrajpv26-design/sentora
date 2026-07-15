@@ -102,15 +102,19 @@
                     </div>
 
                     <div id="pass-requirements" class="mt-3 space-y-1.5 hidden px-1">
-                        <p id="req-length"
-                           class="text-[9px] text-red-500/80 uppercase tracking-widest font-medium transition-colors duration-300 flex items-center gap-1">
-                            <i class="bi bi-dot text-sm"></i> Min 8 characters
-                        </p>
-                        <p id="req-char"
-                           class="text-[9px] text-red-500/80 uppercase tracking-widest font-medium transition-colors duration-300 flex items-center gap-1">
-                            <i class="bi bi-dot text-sm"></i> One uppercase &amp; one special char
-                        </p>
-                    </div>
+    <p id="req-length" class="text-[9px] text-red-500/80 uppercase tracking-widest font-medium transition-colors duration-300 flex items-center gap-1">
+        <i class="bi bi-dot text-sm"></i> Min 8 characters
+    </p>
+    <p id="req-upper" class="text-[9px] text-red-500/80 uppercase tracking-widest font-medium transition-colors duration-300 flex items-center gap-1">
+        <i class="bi bi-dot text-sm"></i> One uppercase letter
+    </p>
+    <p id="req-number" class="text-[9px] text-red-500/80 uppercase tracking-widest font-medium transition-colors duration-300 flex items-center gap-1">
+        <i class="bi bi-dot text-sm"></i> One number
+    </p>
+    <p id="req-special" class="text-[9px] text-red-500/80 uppercase tracking-widest font-medium transition-colors duration-300 flex items-center gap-1">
+        <i class="bi bi-dot text-sm"></i> One special character (!@#$%^&*)
+    </p>
+</div>
 
                     <div>
                         <label class="block text-[10px] text-gray-500 uppercase tracking-widest font-semibold mb-2 ml-1">
@@ -142,47 +146,39 @@
 document.addEventListener('DOMContentLoaded', function() {
     const passwordInput = document.getElementById('password');
     const reqLength = document.getElementById('req-length');
-    const reqChar = document.getElementById('req-char');
+    const reqUpper = document.getElementById('req-upper');
+    const reqNumber = document.getElementById('req-number');
+    const reqSpecial = document.getElementById('req-special');
     const passReqs = document.getElementById('pass-requirements');
+
+    function updateReq(el, isValid) {
+        if (isValid) {
+            el.classList.remove('text-red-500/80');
+            el.classList.add('text-green-500');
+        } else {
+            el.classList.remove('text-green-500');
+            el.classList.add('text-red-500/80');
+        }
+    }
 
     passwordInput.addEventListener('input', function() {
         const val = this.value;
-
-        // Only show requirements if user has started typing
         if (val.length > 0) {
             passReqs.classList.remove('hidden');
         } else {
             passReqs.classList.add('hidden');
         }
 
-        // Rule 1: Length
-        if (val.length >= 8) {
-            reqLength.classList.remove('text-red-500/80');
-            reqLength.classList.add('text-green-500');
-        } else {
-            reqLength.classList.remove('text-green-500');
-            reqLength.classList.add('text-red-500/80');
-        }
-
-        // Rule 2: Upper & Special
-        const hasUpper = /[A-Z]/.test(val);
-        const hasSpecial = /[@$!%*?&]/.test(val);
-
-        if (hasUpper && hasSpecial) {
-            reqChar.classList.remove('text-red-500/80');
-            reqChar.classList.add('text-green-500');
-        } else {
-            reqChar.classList.remove('text-green-500');
-            reqChar.classList.add('text-red-500/80');
-        }
+        updateReq(reqLength, val.length >= 8);
+        updateReq(reqUpper, /[A-Z]/.test(val));
+        updateReq(reqNumber, /[0-9]/.test(val));
+        updateReq(reqSpecial, /[()[\]{}|\\`~!@#$%^&*_\-+=;:'",<>./?]/.test(val));
     });
 
-    // Password show/hide toggle
     function setupToggle(inputId, buttonId, iconId) {
         const input = document.getElementById(inputId);
         const button = document.getElementById(buttonId);
         const icon = document.getElementById(iconId);
-
         button.addEventListener('click', function() {
             const isHidden = input.type === 'password';
             input.type = isHidden ? 'text' : 'password';
@@ -195,5 +191,5 @@ document.addEventListener('DOMContentLoaded', function() {
     setupToggle('password', 'toggle-password', 'toggle-password-icon');
     setupToggle('confirm_password', 'toggle-confirm-password', 'toggle-confirm-password-icon');
 });
-        </script>
+</script>
 {% endblock %}
