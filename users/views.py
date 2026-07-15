@@ -403,6 +403,10 @@ def password_change_view(request):
     if request.method == "POST":
         form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
+            new_password = request.POST.get('new_password1')
+            if request.user.check_password(new_password):
+                messages.error(request, "Security requirement: New password cannot be the same as your current password.")
+                return render(request, "users/change_password.html", {"form": form})
             user = form.save()
             update_session_auth_hash(request, user)
             messages.success(request, "Your password was successfully updated!")

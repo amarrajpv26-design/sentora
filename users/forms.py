@@ -5,7 +5,7 @@ from .models import User, Address
 from django.core.validators import RegexValidator
 import re
 from django.core.exceptions import ValidationError
-
+from django.contrib.auth.forms import SetPasswordForm
 User = get_user_model()
 
 
@@ -130,4 +130,13 @@ class YourPasswordChangeForm(forms.Form): # Or use PasswordChangeForm
         if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
             raise ValidationError("Security requirement: At least one special character.")
             
+        return password
+    
+class ScentoraSetPasswordForm(SetPasswordForm):
+    def clean_new_password2(self):
+        password = super().clean_new_password2()
+        if self.user.check_password(password):
+            raise ValidationError(
+                "Security requirement: New password cannot be the same as your current password."
+            )
         return password

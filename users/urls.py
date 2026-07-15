@@ -1,7 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-
-from .forms import ScentoraPasswordResetForm
+from .forms import ScentoraPasswordResetForm, ScentoraSetPasswordForm
 from . import views
 
 urlpatterns = [
@@ -33,7 +32,8 @@ urlpatterns = [
     path(
         "password-reset-confirm/<uidb64>/<token>/",
         auth_views.PasswordResetConfirmView.as_view(
-            template_name="users/password_reset_confirm.html"
+            template_name="users/password_reset_confirm.html",
+            form_class=ScentoraSetPasswordForm,
         ),
         name="password_reset_confirm",
     ),
@@ -89,6 +89,5 @@ urlpatterns = [
     path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
     path("terms-conditions/", views.terms_conditions, name="terms_conditions"),
     path("about-scentora/", views.about_scentora, name="about_scentora"),
-
-    path("404-test/", views.custom_404,name="404-test"),
+    path("404-test/", views.custom_404, name="404-test"),
 ]
