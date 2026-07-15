@@ -27,11 +27,13 @@ def welcome_view(request):
         is_active=True, category_image__isnull=False
     )
 
-    featured_products = Product.objects.filter(is_active=True, is_featured=True).prefetch_related(
-        "images", "variants"
-    )
+    featured_products = Product.objects.filter(
+        is_active=True, is_featured=True
+    ).prefetch_related("images", "variants")
 
-    categories = Category.objects.filter(is_active=True,is_featured=True).order_by("id")
+    categories = Category.objects.filter(is_active=True, is_featured=True).order_by(
+        "id"
+    )
 
     brands = Brand.objects.filter(is_active=True).order_by("id")[:6]
 
@@ -54,11 +56,13 @@ def home(request):
         is_active=True, category_image__isnull=False
     )
 
-    featured_products = Product.objects.filter(is_active=True, is_featured=True).prefetch_related(
-        "images", "variants"
-    )
+    featured_products = Product.objects.filter(
+        is_active=True, is_featured=True
+    ).prefetch_related("images", "variants")
 
-    categories = Category.objects.filter(is_active=True,is_featured=True).order_by("id")
+    categories = Category.objects.filter(is_active=True, is_featured=True).order_by(
+        "id"
+    )
     brands = Brand.objects.filter(is_active=True).order_by("id")[:6]
 
     context = {
@@ -94,6 +98,32 @@ def user_signup(request):
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
+            return render(request, "users/signup.html", context)
+        import re
+
+        # Password strength validation
+        if len(password) < 8:
+            messages.error(
+                request, "Security requirement: Password must be at least 8 characters."
+            )
+            return render(request, "users/signup.html", context)
+        if not re.search(r"[A-Z]", password):
+            messages.error(
+                request,
+                "Security requirement: Password must contain at least one uppercase letter.",
+            )
+            return render(request, "users/signup.html", context)
+        if not re.search(r"[0-9]", password):
+            messages.error(
+                request,
+                "Security requirement: Password must contain at least one number.",
+            )
+            return render(request, "users/signup.html", context)
+        if not re.search(r'[()[\]{}|\\`~!@#$%^&*_\-+=;:\'",<>./?]', password):
+            messages.error(
+                request,
+                "Security requirement: Password must contain at least one special character.",
+            )
             return render(request, "users/signup.html", context)
 
         if User.objects.filter(username=username).exists():
@@ -275,7 +305,7 @@ def edit_profile_view(request):
         if not username:
             messages.error(request, "Username is required.", extra_tags="username")
             errors = True
-        
+
         elif User.objects.filter(username=username).exclude(pk=user.pk).exists():
             messages.error(
                 request,
@@ -610,10 +640,8 @@ def terms_conditions(request):
     return render(request, "pages/terms_conditions.html")
 
 
-
 def about_scentora(request):
     return render(request, "pages/about_scentora.html")
-
 
 
 def custom_404(request, exception=None):
