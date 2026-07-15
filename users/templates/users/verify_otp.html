@@ -91,47 +91,63 @@
             </div>
         </div>
         <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const inputs = document.querySelectorAll('.otp-input');
-        const form = document.getElementById('otp-form');
-        const combinedInput = document.getElementById('combined-otp');
-        const timerSpan = document.getElementById('timer-span');
-        const resendBtn = document.getElementById('resend-btn');
-        const resendText = document.getElementById('resend-text');
+document.addEventListener('DOMContentLoaded', () => {
+    const inputs = document.querySelectorAll('.otp-input');
+    const form = document.getElementById('otp-form');
+    const combinedInput = document.getElementById('combined-otp');
+    const timerSpan = document.getElementById('timer-span');
+    const resendBtn = document.getElementById('resend-btn');
+    const resendText = document.getElementById('resend-text');
 
-        // OTP Input Logic
-        inputs.forEach((input, index) => {
-            input.addEventListener('input', (e) => {
-                if (e.target.value && index < inputs.length - 1) {
-                    inputs[index + 1].focus();
-                }
-            });
-            input.addEventListener('keydown', (e) => {
-                if (e.key === 'Backspace' && !input.value && index > 0) {
-                    inputs[index - 1].focus();
-                }
-            });
-        });
-
-        // Combine inputs on submit
-        form.addEventListener('submit', (e) => {
-            let otpValue = "";
-            inputs.forEach(input => otpValue += input.value);
-            combinedInput.value = otpValue;
-        });
-
-        // Timer Logic
-        let timeLeft = 60;
-        const countdown = setInterval(() => {
-            timeLeft--;
-            timerSpan.textContent = `${timeLeft}s`;
-            if (timeLeft <= 0) {
-                clearInterval(countdown);
-                resendText.classList.add('hidden');
-                resendBtn.classList.remove('hidden');
+    // OTP Input Logic
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            if (e.target.value && index < inputs.length - 1) {
+                inputs[index + 1].focus();
             }
-        }, 1000);
+        });
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !input.value && index > 0) {
+                inputs[index - 1].focus();
+            }
+        });
+
+        // NEW: Paste handling — works no matter which box the user pastes into
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData).getData('text');
+            const digits = pasted.replace(/\D/g, '').slice(0, inputs.length);
+            if (!digits) return;
+
+            digits.split('').forEach((digit, i) => {
+                if (inputs[i]) inputs[i].value = digit;
+            });
+
+            // Focus the next empty box, or the last one if all filled
+            const nextIndex = digits.length < inputs.length ? digits.length : inputs.length - 1;
+            inputs[nextIndex].focus();
+        });
     });
-        </script>
+
+    // Combine inputs on submit
+    form.addEventListener('submit', (e) => {
+        let otpValue = "";
+        inputs.forEach(input => otpValue += input.value);
+        combinedInput.value = otpValue;
+    });
+
+    // Timer Logic
+    let timeLeft = 60;
+    const countdown = setInterval(() => {
+        timeLeft--;
+        timerSpan.textContent = `${timeLeft}s`;
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
+            resendText.classList.add('hidden');
+            resendBtn.classList.remove('hidden');
+        }
+    }, 1000);
+});
+</script>
     </body>
 </html>
