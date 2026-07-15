@@ -4,6 +4,8 @@ from django.utils import timezone
 import datetime
 from allauth.socialaccount.signals import social_account_added
 from django.dispatch import receiver
+from django.core.exceptions import ValidationError
+import os
 
 
 @receiver(social_account_added)
@@ -13,14 +15,19 @@ def linked_social_account(request, sociallogin, **kwargs):
     user.is_active = True
     user.save()
 
-
+def validate_image_only(value):
+    ext = os.path.splitext(value.name)[1].lower()
+    allowed = ['.jpg', '.jpeg', '.png', '.webp', '.gif']
+    if ext not in allowed:
+        raise ValidationError('Only image files are allowed (jpg, jpeg, png, webp, gif).')
+    
 class User(AbstractUser):
     # users/models.py
     username = models.CharField(max_length=150, unique=True, blank=False, null=False)
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15, null=True, blank=True)
     dob = models.DateField(null=True, blank=True)
-    profile_image = models.ImageField(upload_to="profiles/", null=True, blank=True)
+    profile_image = models.ImageField(upload_to="profiles/", null=True, blank=True,validators=[validate_image_only])
     is_blocked = models.BooleanField(default=False)
 
     otp_code = models.CharField(max_length=6, blank=True, null=True)
