@@ -131,11 +131,13 @@ class YourPasswordChangeForm(forms.Form): # Or use PasswordChangeForm
             raise ValidationError("Security requirement: At least one special character.")
             
         return password
-    
+
+from django.contrib.auth.forms import SetPasswordForm
+
 class ScentoraSetPasswordForm(SetPasswordForm):
-    def clean_new_password2(self):
-        password = super().clean_new_password2()
-        if self.user.check_password(password):
+    def clean_new_password1(self):
+        password = self.cleaned_data.get('new_password1')
+        if password and self.user.check_password(password):
             raise ValidationError(
                 "Security requirement: New password cannot be the same as your current password."
             )
