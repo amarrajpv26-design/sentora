@@ -532,7 +532,19 @@ def final_email_update_view(request):
         return redirect("profile")
 
     if request.method == "POST":
-        new_email = request.POST.get("new_email")
+        new_email = request.POST.get("new_email", "").strip().lower()
+
+        # Check if email already exists
+        if User.objects.filter(email__iexact=new_email).exists():
+            messages.error(request, "This email is already linked to another account.")
+            return render(request, "users/final_email_update.html")
+
+        # Check if same as current email
+        if new_email == request.user.email.lower():
+            messages.error(
+                request, "New email cannot be the same as your current email."
+            )
+            return render(request, "users/final_email_update.html")
 
         new_otp = str(random.randint(100000, 999999))
         request.session["pending_new_email"] = new_email
@@ -567,22 +579,25 @@ def verify_new_email_otp(request):
         entered_otp = request.POST.get("otp")
 
         if entered_otp == correct_otp:
-            user = request.user
-            user.email = new_email
-            user.save()
+            try:
+                user = request.user
+                user.email = new_email
+                user.save()
 
-            temp_keys = [
-                "email_otp_verified",
-                "pending_new_email",
-                "new_email_otp",
-                "email_change_otp",
-            ]
-            for key in temp_keys:
-                if key in request.session:
-                    del request.session[key]
-
-            messages.success(request, "IDENTITY UPDATED: YOUR NEW EMAIL IS NOW ACTIVE.")
-            return redirect("profile")
+                temp_keys = [
+                    "email_otp_verified",
+                    "pending_new_email",
+                    "new_email_otp",
+                    "email_change_otp",
+                ]
+                for key in temp_keys:
+                    if key in request.session:
+                        del request.session[key]
+            except Exception:
+                messages.success(
+                    request, "IDENTITY UPDATED: YOUR NEW EMAIL IS NOW ACTIVE."
+                )
+                return redirect("profile")
         else:
             messages.error(request, "INVALID VERIFICATION CODE.")
 
