@@ -18,6 +18,7 @@ from django.conf import settings
 from datetime import date, timedelta
 from wallets.models import Wallet
 from products.models import Product, Category, ProductImage, Brand
+from django.template.loader import render_to_string
 
 
 @never_cache
@@ -403,9 +404,12 @@ def password_change_view(request):
     if request.method == "POST":
         form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
-            new_password = request.POST.get('new_password1')
+            new_password = request.POST.get("new_password1")
             if request.user.check_password(new_password):
-                messages.error(request, "Security requirement: New password cannot be the same as your current password.")
+                messages.error(
+                    request,
+                    "Security requirement: New password cannot be the same as your current password.",
+                )
                 return render(request, "users/change_password.html", {"form": form})
             user = form.save()
             update_session_auth_hash(request, user)
@@ -481,13 +485,16 @@ def change_email_request_view(request):
     request.session.modified = True
 
     try:
+        html_message = render_to_string("email/email_change_otp.html", {"otp": otp})
         send_mail(
-            "Scentora Vault: Email Change",
-            f"Verification Code: {otp}",
+            "Scentora Vault: Email Change Verification",
+            f"Your verification code is: {otp}",
             settings.EMAIL_HOST_USER,
             [request.user.email],
             fail_silently=False,
+            html_message=html_message,
         )
+
         messages.success(request, f"CODE SENT TO {request.user.email}")
     except Exception as e:
         messages.error(request, f"MAIL ERROR: {str(e)}")
@@ -531,11 +538,13 @@ def final_email_update_view(request):
         request.session["pending_new_email"] = new_email
         request.session["new_email_otp"] = new_otp
 
+        html_message = render_to_string("email/new_email_otp.html", {"otp": new_otp})
         send_mail(
             "Scentora Vault: Verify New Email",
-            f"Your code for the new email is: {new_otp}",
+            f"Your confirmation code is: {new_otp}",
             settings.EMAIL_HOST_USER,
             [new_email],
+            html_message=html_message,
         )
 
         request.session.save()
