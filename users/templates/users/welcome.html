@@ -562,12 +562,13 @@
                     </nav>
                 </div>
                 <div class="flex items-center gap-3 sm:gap-6">
-                    <div class="search-capsule hidden md:flex items-center bg-neutral-dark border border-neutral-border rounded-full px-4 py-2 group">
-                        <span class="material-symbols-outlined text-slate-500 text-xl group-focus-within:text-primary transition-colors">search</span>
-                        <input class="bg-transparent border-none focus:ring-0 text-xs w-32 lg:w-48 placeholder:text-slate-600"
-                               placeholder="Search fragrances..."
-                               type="text" />
-                    </div>
+                    <form action="{% url 'search_products' %}" method="GET" class="search-capsule hidden md:flex items-center bg-neutral-dark border border-neutral-border rounded-full px-4 py-2 group">
+    <span class="material-symbols-outlined text-slate-500 text-xl group-focus-within:text-primary transition-colors">search</span>
+    <input class="bg-transparent border-none focus:ring-0 text-xs w-32 lg:w-48 placeholder:text-slate-600"
+           placeholder="Search fragrances..."
+           type="text"
+           name="q" />
+</form>
                     <div class="hidden sm:flex items-center gap-4 lg:gap-7 border-l border-neutral-border pl-4 lg:pl-8">
                         <!-- Wishlist -->
                         <a href="{% url 'cart:wishlist_detail' %}" class="icon-bubble relative group pt-2 rounded-full">
@@ -632,12 +633,13 @@
                  class="lg:hidden max-h-0 overflow-hidden transition-[max-height] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] border-t border-neutral-border/0">
                 <div class="glass px-5 sm:px-6 py-6 space-y-6">
 
-                    <form class="search-capsule flex items-center bg-neutral-dark border border-neutral-border rounded-full px-4 py-3">
-                        <span class="material-symbols-outlined text-slate-500 text-xl">search</span>
-                        <input class="bg-transparent border-none focus:ring-0 text-sm w-full ml-2 placeholder:text-slate-600"
-                               placeholder="Search fragrances..."
-                               type="text" />
-                    </form>
+                    <form action="{% url 'search_products' %}" method="GET" class="search-capsule flex items-center bg-neutral-dark border border-neutral-border rounded-full px-4 py-3">
+    <span class="material-symbols-outlined text-slate-500 text-xl">search</span>
+    <input class="bg-transparent border-none focus:ring-0 text-sm w-full ml-2 placeholder:text-slate-600"
+           placeholder="Search fragrances..."
+           type="text"
+           name="q" />
+</form>
 
                     <nav class="grid grid-cols-2 gap-3">
                         <a href="{% url 'home' %}" class="glass-btn text-center py-3 rounded-xl text-[11px] font-bold uppercase tracking-[0.18em] text-slate-200">Home</a>
@@ -1110,27 +1112,7 @@ document.addEventListener('DOMContentLoaded', function () {
 </div>
                 </div>
             </section>
-            <section class="py-16 sm:py-24 lg:py-32">
-                <div class="reveal-on-scroll max-w-4xl mx-auto px-6 sm:px-8 text-center">
-                    <div class="space-y-6 sm:space-y-8">
-                        <span class="newsletter-icon-orb"><span class="material-symbols-outlined text-primary text-4xl font-light">mail</span></span>
-                        <h2 class="font-serif-display text-3xl sm:text-4xl font-light tracking-[-0.01em]">
-                            The <span class="italic font-medium text-primary">Scentora</span> Journal
-                        </h2>
-                        <p class="text-slate-500 text-xs sm:text-sm uppercase tracking-[0.25em] sm:tracking-[0.3em] max-w-lg mx-auto leading-loose">
-                            Subscribe for exclusive access to vintage releases and private invitations.
-                        </p>
-                        <form class="newsletter-form flex flex-col sm:flex-row gap-3 sm:gap-0 max-w-md mx-auto border-b border-neutral-border">
-                            <input class="flex-1 bg-transparent border-none text-sm py-4 outline-none placeholder:text-slate-700"
-                                   placeholder="Email Address"
-                                   type="email" />
-                            <button class="text-primary font-bold uppercase tracking-widest text-[10px] py-4 px-6 hover:text-white">
-                                Join
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </section>
+            
         </main>
         <footer class="border-t border-neutral-border/60">
 
