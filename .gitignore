@@ -13,3 +13,6 @@ static_root/
 venv/
 env/node_modules/
 node_modules/
+db_backup*.json
+wallet_backup.json
+wallet_transactions.json
