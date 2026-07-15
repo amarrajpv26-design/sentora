@@ -255,7 +255,7 @@ def referral_signup_redirect(request, token):
         request,
         f"You've been referred by {offer.referrer.username}! Sign up to claim your bonus.",
     )
-    return redirect("account_signup")
+    return redirect("user_signup")
 
 
 @login_required
