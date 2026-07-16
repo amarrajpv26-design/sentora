@@ -28,6 +28,7 @@ def cart_add(request, variant_id):
     success, message = cart.add(
         variant=variant, quantity=quantity, override_quantity=override
     )
+    
 
     if success and request.user.is_authenticated:
         WishlistItem.objects.filter(
@@ -117,6 +118,7 @@ def cart_update(request, variant_id):
             )
 
             if success:
+
                 message = "Quantity increased"
 
         else:

@@ -202,6 +202,49 @@ Sales Reports </span>
 
     </table>
 
+<!-- Pagination -->
+    {% if orders.has_other_pages %}
+    <div class="flex items-center justify-between px-6 py-5 border-t border-white/5">
+
+        <div class="text-white/40 text-[11px] uppercase tracking-[2px]">
+            Page {{ orders.number }} of {{ orders.paginator.num_pages }}
+        </div>
+
+        <div class="flex gap-2">
+
+            {% if orders.has_previous %}
+            <a href="?type={{ report_type }}&start_date={{ start_date }}&end_date={{ end_date }}&page={{ orders.previous_page_number }}"
+               class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white/70 text-[11px] font-bold uppercase tracking-[1px] hover:border-gold/40">
+                Prev
+            </a>
+            {% endif %}
+
+            {% for num in orders.paginator.page_range %}
+                {% if num == orders.number %}
+                <span class="px-4 py-2 bg-gold text-black rounded-lg text-[11px] font-black">
+                    {{ num }}
+                </span>
+                {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+                <a href="?type={{ report_type }}&start_date={{ start_date }}&end_date={{ end_date }}&page={{ num }}"
+                   class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white/70 text-[11px] font-bold hover:border-gold/40">
+                    {{ num }}
+                </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if orders.has_next %}
+            <a href="?type={{ report_type }}&start_date={{ start_date }}&end_date={{ end_date }}&page={{ orders.next_page_number }}"
+               class="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-white/70 text-[11px] font-bold uppercase tracking-[1px] hover:border-gold/40">
+                Next
+            </a>
+            {% endif %}
+
+        </div>
+
+    </div>
+    {% endif %}
+
+</div>
 </div>
 
 </div>

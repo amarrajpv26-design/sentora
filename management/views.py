@@ -44,7 +44,6 @@ def admin_orders_list(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-   
     status_counts_qs = Order.objects.values("order_status").annotate(count=Count("id"))
     status_counts = {row["order_status"]: row["count"] for row in status_counts_qs}
     total_orders_count = Order.objects.count()
@@ -82,7 +81,6 @@ def change_order_status(request, order_id):
     new_status = request.POST.get("order_status")
     old_status = order.order_status
 
-    
     ALLOWED_TRANSITIONS = {
         "PENDING": ["CONFIRMED", "CANCELLED"],
         "CONFIRMED": ["SHIPPED", "CANCELLED"],
@@ -294,7 +292,6 @@ def handle_item_status_change(request, item_id):
         item.item_status = "CANCELLED"
         item.save()
 
-        
         if order.payment_status == "PAID":
             refund_amount = calculate_item_refund(item)
 
@@ -319,7 +316,11 @@ def handle_item_status_change(request, item_id):
             if order.payment_status == "PAID":
                 order.payment_status = "REFUNDED"
             order.save()
-            record_status_change(order, "CANCELLED", note="Auto-cancelled: last active item cancelled by admin")
+            record_status_change(
+                order,
+                "CANCELLED",
+                note="Auto-cancelled: last active item cancelled by admin",
+            )
 
         messages.success(request, "Item cancelled successfully.")
         return redirect("management:admin_order_detail", item.order.order_id)
@@ -335,7 +336,6 @@ def handle_item_status_change(request, item_id):
             messages.error(request, "Insufficient stock to reactivate item.")
             return redirect("management:admin_order_detail", item.order.order_id)
 
-        
         if order.payment_status in ("PAID", "REFUNDED"):
             refund_amount = calculate_item_refund(item)
             wallet, _ = Wallet.objects.get_or_create(user=order.user)
@@ -367,13 +367,14 @@ def handle_item_status_change(request, item_id):
         item.item_status = "ACTIVE"
         item.save()
 
-        
         if order.order_status == "CANCELLED":
             order.order_status = "CONFIRMED"
             if order.payment_status == "REFUNDED":
                 order.payment_status = "PAID"
             order.save()
-            record_status_change(order, "CONFIRMED", note="Re-activated: item restored by admin")
+            record_status_change(
+                order, "CONFIRMED", note="Re-activated: item restored by admin"
+            )
 
         recalculate_order_totals(order)
 
@@ -383,9 +384,10 @@ def handle_item_status_change(request, item_id):
     messages.error(request, "Invalid item status transition.")
     return redirect("management:admin_order_detail", item.order.order_id)
 
+
 @staff_member_required
 def admin_return_requests(request):
-    
+
     return_statuses = ["RETURN_REQUESTED", "RETURNED", "RETURN_REJECTED"]
     items = (
         OrderItem.objects.filter(item_status__in=return_statuses)
@@ -393,7 +395,6 @@ def admin_return_requests(request):
         .order_by("-created_at")
     )
 
-    
     search_query = request.GET.get("search", "").strip()
     status_filter = request.GET.get("status", "").strip()
 
@@ -408,12 +409,10 @@ def admin_return_requests(request):
     if status_filter:
         items = items.filter(item_status=status_filter)
 
-    
     paginator = Paginator(items, 8)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    
     return_status_choices = [
         ("RETURN_REQUESTED", "Return Requested"),
         ("RETURNED", "Returned (Approved)"),
@@ -452,7 +451,6 @@ def approve_return_item(request, item_id):
 
     wallet, created = Wallet.objects.get_or_create(user=item.order.user)
 
-    
     remaining_items = item.order.items.exclude(
         item_status__in=["RETURNED", "CANCELLED"]
     )
@@ -552,7 +550,6 @@ def approve_full_return(request, order_id):
         messages.error(request, "Invalid return state.")
         return redirect("management:admin_order_detail", order_id=order_id)
 
-    
     refund_amount = order.total_amount
 
     for item in order.items.all():
@@ -773,7 +770,7 @@ def admin_transactions_list(request):
 
 
 def admin_transaction_detail(request, pk):
-    
+
     source = request.GET.get("source", "wallet")
 
     if source == "online":
@@ -849,8 +846,12 @@ def sales_report(request):
 
     net_revenue = total_sales - total_product_discount - total_coupon_discount
 
+    paginator = Paginator(orders, 5)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        "orders": orders,
+        "orders": page_obj,
         "report_type": report_type,
         "start_date": start_date,
         "end_date": end_date,
