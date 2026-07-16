@@ -77,7 +77,7 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
-
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
