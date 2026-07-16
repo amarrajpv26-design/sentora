@@ -17,6 +17,8 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
+    "3.110.187.92",
+    "scentora.ddns.net",
 ]
 TIME_ZONE = 'Asia/Kolkata'
 USE_TZ = True
