@@ -97,16 +97,17 @@
     </div>
 
     <div class="flex flex-wrap gap-3 justify-center">
-      <a href="{% url 'home' %}"
-         class="p404-btn-primary"
+      <a href="{{ return_url }}" class="p404-btn-primary"
          style="font-family: 'Jost', sans-serif; font-size: 9px; font-weight: 600; letter-spacing: 0.35em; text-transform: uppercase; background: #D4AF37; color: #0a0a0a; padding: 14px 32px; border-radius: 1px; transition: all 0.3s; text-decoration: none; display: inline-block;">
-        Return Home
+        {{ return_label }}
       </a>
+      {% if not is_admin %}
       <a href="{% url 'shop:product_list' %}"
          class="p404-btn-ghost"
          style="font-family: 'Jost', sans-serif; font-size: 9px; font-weight: 500; letter-spacing: 0.35em; text-transform: uppercase; background: transparent; color: rgba(255,255,255,0.6); border: 0.5px solid rgba(255,255,255,0.15); padding: 14px 32px; border-radius: 1px; transition: all 0.3s; text-decoration: none; display: inline-block;">
         Explore Fragrances
       </a>
+      {% endif %}
     </div>
 
   </div>

@@ -1,3 +1,6 @@
+import re
+import random
+from datetime import date
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
@@ -5,20 +8,28 @@ from django.views.decorators.cache import never_cache
 from .models import User, Address
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
-from .utils import generate_otp, send_otp_email
+from .utils import (
+    generate_otp,
+    send_otp_email,
+    OTP_TTL_MINUTES,
+    is_otp_expired,
+    get_resend_wait_seconds,
+)
 from django.utils import timezone
 from django.db import IntegrityError
 from .forms import UserEditForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
 from .forms import UserProfileForm, AddressForm
-import random
 from django.core.mail import send_mail
 from django.conf import settings
-from datetime import date, timedelta
 from wallets.models import Wallet
 from products.models import Product, Category, ProductImage, Brand
 from django.template.loader import render_to_string
+
+# Server-side username rule (mirrors the JS check in signup.html):
+# 3-20 chars, must start with a letter, only letters/numbers/underscore after that.
+USERNAME_REGEX = re.compile(r"^[a-zA-Z][a-zA-Z0-9_]{2,19}$")
 
 
 @never_cache
@@ -79,13 +90,16 @@ def home(request):
 
 @never_cache
 def user_signup(request):
+    if request.user.is_authenticated:
+        return redirect("home")
+
     if request.method == "GET":
         ref = request.GET.get("ref")
         if ref:
             request.session["referral_code_input"] = ref
 
     if request.method == "POST":
-        username = request.POST.get("username")
+        username = request.POST.get("username", "").strip()
         email = request.POST.get("email")
         password = request.POST.get("password")
         confirm_password = request.POST.get("confirm_password")
@@ -97,10 +111,17 @@ def user_signup(request):
 
         context = {"typed_username": username, "typed_email": email}
 
+        if not USERNAME_REGEX.match(username):
+            messages.error(
+                request,
+                "Username must be 3-20 characters, start with a letter, and contain "
+                "only letters, numbers, and underscores.",
+            )
+            return render(request, "users/signup.html", context)
+
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
             return render(request, "users/signup.html", context)
-        import re
 
         # Password strength validation
         if len(password) < 8:
@@ -166,8 +187,21 @@ def verify_otp(request):
         messages.error(request, "Session expired. Please sign up again.")
         return redirect("user_signup")
 
+    otp_created_at = signup_data["otp_created_at"]
+
     if request.method == "POST":
         entered_otp = request.POST.get("otp")
+
+        if is_otp_expired(otp_created_at):
+            messages.error(request, "This code has expired. Please request a new one.")
+            return render(
+                request,
+                "users/verify_otp.html",
+                {
+                    "email": signup_data["email"],
+                    "resend_wait_seconds": get_resend_wait_seconds(otp_created_at),
+                },
+            )
 
         if signup_data["otp"] == entered_otp:
             try:
@@ -199,7 +233,14 @@ def verify_otp(request):
         else:
             messages.error(request, "Invalid code. Please try again.")
 
-    return render(request, "users/verify_otp.html", {"email": signup_data["email"]})
+    return render(
+        request,
+        "users/verify_otp.html",
+        {
+            "email": signup_data["email"],
+            "resend_wait_seconds": get_resend_wait_seconds(otp_created_at),
+        },
+    )
 
 
 @never_cache
@@ -211,10 +252,12 @@ def resend_otp(request):
         return redirect("user_signup")
 
     try:
-
         new_otp = generate_otp()
 
         signup_data["otp"] = new_otp
+        signup_data["otp_created_at"] = str(
+            timezone.now()
+        )  # reset TTL + resend cooldown
         request.session["pending_signup"] = signup_data
 
         send_otp_email(signup_data["email"], new_otp)
@@ -228,6 +271,9 @@ def resend_otp(request):
 
 @never_cache
 def user_login(request):
+    if request.user.is_authenticated:
+        return redirect("home")
+
     if request.method == "POST":
         email = request.POST.get("email")
         password = request.POST.get("password")
@@ -425,13 +471,22 @@ def password_change_view(request):
 @never_cache
 @login_required
 def add_address_view(request):
+    has_addresses = Address.objects.filter(user=request.user).exists()
+
     if request.method == "POST":
         form = AddressForm(request.POST)
         if form.is_valid():
             address = form.save(commit=False)
             address.user = request.user
-            if not Address.objects.filter(user=request.user).exists():
+
+            # First address is always the default, regardless of the checkbox
+            if not has_addresses:
                 address.is_default = True
+
+            # Only one address can be default at a time — unset any existing one
+            if address.is_default:
+                Address.objects.filter(user=request.user).update(is_default=False)
+
             address.save()
             messages.success(request, "New address added to your vault.")
             next_url = request.POST.get("next")
@@ -441,7 +496,15 @@ def add_address_view(request):
             return redirect("profile")
     else:
         form = AddressForm()
-    return render(request, "users/add_address.html", {"form": form})
+
+    return render(
+        request,
+        "users/add_address.html",
+        {
+            "form": form,
+            "has_addresses": has_addresses,
+        },
+    )
 
 
 @never_cache
@@ -449,10 +512,30 @@ def add_address_view(request):
 def edit_address_view(request, pk):
     address = get_object_or_404(Address, pk=pk, user=request.user)
 
+    # If this address is currently the default, it cannot be un-defaulted
+    # from this view — the only way to change the default is to create/edit
+    # a DIFFERENT address and mark that one as default instead. The template
+    # uses this flag to hide the checkbox and show an explanatory note.
+    is_locked_default = address.is_default
+
     if request.method == "POST":
         form = AddressForm(request.POST, instance=address)
         if form.is_valid():
-            form.save()
+            updated_address = form.save(commit=False)
+
+            # Enforce the lock server-side too: no matter what was submitted
+            # (e.g. a manually crafted request), a currently-default address
+            # stays default through this view.
+            if is_locked_default:
+                updated_address.is_default = True
+
+            # Only one address can be default at a time — unset any other one
+            if updated_address.is_default:
+                Address.objects.filter(user=request.user).exclude(pk=address.pk).update(
+                    is_default=False
+                )
+
+            updated_address.save()
             messages.success(request, "Address updated in your vault.")
             next_url = request.POST.get("next")
 
@@ -463,7 +546,15 @@ def edit_address_view(request, pk):
     else:
         form = AddressForm(instance=address)
 
-    return render(request, "users/add_address.html", {"form": form, "edit_mode": True})
+    return render(
+        request,
+        "users/add_address.html",
+        {
+            "form": form,
+            "edit_mode": True,
+            "is_locked_default": is_locked_default,
+        },
+    )
 
 
 @never_cache
@@ -471,7 +562,22 @@ def edit_address_view(request, pk):
 def delete_address_view(request, pk):
     if request.method == "POST":
         address = get_object_or_404(Address, pk=pk, user=request.user)
+        was_default = address.is_default
         address.delete()
+
+        # If the deleted address was the default, promote the most recently
+        # created remaining address to default so the user is never left
+        # without one (as long as at least one address still exists).
+        if was_default:
+            next_default = (
+                Address.objects.filter(user=request.user)
+                .order_by("-created_at")
+                .first()
+            )
+            if next_default:
+                next_default.is_default = True
+                next_default.save(update_fields=["is_default"])
+
         messages.success(request, "Destination removed from archive.")
     return redirect("profile")
 
@@ -482,10 +588,13 @@ def change_email_request_view(request):
     otp = str(random.randint(100000, 999999))
 
     request.session["email_change_otp"] = otp
+    request.session["email_change_otp_created_at"] = str(timezone.now())
     request.session.modified = True
 
     try:
-        html_message = render_to_string("email/email_change_otp.html", {"otp": otp})
+        html_message = render_to_string(
+            "email/email_change_otp.html", {"otp": otp, "ttl_minutes": OTP_TTL_MINUTES}
+        )
         send_mail(
             "Scentora Vault: Email Change Verification",
             f"Your verification code is: {otp}",
@@ -505,14 +614,56 @@ def change_email_request_view(request):
 
 @never_cache
 @login_required
+def resend_email_change_otp(request):
+    if "email_change_otp" not in request.session:
+        messages.error(request, "Session expired. Please try again.")
+        return redirect("profile")
+
+    otp = str(random.randint(100000, 999999))
+    request.session["email_change_otp"] = otp
+    request.session["email_change_otp_created_at"] = str(timezone.now())
+    request.session.modified = True
+
+    try:
+        html_message = render_to_string(
+            "email/email_change_otp.html", {"otp": otp, "ttl_minutes": OTP_TTL_MINUTES}
+        )
+        send_mail(
+            "Scentora Vault: Email Change Verification",
+            f"Your verification code is: {otp}",
+            settings.EMAIL_HOST_USER,
+            [request.user.email],
+            fail_silently=False,
+            html_message=html_message,
+        )
+        messages.success(request, "A fresh verification code has been dispatched.")
+    except Exception as e:
+        messages.error(request, f"MAIL ERROR: {str(e)}")
+
+    return redirect("verify_email_otp")
+
+
+@never_cache
+@login_required
 def verify_email_change(request):
     saved_otp = request.session.get("email_change_otp")
+    otp_created_at = request.session.get("email_change_otp_created_at")
 
-    if not saved_otp:
+    if not saved_otp or not otp_created_at:
         messages.error(request, "SECURITY ERROR: INITIAL OTP NOT FOUND.")
         return redirect("profile")
 
     if request.method == "POST":
+        if is_otp_expired(otp_created_at):
+            messages.error(request, "This code has expired. Please request a new one.")
+            return render(
+                request,
+                "users/verify_email_otp.html",
+                {
+                    "resend_wait_seconds": get_resend_wait_seconds(otp_created_at),
+                },
+            )
+
         user_otp = request.POST.get("otp")
         if user_otp == saved_otp:
             request.session["email_otp_verified"] = True
@@ -522,7 +673,13 @@ def verify_email_change(request):
         else:
             messages.error(request, "INVALID CODE.")
 
-    return render(request, "users/verify_email_otp.html")
+    return render(
+        request,
+        "users/verify_email_otp.html",
+        {
+            "resend_wait_seconds": get_resend_wait_seconds(otp_created_at),
+        },
+    )
 
 
 @never_cache
@@ -549,8 +706,11 @@ def final_email_update_view(request):
         new_otp = str(random.randint(100000, 999999))
         request.session["pending_new_email"] = new_email
         request.session["new_email_otp"] = new_otp
+        request.session["new_email_otp_created_at"] = str(timezone.now())
 
-        html_message = render_to_string("email/new_email_otp.html", {"otp": new_otp})
+        html_message = render_to_string(
+            "email/new_email_otp.html", {"otp": new_otp, "ttl_minutes": OTP_TTL_MINUTES}
+        )
         send_mail(
             "Scentora Vault: Verify New Email",
             f"Your confirmation code is: {new_otp}",
@@ -567,15 +727,58 @@ def final_email_update_view(request):
 
 @never_cache
 @login_required
+def resend_new_email_otp(request):
+    new_email = request.session.get("pending_new_email")
+    if not new_email:
+        messages.error(request, "Session expired. Please try again.")
+        return redirect("profile")
+
+    new_otp = str(random.randint(100000, 999999))
+    request.session["new_email_otp"] = new_otp
+    request.session["new_email_otp_created_at"] = str(timezone.now())
+    request.session.modified = True
+
+    try:
+        html_message = render_to_string(
+            "email/new_email_otp.html", {"otp": new_otp, "ttl_minutes": OTP_TTL_MINUTES}
+        )
+        send_mail(
+            "Scentora Vault: Verify New Email",
+            f"Your confirmation code is: {new_otp}",
+            settings.EMAIL_HOST_USER,
+            [new_email],
+            html_message=html_message,
+        )
+        messages.success(request, "A fresh verification code has been dispatched.")
+    except Exception as e:
+        messages.error(request, f"MAIL ERROR: {str(e)}")
+
+    return redirect("verify_new_email")
+
+
+@never_cache
+@login_required
 def verify_new_email_otp(request):
     new_email = request.session.get("pending_new_email")
     correct_otp = request.session.get("new_email_otp")
+    otp_created_at = request.session.get("new_email_otp_created_at")
 
-    if not new_email or not correct_otp:
+    if not new_email or not correct_otp or not otp_created_at:
         messages.error(request, "SESSION EXPIRED. PLEASE START THE PROCESS AGAIN.")
         return redirect("profile")
 
     if request.method == "POST":
+        if is_otp_expired(otp_created_at):
+            messages.error(request, "This code has expired. Please request a new one.")
+            return render(
+                request,
+                "users/verify_new_email.html",
+                {
+                    "email": new_email,
+                    "resend_wait_seconds": get_resend_wait_seconds(otp_created_at),
+                },
+            )
+
         entered_otp = request.POST.get("otp")
 
         if entered_otp == correct_otp:
@@ -588,20 +791,34 @@ def verify_new_email_otp(request):
                     "email_otp_verified",
                     "pending_new_email",
                     "new_email_otp",
+                    "new_email_otp_created_at",
                     "email_change_otp",
+                    "email_change_otp_created_at",
                 ]
                 for key in temp_keys:
                     if key in request.session:
                         del request.session[key]
-            except Exception:
+
                 messages.success(
                     request, "IDENTITY UPDATED: YOUR NEW EMAIL IS NOW ACTIVE."
                 )
                 return redirect("profile")
+            except Exception:
+                messages.error(
+                    request,
+                    "Something went wrong updating your email. Please try again.",
+                )
         else:
             messages.error(request, "INVALID VERIFICATION CODE.")
 
-    return render(request, "users/verify_new_email.html", {"email": new_email})
+    return render(
+        request,
+        "users/verify_new_email.html",
+        {
+            "email": new_email,
+            "resend_wait_seconds": get_resend_wait_seconds(otp_created_at),
+        },
+    )
 
 
 def search_products(request):
@@ -672,5 +889,34 @@ def about_scentora(request):
     return render(request, "pages/about_scentora.html")
 
 
+from django.urls import reverse
+
+
 def custom_404(request, exception=None):
-    return render(request, "404.html", status=404)
+    is_admin = request.path.startswith("/admin-control/")
+    context = {
+        "return_url": reverse("admin_dashboard") if is_admin else reverse("home"),
+        "return_label": "Return to Dashboard" if is_admin else "Return Home",
+        "is_admin": is_admin,
+    }
+    return render(request, "404.html", context, status=404)
+
+
+def custom_500(request):
+    is_admin = request.path.startswith("/admin-control/")
+    context = {
+        "return_url": reverse("admin_dashboard") if is_admin else reverse("home"),
+        "return_label": "Return to Dashboard" if is_admin else "Return Home",
+        "is_admin": is_admin,
+    }
+    return render(request, "500.html", context, status=500)
+
+
+def custom_403(request, exception=None):
+    is_admin = request.path.startswith("/admin-control/")
+    context = {
+        "return_url": reverse("admin_dashboard") if is_admin else reverse("home"),
+        "return_label": "Return to Dashboard" if is_admin else "Return Home",
+        "is_admin": is_admin,
+    }
+    return render(request, "403.html", context, status=403)
