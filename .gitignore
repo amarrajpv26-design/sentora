@@ -19,3 +19,4 @@ wallet_transactions.json
 staticfiles/
 users_data.json
 nginx_scentora.conf
+users_data.json
