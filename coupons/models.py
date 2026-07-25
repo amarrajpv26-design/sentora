@@ -3,11 +3,31 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
+
 from django.db import models
 from django.utils import timezone
 
 
 class Coupon(models.Model):
+
+    def clean(self):
+        if self.is_fixed and self.min_purchase <= self.discount:
+            raise ValidationError(
+                {
+                    "min_purchase": (
+                        f"Minimum purchase (₹{self.min_purchase}) must be greater than "
+                        f"the flat discount amount (₹{self.discount}) for fixed coupons."
+                    )
+                }
+            )
+
+    def save(self, *args, **kwargs):
+        if self.code:
+            self.code = self.code.strip().upper()
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     code = models.CharField(max_length=50, unique=True)
     description = models.CharField(max_length=255, blank=True, default="")
 
@@ -98,7 +118,10 @@ class Coupon(models.Model):
             return False, "This coupon has expired."
 
         if cart_total < self.min_purchase:
-            return False, f"Add items worth ₹{self.min_purchase} or more to use this coupon."
+            return (
+                False,
+                f"Add items worth ₹{self.min_purchase} or more to use this coupon.",
+            )
 
         if self.usage_limit and self.used_count >= self.usage_limit:
             return False, "This coupon has reached its usage limit."

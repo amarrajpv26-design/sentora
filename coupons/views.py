@@ -22,7 +22,7 @@ def apply_coupon(request):
 
     try:
         coupon = Coupon.objects.get(code__iexact=code, active=True)
-        is_valid, message = coupon.is_valid(subtotal)
+        is_valid, message = coupon.is_valid_for_user(request.user, subtotal)
 
         if is_valid:
             request.session["coupon_id"] = coupon.id

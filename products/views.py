@@ -17,7 +17,7 @@ import uuid
 # ──────────────────────────────────────────────
 
 
-@staff_member_required
+@staff_member_required(login_url="admin_login")
 @never_cache
 def admin_category_list(request):
     categories_list = Category.objects.filter(is_active=True).order_by("-created_at")
@@ -54,7 +54,7 @@ def admin_category_list(request):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url="admin_login")
 def add_category(request):
     if request.method == "POST":
         form = CategoryForm(request.POST, request.FILES)
@@ -105,7 +105,7 @@ def add_category(request):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url="admin_login")
 def edit_category(request, category_id):
     category = get_object_or_404(Category, pk=category_id)
 
@@ -170,22 +170,22 @@ def edit_category(request, category_id):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url="admin_login")
 def toggle_category_status(request, category_id):
     category = get_object_or_404(Category, id=category_id)
     category.is_active = not category.is_active
     category.save()
 
     if not category.is_active:
-        # Archive products that ONLY belong to this category
+        # Archive ALL active products in this category
         for product in category.products.filter(is_active=True):
-            if product.categories.filter(is_active=True).count() == 0:
-                product.is_active = False
-                product.save()
+            product.is_active = False
+            product.save()
     else:
-        # Restore products that were archived because of this category
+        # Restore products that were archived because of this category,
+        # but only if none of their OTHER categories are still archived
         for product in category.products.filter(is_active=False):
-            if product.categories.filter(is_active=True).count() > 0:
+            if product.categories.filter(is_active=False).count() == 0:
                 product.is_active = True
                 product.save()
 
@@ -197,12 +197,41 @@ def toggle_category_status(request, category_id):
     return redirect("admin_category_list")
 
 
+@staff_member_required(login_url="admin_login")
+def toggle_product_status(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+
+    if not product.is_active:
+        # Trying to UNARCHIVE — block if any of its categories are archived
+        archived_categories = product.categories.filter(is_active=False)
+        if archived_categories.exists():
+            names = ", ".join(c.name for c in archived_categories)
+            messages.error(
+                request,
+                f"Cannot unarchive '{product.name}': its category '{names}' is archived. "
+                f"Unarchive the category first.",
+            )
+            referer = request.META.get("HTTP_REFERER", "")
+            if "archive" in referer:
+                return redirect("/products/admin/archive/?tab=products")
+            return redirect("admin_product_list")
+
+    product.is_active = not product.is_active
+    product.save()
+    status = "listed" if product.is_active else "unlisted (soft-deleted)"
+    messages.success(request, f"Product '{product.name}' status set to {status}.")
+    referer = request.META.get("HTTP_REFERER", "")
+    if "archive" in referer:
+        return redirect("/products/admin/archive/?tab=products")
+    return redirect("admin_product_list")
+
+
 # ──────────────────────────────────────────────
 #  PRODUCT VIEWS
 # ──────────────────────────────────────────────
 
 
-@staff_member_required
+@staff_member_required(login_url="admin_login")
 @never_cache
 def admin_product_list(request):
     products_list = (
@@ -256,7 +285,7 @@ def admin_product_list(request):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url="admin_login")
 def product_detail(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
     variants = product.variants.all().order_by("size_ml")
@@ -390,8 +419,7 @@ def _validate_variants_server(sizes, prices, offers):
 
     return errors
 
-
-@staff_member_required
+@staff_member_required(login_url="admin_login")
 def add_product(request):
     if request.method == "POST":
         # ── Core fields ──────────────────────────────────────────────────────
@@ -430,6 +458,14 @@ def add_product(request):
         if not any(s.strip() for s in sizes):
             form_errors.append("At least one product variant is required.")
 
+        # ── Server-side minimum image count check ─────────────────────────────
+        images_data_check = request.POST.getlist("cropped_images[]")
+        valid_image_count = sum(
+            1 for img in images_data_check if img and img.strip() and ";base64," in img
+        )
+        if valid_image_count < 4:
+            form_errors.append("Minimum 4 product images are required.")
+
         if form_errors:
             for err in form_errors:
                 messages.error(request, err)
@@ -438,7 +474,7 @@ def add_product(request):
                 "products/admin_add_product.html",
                 {
                     "brands": Brand.objects.all(),
-                    "categories": Category.objects.all(),
+                    "categories": Category.objects.filter(is_active=True),
                     "post": request.POST,  # pass back for re-filling the form
                 },
             )
@@ -519,32 +555,20 @@ def add_product(request):
         "products/admin_add_product.html",
         {
             "brands": Brand.objects.all(),
-            "categories": Category.objects.all(),
+            "categories": Category.objects.filter(is_active=True),
         },
     )
 
-
-@staff_member_required
+@staff_member_required(login_url="admin_login")
 def edit_product(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
 
     if request.method == "POST":
-        # ── Brand ─────────────────────────────────────────────────────────────
+        # ── Core fields (read first, validate before mutating `product`) ──────
+        name = request.POST.get("name", "").strip()
         brand_input = request.POST.get("brand_name", "").strip()
-        if brand_input:
-            product.brand = _get_or_create_brand(
-                brand_input
-            )  # FIX: was broken get_or_create
+        description = request.POST.get("description", "").strip()
 
-        # ── Core fields ───────────────────────────────────────────────────────
-        product.name = request.POST.get("name", product.name).strip()
-        product.description = request.POST.get("description", product.description)
-        product.top_notes = request.POST.get("top_notes", product.top_notes)
-        product.heart_notes = request.POST.get("heart_notes", product.heart_notes)
-        product.base_notes = request.POST.get("base_notes", product.base_notes)
-        product.is_featured = "is_featured" in request.POST
-
-        # ── Variant validation BEFORE saving anything ─────────────────────────
         sizes = request.POST.getlist("v_size[]")
         prices = request.POST.getlist("v_price[]")
         offers = request.POST.getlist("v_offer[]")
@@ -552,11 +576,52 @@ def edit_product(request, product_id):
         stocks_original = request.POST.getlist("v_stock_original[]")
         variant_ids = request.POST.getlist("variant_id[]")
 
+        # ── Basic field validation ────────────────────────────────────────────
+        form_errors = []
+
+        if not name:
+            form_errors.append("Product name is required.")
+        elif Product.objects.filter(name__iexact=name).exclude(pk=product.pk).exists():
+            form_errors.append(f"A product named '{name}' already exists.")
+
+        if not brand_input:
+            form_errors.append("Brand / House is required.")
+
+        if not description:
+            form_errors.append("Scent narrative (description) is required.")
+
+        # ── Variant validation ────────────────────────────────────────────────
         variant_errors = _validate_variants_server(sizes, prices, offers)
-        if variant_errors:
-            for err in variant_errors:
+        form_errors.extend(variant_errors)
+
+        # ── Server-side minimum image count check ─────────────────────────────
+        images_data_check = request.POST.getlist("cropped_images[]")
+        valid_image_count = sum(
+            1
+            for img in images_data_check
+            if img and img.strip() and img.strip() != "REMOVED"
+        )
+        if valid_image_count < 4:
+            form_errors.append("Minimum 4 product images are required.")
+
+        if form_errors:
+            for err in form_errors:
                 messages.error(request, err)
             return redirect("edit_product", product_id=product.id)
+
+        # ── Brand ─────────────────────────────────────────────────────────────
+        if brand_input:
+            product.brand = _get_or_create_brand(
+                brand_input
+            )  # FIX: was broken get_or_create
+
+        # ── Core fields ───────────────────────────────────────────────────────
+        product.name = name
+        product.description = description
+        product.top_notes = request.POST.get("top_notes", product.top_notes)
+        product.heart_notes = request.POST.get("heart_notes", product.heart_notes)
+        product.base_notes = request.POST.get("base_notes", product.base_notes)
+        product.is_featured = "is_featured" in request.POST
 
         product.save()
 
@@ -583,7 +648,8 @@ def edit_product(request, product_id):
                 if offer_raw_val and float(offer_raw_val) > 0
                 else None
             )
-            stock = stocks[i] if i < len(stocks) and stocks[i] else 0
+            stock_raw = stocks[i] if i < len(stocks) and stocks[i] else ""
+            stock = int(stock_raw) if stock_raw.strip().isdigit() else 0
             variant_id = variant_ids[i] if i < len(variant_ids) else ""
 
             if variant_id:
@@ -593,7 +659,7 @@ def edit_product(request, product_id):
                     variant.price = price
                     variant.offer_price = offer
 
-                    submitted_stock = int(stock) if stock else 0
+                    submitted_stock = stock
                     original_stock = (
                         int(stocks_original[i])
                         if i < len(stocks_original) and stocks_original[i]
@@ -675,12 +741,12 @@ def edit_product(request, product_id):
         {
             "product": product,
             "brands": Brand.objects.all(),
-            "categories": Category.objects.all(),
+            "categories": Category.objects.filter(is_active=True),
         },
     )
 
 
-@staff_member_required
+@staff_member_required(login_url="admin_login")
 @never_cache
 def admin_archive(request):
     """
@@ -752,11 +818,30 @@ def admin_archive(request):
     )
 
 
-@staff_member_required
+@staff_member_required(login_url="admin_login")
 def toggle_product_status(request, product_id):
     product = get_object_or_404(Product, id=product_id)
+
+    if not product.is_active:
+        # Trying to UNARCHIVE — block if any of its categories are archived
+        archived_categories = product.categories.filter(is_active=False)
+        if archived_categories.exists():
+            names = ", ".join(c.name for c in archived_categories)
+            messages.error(
+                request,
+                f"Cannot unarchive '{product.name}': its category '{names}' is archived. "
+                f"Unarchive the category first.",
+            )
+            referer = request.META.get("HTTP_REFERER", "")
+            if "archive" in referer:
+                return redirect("/products/admin/archive/?tab=products")
+            return redirect("admin_product_list")
+
     product.is_active = not product.is_active
     product.save()
     status = "listed" if product.is_active else "unlisted (soft-deleted)"
     messages.success(request, f"Product '{product.name}' status set to {status}.")
+    referer = request.META.get("HTTP_REFERER", "")
+    if "archive" in referer:
+        return redirect("/products/admin/archive/?tab=products")
     return redirect("admin_product_list")

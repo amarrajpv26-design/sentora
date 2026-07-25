@@ -289,7 +289,7 @@ def admin_logout(request):
 
 
 @never_cache
-@staff_member_required
+@staff_member_required(login_url="admin_login")
 def user_management(request):
     users = User.objects.filter(is_superuser=False).order_by("-date_joined")
 
@@ -340,7 +340,7 @@ def user_management(request):
 
 
 @never_cache
-@staff_member_required
+@staff_member_required(login_url="admin_login")
 def user_detail_view(request, user_id):
     customer = get_object_or_404(User, id=user_id)
 
@@ -355,7 +355,7 @@ def user_detail_view(request, user_id):
 
 
 @never_cache
-@staff_member_required
+@staff_member_required(login_url="admin_login")
 def toggle_user_status(request, user_id):
     if request.method == "POST":
         user = get_object_or_404(User, id=user_id)
