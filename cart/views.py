@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.http import HttpResponse
+from django.urls import reverse
 from .models import Wishlist, WishlistItem  # <--- Add this line!
 from products.models import ProductVariant
 from .wishlist import WishlistManager
@@ -13,6 +14,18 @@ from offers.utils import get_effective_price
 
 @require_POST
 def cart_add(request, variant_id):
+    if not request.user.is_authenticated:
+        if request.headers.get("HX-Request"):
+            response = HttpResponse(status=401)
+            response["HX-Trigger"] = json.dumps(
+                {"showMessage": "Please log in to add items to your cart"}
+            )
+            return response
+        messages.error(request, "Please log in to add items to your cart.")
+        login_url = reverse("user_login")
+        next_url = request.META.get("HTTP_REFERER", "/")
+        return redirect(f"{login_url}?next={next_url}")
+
     cart = Cart(request)
     variant = get_object_or_404(ProductVariant, id=variant_id)
 
@@ -28,11 +41,10 @@ def cart_add(request, variant_id):
     success, message = cart.add(
         variant=variant, quantity=quantity, override_quantity=override
     )
-    
 
     if success and request.user.is_authenticated:
         WishlistItem.objects.filter(
-            wishlist__user=request.user, variant__product=variant.product
+            wishlist__user=request.user, variant=variant
         ).delete()
 
     if request.headers.get("HX-Request"):
@@ -100,6 +112,9 @@ def cart_detail(request):
 
 
 def cart_update(request, variant_id):
+    if not request.user.is_authenticated:
+        return HttpResponse(status=401)
+
     cart = Cart(request)
     variant = get_object_or_404(ProductVariant, id=variant_id)
 
@@ -180,28 +195,28 @@ def cart_update(request, variant_id):
 @require_POST
 def wishlist_toggle(request, variant_id):
     if not request.user.is_authenticated:
-        return HttpResponse(status=401)
+        response = HttpResponse(status=401)
+        response["HX-Trigger"] = json.dumps(
+            {"showMessage": "Please log in to save items to your wishlist"}
+        )
+        return response
 
     variant = get_object_or_404(ProductVariant, id=variant_id)
     wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
 
+    # IMPORTANT: match on the exact variant only. Matching on
+    # variant__product here would wipe out every other size of the
+    # same product from the wishlist whenever any one size is toggled.
     existing_item = WishlistItem.objects.filter(
-        wishlist=wishlist, variant__product=variant.product
+        wishlist=wishlist, variant=variant
     ).first()
 
-    if existing_item and existing_item.variant == variant:
-
+    if existing_item:
         existing_item.delete()
         is_in_wishlist = False
         message = "Item removed from wishlist"
-
     else:
-        WishlistItem.objects.filter(
-            wishlist=wishlist, variant__product=variant.product
-        ).delete()
-
         WishlistItem.objects.create(wishlist=wishlist, variant=variant)
-
         is_in_wishlist = True
         message = "Item added to wishlist"
 

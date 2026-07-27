@@ -487,6 +487,9 @@ h1 {
         </main>
     </div>
     <script>
+// --- AUTH STATE (used to guard cart/buy-now actions for guests) ---
+const isAuthenticated = {{ request.user.is_authenticated|yesno:"true,false" }};
+
 // --- GLOBAL SELECTORS ---
 const mainImg = document.getElementById('main-image');
 const mainContainer = document.getElementById('main-image-container');
@@ -642,7 +645,13 @@ function changeQty(delta) {
     if (!qtyInput) return;
     let val = parseInt(qtyInput.value) + delta;
     const maxVal = parseInt(qtyInput.max) || 10;
-    if (val >= 1 && val <= maxVal) {
+
+    if (val > maxVal) {
+        showMessage(`Maximum allocation reached (${maxVal} units)`, "warning");
+        return;
+    }
+
+    if (val >= 1) {
         qtyInput.value = val;
     }
 }
@@ -651,6 +660,7 @@ function changeQty(delta) {
 document.addEventListener('DOMContentLoaded', () => {
     updateVariantDetails();
 });
+
 // 1. Unified Message Function (Works for JS and Django)
 function showMessage(msg, icon = 'info') {
     const toast = document.getElementById('status-toast');
@@ -683,25 +693,33 @@ function showMessage(msg, icon = 'info') {
     }, 4000);
 }
 
-// 2. Add this to your changeQty function to handle errors
-function changeQty(delta) {
-    if (!qtyInput) return;
-    let val = parseInt(qtyInput.value) + delta;
-    const maxVal = parseInt(qtyInput.max) || 10;
-
-    if (val > maxVal) {
-        showMessage(`Maximum allocation reached (${maxVal} units)`, "warning");
-        return;
-    }
-    
-    if (val >= 1) {
-        qtyInput.value = val;
-    }
+// --- GUEST GUARD: Add to Cart form submit ---
+const addToCartForm = document.getElementById('add-to-cart-form');
+if (addToCartForm) {
+    addToCartForm.addEventListener('submit', function (e) {
+        if (!isAuthenticated) {
+            e.preventDefault();
+            showMessage('Please log in to add items to your cart', 'lock');
+            setTimeout(() => {
+                window.location.href = "{% url 'user_login' %}?next={{ request.path }}";
+            }, 1500);
+        }
+    });
 }
+
+// --- GUEST GUARD + BUY NOW ---
 const buyNowBtn = document.getElementById("buy-now-btn");
 
 if (buyNowBtn) {
     buyNowBtn.addEventListener("click", function () {
+
+        if (!isAuthenticated) {
+            showMessage('Please log in to purchase items', 'lock');
+            setTimeout(() => {
+                window.location.href = "{% url 'user_login' %}?next={{ request.path }}";
+            }, 1500);
+            return;
+        }
 
         const variantId = document.getElementById("hidden-variant-id").value;
         const quantity = document.getElementById("qty-input").value;

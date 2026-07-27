@@ -23,7 +23,6 @@ from django.db.models import (
 )
 
 
-@login_required(login_url="user_login")
 def product_list(request):
     # NOTE: min_price is annotated here so it can be used for filtering
     # and sorting below. This is the MRP-based minimum (variant.price),
@@ -104,14 +103,17 @@ def product_list(request):
         product.has_offer = product.display_offer_price < product.display_min_price
     # ---------------------------------------------------------------
 
-    wishlist_variant_ids = WishlistItem.objects.filter(
-        wishlist__user=request.user
-    ).values_list("variant_id", flat=True)
-
-    wishlist_product_ids = Product.objects.filter(
-        variants__id__in=wishlist_variant_ids
-    ).values_list("id", flat=True)
-    wishlist_variant_ids = set(wishlist_variant_ids)
+    if request.user.is_authenticated:
+        wishlist_variant_ids = WishlistItem.objects.filter(
+            wishlist__user=request.user
+        ).values_list("variant_id", flat=True)
+        wishlist_product_ids = Product.objects.filter(
+            variants__id__in=wishlist_variant_ids
+        ).values_list("id", flat=True)
+        wishlist_variant_ids = set(wishlist_variant_ids)
+    else:
+        wishlist_variant_ids = set()
+        wishlist_product_ids = []
 
     context = {
         "products": page_obj,
@@ -130,7 +132,7 @@ def product_list(request):
 
     return render(request, "shop/product_list.html", context)
 
-@login_required(login_url="user_login")
+
 def product_detail(request, product_uuid):
     product = get_object_or_404(
         Product.objects.prefetch_related("images", "variants", "categories"),
@@ -242,7 +244,6 @@ def brand_list(request):
     return render(request, "shop/brand_list.html", {"brands": brands})
 
 
-@login_required(login_url="user_login")
 def new_arrivals(request):
 
     products = (
@@ -267,11 +268,14 @@ def new_arrivals(request):
 
         product.has_offer = product.display_offer_price < product.display_min_price
 
-    wishlist_variant_ids = set(
-        WishlistItem.objects.filter(wishlist__user=request.user).values_list(
-            "variant_id", flat=True
+    if request.user.is_authenticated:
+        wishlist_variant_ids = set(
+            WishlistItem.objects.filter(wishlist__user=request.user).values_list(
+                "variant_id", flat=True
+            )
         )
-    )
+    else:
+        wishlist_variant_ids = set()
 
     return render(
         request,
@@ -327,7 +331,6 @@ def category_products(request, slug):
     )
 
 
-@login_required(login_url="user_login")
 def best_sellers(request):
     # Determine the sorting and filtering mode chosen by the user
     mode = request.GET.get("mode", "qty")
@@ -399,7 +402,6 @@ def best_sellers(request):
     return render(request, "shop/best_sellers.html", context)
 
 
-@login_required(login_url="user_login")
 def archive_collection(request):
     # Fetch all products that are archived (is_active=False)
     products = (
@@ -424,11 +426,14 @@ def archive_collection(request):
         product.has_offer = product.display_offer_price < product.display_min_price
 
     # Retrieve wishlist profiles for structural synergy with your layout design
-    wishlist_variant_ids = set(
-        WishlistItem.objects.filter(wishlist__user=request.user).values_list(
-            "variant_id", flat=True
+    if request.user.is_authenticated:
+        wishlist_variant_ids = set(
+            WishlistItem.objects.filter(wishlist__user=request.user).values_list(
+                "variant_id", flat=True
+            )
         )
-    )
+    else:
+        wishlist_variant_ids = set()
 
     context = {
         "products": products,
