@@ -17,6 +17,7 @@ from .utils import (
 )
 from django.utils import timezone
 from django.db import IntegrityError
+from django.http import JsonResponse
 from .forms import UserEditForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
@@ -468,10 +469,38 @@ def password_change_view(request):
     return render(request, "users/change_password.html", {"form": form})
 
 
+def _serialize_address(address):
+    """
+    Small helper so the checkout page's AJAX address modal can render the
+    address list / re-select the right radio button without a second
+    database round trip after the JSON response comes back.
+    """
+    return {
+        "id": address.id,
+        "full_name": address.full_name,
+        "phone_number": address.phone_number,
+        "address_line_1": address.address_line_1,
+        "address_line_2": address.address_line_2 or "",
+        "city": address.city,
+        "state": address.state,
+        "pincode": address.pincode,
+        "address_type": address.address_type,
+        "address_type_display": address.get_address_type_display(),
+        "is_default": address.is_default,
+    }
+
+
 @never_cache
 @login_required
 def add_address_view(request):
     has_addresses = Address.objects.filter(user=request.user).exists()
+
+    # The checkout page submits this form over AJAX (fetch) so that a
+    # validation mistake shows an inline error and keeps the user on
+    # checkout, instead of a full-page redirect to the profile address
+    # form that used to blow away their cart/buy-now context. The plain
+    # profile "Add Address" page still POSTs normally and is unaffected.
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
     if request.method == "POST":
         form = AddressForm(request.POST)
@@ -488,12 +517,33 @@ def add_address_view(request):
                 Address.objects.filter(user=request.user).update(is_default=False)
 
             address.save()
+
+            if is_ajax:
+                return JsonResponse(
+                    {
+                        "success": True,
+                        "message": "New address added to your vault.",
+                        "address": _serialize_address(address),
+                    }
+                )
+
             messages.success(request, "New address added to your vault.")
             next_url = request.POST.get("next")
             if next_url:
                 return redirect(next_url)
 
             return redirect("profile")
+
+        # Invalid form
+        if is_ajax:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "Please correct the errors below.",
+                    "errors": form.errors.get_json_data(escape_html=True),
+                },
+                status=400,
+            )
     else:
         form = AddressForm()
 
@@ -518,6 +568,8 @@ def edit_address_view(request, pk):
     # uses this flag to hide the checkbox and show an explanatory note.
     is_locked_default = address.is_default
 
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
     if request.method == "POST":
         form = AddressForm(request.POST, instance=address)
         if form.is_valid():
@@ -536,6 +588,16 @@ def edit_address_view(request, pk):
                 )
 
             updated_address.save()
+
+            if is_ajax:
+                return JsonResponse(
+                    {
+                        "success": True,
+                        "message": "Address updated in your vault.",
+                        "address": _serialize_address(updated_address),
+                    }
+                )
+
             messages.success(request, "Address updated in your vault.")
             next_url = request.POST.get("next")
 
@@ -543,6 +605,16 @@ def edit_address_view(request, pk):
                 return redirect(next_url)
 
             return redirect("profile")
+
+        if is_ajax:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "Please correct the errors below.",
+                    "errors": form.errors.get_json_data(escape_html=True),
+                },
+                status=400,
+            )
     else:
         form = AddressForm(instance=address)
 

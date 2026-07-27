@@ -599,53 +599,66 @@
             </div>
 
             <form id="addressForm" method="POST" action="{% url 'add_address' %}" class="relative flex flex-col flex-1 min-h-0">
-                <input type="hidden" name="next" value="{{ request.path }}" />
+                <input type="hidden" name="next" value="{{ request.get_full_path }}" />
                 {% csrf_token %}
 
                 <!-- SCROLLABLE FIELDS -->
                 <div class="flex-1 min-h-0 overflow-y-auto p-5">
+
+                    <!-- Non-field / general error banner (e.g. "please correct the errors below") -->
+                    <div id="modalNonFieldError"
+                         class="hidden mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-xs tracking-wide font-medium">
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
                         <div>
                             <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">Full Name</label>
-                            <input type="text" name="full_name" id="full_name" required
+                            <input type="text" name="full_name" id="full_name"
                                    class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-base sm:text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
+                            <p class="field-error-checkout hidden text-red-400 text-[11px] mt-2 font-semibold uppercase tracking-wide" id="error_full_name"></p>
                         </div>
 
                         <div>
                             <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">Phone Number</label>
-                            <input type="text" name="phone_number" id="phone_number" maxlength="10" required inputmode="numeric"
+                            <input type="text" name="phone_number" id="phone_number" maxlength="10" inputmode="numeric"
                                    class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-base sm:text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
+                            <p class="field-error-checkout hidden text-red-400 text-[11px] mt-2 font-semibold uppercase tracking-wide" id="error_phone_number"></p>
                         </div>
 
                         <div class="md:col-span-2">
                             <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">Address Line 1</label>
-                            <input type="text" name="address_line_1" id="address_line_1" required
+                            <input type="text" name="address_line_1" id="address_line_1"
                                    class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-base sm:text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
+                            <p class="field-error-checkout hidden text-red-400 text-[11px] mt-2 font-semibold uppercase tracking-wide" id="error_address_line_1"></p>
                         </div>
 
                         <div class="md:col-span-2">
                             <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">Apartment / Suite</label>
                             <input type="text" name="address_line_2" id="address_line_2"
                                    class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-base sm:text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
+                            <p class="field-error-checkout hidden text-red-400 text-[11px] mt-2 font-semibold uppercase tracking-wide" id="error_address_line_2"></p>
                         </div>
 
                         <div>
                             <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">City</label>
-                            <input type="text" name="city" id="city" required
+                            <input type="text" name="city" id="city"
                                    class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-base sm:text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
+                            <p class="field-error-checkout hidden text-red-400 text-[11px] mt-2 font-semibold uppercase tracking-wide" id="error_city"></p>
                         </div>
 
                         <div>
                             <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">State</label>
-                            <input type="text" name="state" id="state" required
+                            <input type="text" name="state" id="state"
                                    class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-base sm:text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
+                            <p class="field-error-checkout hidden text-red-400 text-[11px] mt-2 font-semibold uppercase tracking-wide" id="error_state"></p>
                         </div>
 
                         <div>
                             <label class="block text-[10px] uppercase tracking-[0.3em] text-white/40 mb-3 font-bold">Pincode</label>
-                            <input type="text" name="pincode" id="pincode" maxlength="6" required inputmode="numeric"
+                            <input type="text" name="pincode" id="pincode" maxlength="6" inputmode="numeric"
                                    class="w-full h-12 rounded-2xl bg-white/[0.04] border border-white/10 px-5 text-base sm:text-sm text-white placeholder:text-white/25 outline-none focus:border-primary focus:bg-white/[0.06] transition-all duration-300 shadow-inner" />
+                            <p class="field-error-checkout hidden text-red-400 text-[11px] mt-2 font-semibold uppercase tracking-wide" id="error_pincode"></p>
                         </div>
 
                         <div>
@@ -656,10 +669,30 @@
                                 <option value="WORK">Work</option>
                                 <option value="OTHER">Other</option>
                             </select>
+                            <p class="field-error-checkout hidden text-red-400 text-[11px] mt-2 font-semibold uppercase tracking-wide" id="error_address_type"></p>
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-4 mt-7 p-4 rounded-2xl border border-white/10 bg-white/[0.03]">
+                    <!-- Default-address section: exactly one of these three is
+                         shown at a time, toggled by JS via setDefaultAddressUI():
+                           - firstAddressNote  -> adding the user's very first address ever
+                           - lockedDefaultNote -> editing the address that IS currently default
+                           - defaultCheckboxRow -> every other add/edit case -->
+                    <div id="firstAddressNote"
+                         class="hidden items-center gap-3 mt-7 p-4 rounded-2xl border border-white/10 bg-white/[0.03]">
+                        <span class="text-lg">ℹ️</span>
+                        <p class="text-xs text-white/50">This will automatically become your default address since it's your first one.</p>
+                    </div>
+
+                    <div id="lockedDefaultNote"
+                         class="hidden items-center gap-3 mt-7 p-4 rounded-2xl border border-primary/20 bg-primary/5">
+                        <input type="hidden" name="is_default" value="on" id="lockedDefaultHiddenInput" disabled />
+                        <span class="text-lg">⭐</span>
+                        <p class="text-xs text-white/60">This is your default address. To change your default, add or edit a different address and set that one as default instead.</p>
+                    </div>
+
+                    <div id="defaultCheckboxRow"
+                         class="hidden items-center gap-4 mt-7 p-4 rounded-2xl border border-white/10 bg-white/[0.03]">
                         <input type="checkbox" name="is_default" id="is_default"
                                class="w-5 h-5 rounded border-white/20 bg-black accent-white shrink-0" />
                         <label for="is_default" class="text-sm text-white/70 font-medium">Set as default address</label>
@@ -731,12 +764,85 @@
     const modalSubHeading = document.getElementById("modalSubHeading");
     const modalSubmitBtn = document.getElementById("modalSubmitBtn");
 
+    // How many addresses this user has right now (server-rendered once on
+    // page load). Used only to decide which of the three default-address
+    // states to show when opening "Add Address" — after a successful
+    // add/edit we reload the page, so this number is always accurate for
+    // the next time the modal opens.
+    const INITIAL_HAS_ADDRESSES = {{ addresses|length }} > 0;
+
+    // ---------------- Default-address section state ----------------
+    function setDefaultAddressUI(state) {
+        // state: 'first' | 'checkbox' | 'locked'
+        const checkboxRow = document.getElementById('defaultCheckboxRow');
+        const firstNote = document.getElementById('firstAddressNote');
+        const lockedNote = document.getElementById('lockedDefaultNote');
+        const checkboxInput = document.getElementById('is_default');
+        const lockedHiddenInput = document.getElementById('lockedDefaultHiddenInput');
+
+        checkboxRow.classList.add('hidden');
+        checkboxRow.classList.remove('flex');
+        firstNote.classList.add('hidden');
+        firstNote.classList.remove('flex');
+        lockedNote.classList.add('hidden');
+        lockedNote.classList.remove('flex');
+
+        // Disabling the inputs that aren't shown keeps them out of the
+        // submitted form data entirely, regardless of CSS visibility.
+        checkboxInput.disabled = true;
+        checkboxInput.checked = false;
+        lockedHiddenInput.disabled = true;
+
+        if (state === 'first') {
+            firstNote.classList.remove('hidden');
+            firstNote.classList.add('flex');
+        } else if (state === 'locked') {
+            lockedNote.classList.remove('hidden');
+            lockedNote.classList.add('flex');
+            lockedHiddenInput.disabled = false;
+        } else {
+            checkboxRow.classList.remove('hidden');
+            checkboxRow.classList.add('flex');
+            checkboxInput.disabled = false;
+        }
+    }
+
+    // ---------------- Inline field errors ----------------
+    function clearFormErrors() {
+        document.querySelectorAll('.field-error-checkout').forEach(function(el) {
+            el.textContent = '';
+            el.classList.add('hidden');
+        });
+        const nonField = document.getElementById('modalNonFieldError');
+        nonField.textContent = '';
+        nonField.classList.add('hidden');
+    }
+
+    function showFieldError(fieldName, message) {
+        const el = document.getElementById('error_' + fieldName);
+        if (el) {
+            el.textContent = message;
+            el.classList.remove('hidden');
+        }
+    }
+
+    function showNonFieldError(message) {
+        const nonField = document.getElementById('modalNonFieldError');
+        nonField.textContent = message;
+        nonField.classList.remove('hidden');
+    }
+
     function openAddressModal() {
         form.reset();
+        clearFormErrors();
         modalHeading.innerText = "Add Address";
         modalSubHeading.innerText = "SHIPPING ADDRESS";
         modalSubmitBtn.innerText = "Save Address";
         form.action = "{% url 'add_address' %}";
+        form.dataset.mode = "add";
+
+        setDefaultAddressUI(INITIAL_HAS_ADDRESSES ? 'checkbox' : 'first');
+
         modal.classList.remove("hidden");
         modal.classList.add("flex");
         document.body.style.overflow = "hidden";
@@ -754,6 +860,7 @@
         modalSubHeading.innerText = "UPDATE ADDRESS";
         modalSubmitBtn.innerText = "Update Address";
         form.action = `/profile/address/edit/${id}/`;
+        form.dataset.mode = "edit";
 
         document.getElementById("full_name").value = full_name || "";
         document.getElementById("phone_number").value = phone_number || "";
@@ -763,7 +870,9 @@
         document.getElementById("state").value = state || "";
         document.getElementById("pincode").value = pincode || "";
         document.getElementById("address_type").value = address_type || "HOME";
-        document.getElementById("is_default").checked = is_default === "true";
+
+        const isCurrentlyDefault = is_default === "true";
+        setDefaultAddressUI(isCurrentlyDefault ? 'locked' : 'checkbox');
     }
 
     modal.addEventListener("click", function(e) {
@@ -792,20 +901,68 @@
         });
     });
 
-    form.addEventListener("submit", function(e) {
-        const fullName = document.getElementById("full_name").value.trim();
-        const phone = phoneInput.value.trim();
-        const address1 = document.getElementById("address_line_1").value.trim();
-        const city = document.getElementById("city").value.trim();
-        const state = document.getElementById("state").value.trim();
-        const pincode = pincodeInput.value.trim();
+    // ---------------- Address form submit: AJAX, stays on checkout ----------------
+    // This is the core fix: a validation mistake (or anything else the
+    // server rejects) no longer navigates away from checkout. The server
+    // still does the real, authoritative validation (AddressForm); this
+    // just displays whatever it returns without leaving the page.
+    form.addEventListener("submit", async function(e) {
+        e.preventDefault();
+        clearFormErrors();
 
-        if (fullName.length < 3) { alert("Full name must contain at least 3 characters"); e.preventDefault(); return; }
-        if (!/^[6-9]\d{9}$/.test(phone)) { alert("Enter a valid 10 digit phone number"); e.preventDefault(); return; }
-        if (address1.length < 5) { alert("Address is too short"); e.preventDefault(); return; }
-        if (city.length < 2) { alert("Enter a valid city"); e.preventDefault(); return; }
-        if (state.length < 2) { alert("Enter a valid state"); e.preventDefault(); return; }
-        if (!/^\d{6}$/.test(pincode)) { alert("Pincode must be 6 digits"); e.preventDefault(); return; }
+        const originalText = modalSubmitBtn.innerText;
+        modalSubmitBtn.disabled = true;
+        modalSubmitBtn.innerText = "Saving...";
+
+        try {
+            const formData = new FormData(form);
+
+            const response = await fetch(form.action, {
+                method: "POST",
+                headers: { "X-Requested-With": "XMLHttpRequest" },
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Keep the current payment method, and select the address
+                // that was just added/edited, across the reload that
+                // refreshes the address list.
+                saveCheckoutSelections();
+                try {
+                    const stored = JSON.parse(sessionStorage.getItem(CHECKOUT_SELECTION_KEY) || "{}");
+                    stored.selected_address = String(data.address.id);
+                    sessionStorage.setItem(CHECKOUT_SELECTION_KEY, JSON.stringify(stored));
+                } catch (err) {
+                    /* non-fatal — worst case the default selection logic applies after reload */
+                }
+                window.location.reload();
+                return;
+            }
+
+            // Validation failed — show professional inline errors per field,
+            // and a general banner at the top. The user stays right here.
+            if (data.errors) {
+                Object.keys(data.errors).forEach(function(fieldName) {
+                    const fieldErrors = data.errors[fieldName] || [];
+                    const combinedMessage = fieldErrors.map(function(err) { return err.message; }).join(" ");
+
+                    if (fieldName === "__all__") {
+                        showNonFieldError(combinedMessage);
+                    } else {
+                        showFieldError(fieldName, combinedMessage);
+                    }
+                });
+            }
+
+            showNonFieldError(data.message || "Please correct the errors below.");
+        } catch (err) {
+            showNonFieldError("Something went wrong. Please try again.");
+        } finally {
+            modalSubmitBtn.disabled = false;
+            modalSubmitBtn.innerText = originalText;
+        }
     });
 
     // ---------------- Coupon: apply / remove (AJAX) ----------------
@@ -838,6 +995,7 @@
             const data = await response.json();
 
             if (data.success) {
+                saveCheckoutSelections();
                 window.location.reload();
             } else {
                 showCouponMessage(data.message, true);
@@ -877,6 +1035,7 @@
                 const data = await response.json();
 
                 if (data.success) {
+                    saveCheckoutSelections();
                     window.location.reload();
                 } else {
                     showCouponMessage(data.message, true);
@@ -1021,6 +1180,41 @@ rzpScript.onload = function() {
 
 document.head.appendChild(rzpScript);
 {% endif %}
+
+const CHECKOUT_SELECTION_KEY = "checkout_selections_v1";
+
+function saveCheckoutSelections() {
+    const paymentEl = document.querySelector('input[name="payment_method"]:checked');
+    const addressEl = document.querySelector('input[name="selected_address"]:checked');
+
+    sessionStorage.setItem(CHECKOUT_SELECTION_KEY, JSON.stringify({
+        payment_method: paymentEl ? paymentEl.value : null,
+        selected_address: addressEl ? addressEl.value : null,
+    }));
+}
+
+function restoreCheckoutSelections() {
+    const raw = sessionStorage.getItem(CHECKOUT_SELECTION_KEY);
+    if (!raw) return;
+
+    try {
+        const { payment_method, selected_address } = JSON.parse(raw);
+
+        if (payment_method) {
+            const el = document.querySelector(`input[name="payment_method"][value="${payment_method}"]`);
+            if (el) el.checked = true;
+        }
+
+        if (selected_address) {
+            const el = document.querySelector(`input[name="selected_address"][value="${selected_address}"]`);
+            if (el) el.checked = true;
+        }
+    } finally {
+        sessionStorage.removeItem(CHECKOUT_SELECTION_KEY);
+    }
+}
+
+restoreCheckoutSelections();
 </script>
 
 {% endblock %}

@@ -22,7 +22,7 @@ from offers.utils import handle_order_referral_events
 
 
 def get_applied_coupon_discount(request, subtotal):
-    
+
     coupon_id = request.session.get("coupon_id")
 
     if not coupon_id:
@@ -48,7 +48,7 @@ def get_applied_coupon_discount(request, subtotal):
 
 
 def record_coupon_usage(order):
-    
+
     if not order.applied_coupon:
         return
 
@@ -61,6 +61,28 @@ def record_coupon_usage(order):
     Coupon.objects.filter(pk=order.applied_coupon.pk).update(
         used_count=F("used_count") + 1
     )
+
+
+def decrement_stock_or_fail(variant_id, quantity):
+    """
+    Atomically decrement stock only if enough is available *right now*.
+
+    This is a single conditional UPDATE (UPDATE ... SET stock = stock - qty
+    WHERE id = ? AND stock >= qty). Because the check and the decrement are
+    the same database statement, there is no window between "check stock"
+    and "reduce stock" where another concurrent request could sneak in and
+    oversell the last few units. This replaces the old pattern of doing a
+    separate select_for_update() check and then, much later, an unguarded
+    F('stock') - quantity update.
+
+    Returns True if the row was updated (i.e. stock was sufficient and has
+    now been reduced), False if there wasn't enough stock (nothing was
+    changed).
+    """
+    updated = ProductVariant.objects.filter(
+        pk=variant_id, stock__gte=quantity
+    ).update(stock=F("stock") - quantity)
+    return updated == 1
 
 
 @login_required
@@ -383,6 +405,10 @@ def place_order_view(request):
     # ONLINE PAYMENT (RAZORPAY)
     # =====================================================
     if payment_method == "ONLINE":
+        # NOTE: stock is intentionally NOT decremented here. For online
+        # payments, stock is only reduced once payment is verified in
+        # payment_verify_view, using the same decrement_stock_or_fail()
+        # helper used below for COD/WALLET.
 
         client = razorpay.Client(
             auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
@@ -446,6 +472,26 @@ def place_order_view(request):
             )
             return redirect("checkout")
 
+        # ---- Atomic stock reservation before touching the wallet ----
+        # We check-and-decrement stock for every item first. If any item
+        # sold out between page-load and this exact moment, we roll back
+        # the whole order and refund nothing (since nothing was ever
+        # debited yet at this point).
+        with transaction.atomic():
+            for item in checkout_items:
+                variant = item["variant"]
+                quantity = item["quantity"]
+
+                if not decrement_stock_or_fail(variant.pk, quantity):
+                    transaction.set_rollback(True)
+                    order.delete()
+                    messages.error(
+                        request,
+                        f"Sorry, {variant} just went out of stock. "
+                        f"Please review your order and try again.",
+                    )
+                    return redirect("checkout")
+
         user_wallet.balance -= order.total_amount
         user_wallet.save()
 
@@ -461,11 +507,6 @@ def place_order_view(request):
         order.payment_status = "PAID"
         order.order_status = "CONFIRMED"
         order.save()
-
-        for item in checkout_items:
-            ProductVariant.objects.filter(pk=item["variant"].pk).update(
-                stock=F("stock") - item["quantity"]
-            )
 
         ordered_variants = [item["variant"] for item in checkout_items]
 
@@ -513,10 +554,25 @@ def place_order_view(request):
     # =====================================================
     else:
 
-        for item in checkout_items:
-            ProductVariant.objects.filter(pk=item["variant"].pk).update(
-                stock=F("stock") - item["quantity"]
-            )
+        # ---- Atomic stock reservation ----
+        # Check-and-decrement stock for every item in one atomic block.
+        # If any item sold out between page-load and this exact moment,
+        # roll back and cancel the order instead of allowing negative
+        # stock or an oversold item.
+        with transaction.atomic():
+            for item in checkout_items:
+                variant = item["variant"]
+                quantity = item["quantity"]
+
+                if not decrement_stock_or_fail(variant.pk, quantity):
+                    transaction.set_rollback(True)
+                    order.delete()
+                    messages.error(
+                        request,
+                        f"Sorry, {variant} just went out of stock. "
+                        f"Please review your order and try again.",
+                    )
+                    return redirect("checkout")
 
         ordered_variants = [item["variant"] for item in checkout_items]
 
@@ -574,6 +630,16 @@ def payment_verify_view(request):
 
     order = get_object_or_404(Order, order_id=order_id)
 
+    # ---- Idempotency guard ----
+    # This view can be hit more than once for the same order: Razorpay's
+    # in-modal handler submits the hidden form AND, separately, the bank
+    # redirect flow can POST back to callback_url, and users can also hit
+    # back/refresh. Without this guard, stock would be decremented twice,
+    # coupon usage recorded twice, and duplicate CouponUsage rows created
+    # for a single real payment.
+    if order.payment_status == "PAID":
+        return redirect("order_success", order_id=order.order_id)
+
     # ── Handle bank decline posted by Razorpay via callback_url ──
     if request.method == "POST" and request.POST.get("error[code]"):
         order.payment_status = "FAILED"
@@ -601,12 +667,32 @@ def payment_verify_view(request):
         order.razorpay_signature = razorpay_signature
         order.save()
 
+        # ---- Atomic stock decrement, now that money is actually captured ----
+        # Payment is already captured by Razorpay at this point, so we can
+        # no longer "cancel" the order the way COD/WALLET can if stock ran
+        # out. Instead, any item that can't be fulfilled gets flagged for
+        # manual handling (refund/backorder) rather than silently going
+        # negative in stock.
+        oversold_items = []
+
         with transaction.atomic():
             for item in order.items.all():
                 if item.product_variant:
-                    ProductVariant.objects.filter(pk=item.product_variant.pk).update(
-                        stock=F("stock") - item.quantity
+                    ok = decrement_stock_or_fail(
+                        item.product_variant.pk, item.quantity
                     )
+                    if not ok:
+                        oversold_items.append(item)
+
+        if oversold_items:
+            order.order_status = "BACKORDERED"
+            order.save(update_fields=["order_status"])
+            messages.warning(
+                request,
+                "Your payment was successful, but one or more items just "
+                "sold out. Our team will contact you about a refund or "
+                "restock for the affected item(s).",
+            )
 
         from cart.models import CartItem
         CartItem.objects.filter(cart__user=order.user).delete()
@@ -722,6 +808,26 @@ def retry_payment_view(request, order_id):
             messages.error(request, "Insufficient wallet balance.")
             return redirect("retry_payment", order_id=order.order_id)
 
+        # ---- Atomic stock reservation for the retry-payment path ----
+        # This order's items were never stocked-out at creation time (COD
+        # orders don't decrement stock until paid), so we check-and-decrement
+        # here, same as the main WALLET flow above.
+        active_items = list(order.items.filter(item_status="ACTIVE"))
+
+        with transaction.atomic():
+            for item in active_items:
+                if item.product_variant:
+                    if not decrement_stock_or_fail(
+                        item.product_variant.pk, item.quantity
+                    ):
+                        transaction.set_rollback(True)
+                        messages.error(
+                            request,
+                            f"Sorry, {item.product_variant} just went out of "
+                            f"stock. Please contact support about this order.",
+                        )
+                        return redirect("retry_payment", order_id=order.order_id)
+
         user_wallet.balance -= order.total_amount
         user_wallet.save()
 
@@ -738,12 +844,6 @@ def retry_payment_view(request, order_id):
         order.payment_status = "PAID"
         order.order_status = "CONFIRMED"
         order.save()
-
-        for item in order.items.filter(item_status="ACTIVE"):
-            if item.product_variant:
-                ProductVariant.objects.filter(pk=item.product_variant.pk).update(
-                    stock=F("stock") - item.quantity
-                )
 
         # ── SUCCESS MESSAGE ──
         messages.success(
