@@ -28,22 +28,27 @@
                     {% endfor %}
                 </div>
             {% endif %}
-            <form method="POST" class="space-y-10">
+            <form method="POST" class="space-y-10" id="new-email-otp-form" novalidate>
                 {% csrf_token %}
                 <div class="relative group">
                     <label class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mb-2 block group-focus-within:text-primary transition-colors">
                         6-Digit Verification Code
                     </label>
                     <input type="text"
+                           id="otp-input"
                            name="otp"
                            maxlength="6"
+                           inputmode="numeric"
+                           pattern="[0-9]{6}"
                            placeholder="000000"
                            class="w-full bg-transparent border-b border-white/10 border-t-0 border-x-0 rounded-none px-0 py-3 text-white focus:ring-0 outline-none tracking-[1em] text-center text-2xl transition-all placeholder:text-white/5 font-light"
                            required>
                 </div>
                 <div class="pt-4">
                     <button type="submit"
-                            class="w-full bg-primary hover:bg-white text-black font-bold py-5 transition-all duration-700 uppercase tracking-[0.4em] text-[11px] shadow-xl">
+                            id="submit-btn"
+                            disabled
+                            class="w-full bg-primary hover:bg-white text-black font-bold py-5 transition-all duration-700 uppercase tracking-[0.4em] text-[11px] shadow-xl disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary">
                         Verify & Update Vault
                     </button>
                 </div>
@@ -72,6 +77,31 @@
         const timerSpan = document.getElementById('timer-span');
         const resendBtn = document.getElementById('resend-btn');
         const resendText = document.getElementById('resend-text');
+        const otpInput = document.getElementById('otp-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const form = document.getElementById('new-email-otp-form');
+
+        function isOtpValid() {
+            return /^[0-9]{6}$/.test(otpInput.value);
+        }
+
+        function refreshSubmitState() {
+            submitBtn.disabled = !isOtpValid();
+        }
+
+        otpInput.addEventListener('input', () => {
+            // Strip non-digits as the user types, mirroring the OTP-box pages
+            otpInput.value = otpInput.value.replace(/\D/g, '').slice(0, 6);
+            refreshSubmitState();
+        });
+
+        form.addEventListener('submit', (e) => {
+            // Final hard gate — blocks submission if triggered while incomplete
+            if (!isOtpValid()) {
+                e.preventDefault();
+                refreshSubmitState();
+            }
+        });
 
         let timeLeft = {{ resend_wait_seconds }};
         if (timeLeft > 0) {

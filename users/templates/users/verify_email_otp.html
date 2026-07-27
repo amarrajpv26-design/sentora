@@ -13,22 +13,27 @@
                 <p class="text-slate-400 text-xs text-center leading-relaxed mb-10 tracking-wide">
                     A unique security code has been dispatched to your current email. Please enter it below to unlock access.
                 </p>
-                <form method="POST" action="{% url 'verify_email_otp' %}" class="space-y-8">
+                <form method="POST" action="{% url 'verify_email_otp' %}" class="space-y-8" id="email-change-otp-form" novalidate>
                     {% csrf_token %}
                     <div class="relative group">
                         <label class="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500 group-focus-within:text-primary transition-colors">
                             Security Code
                         </label>
                         <input type="text"
+                               id="otp-input"
                                name="otp"
                                maxlength="6"
+                               inputmode="numeric"
+                               pattern="[0-9]{6}"
                                required
                                class="w-full bg-transparent border-b border-white/10 py-4 text-center text-2xl tracking-[0.5em] text-primary outline-none focus:border-primary transition-all font-light"
                                placeholder="000000"
                                style="letter-spacing: 1rem">
                     </div>
                     <button type="submit"
-                            class="w-full py-5 bg-primary text-black text-[10px] font-black uppercase tracking-[0.4em] rounded-full hover:bg-white transition-all duration-500 shadow-xl shadow-primary/5">
+                            id="submit-btn"
+                            disabled
+                            class="w-full py-5 bg-primary text-black text-[10px] font-black uppercase tracking-[0.4em] rounded-full hover:bg-white transition-all duration-500 shadow-xl shadow-primary/5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary">
                         Verify Identity
                     </button>
 
@@ -68,6 +73,29 @@
         const timerSpan = document.getElementById('timer-span');
         const resendBtn = document.getElementById('resend-btn');
         const resendText = document.getElementById('resend-text');
+        const otpInput = document.getElementById('otp-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const form = document.getElementById('email-change-otp-form');
+
+        function isOtpValid() {
+            return /^[0-9]{6}$/.test(otpInput.value);
+        }
+
+        function refreshSubmitState() {
+            submitBtn.disabled = !isOtpValid();
+        }
+
+        otpInput.addEventListener('input', () => {
+            otpInput.value = otpInput.value.replace(/\D/g, '').slice(0, 6);
+            refreshSubmitState();
+        });
+
+        form.addEventListener('submit', (e) => {
+            if (!isOtpValid()) {
+                e.preventDefault();
+                refreshSubmitState();
+            }
+        });
 
         let timeLeft = {{ resend_wait_seconds }};
         if (timeLeft > 0) {

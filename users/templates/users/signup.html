@@ -142,7 +142,9 @@
 
                     <div class="pt-4">
                         <button type="submit"
-                                class="w-full py-4 bg-yellow-500 text-black font-bold uppercase tracking-[2.5px] text-[11px] rounded-2xl hover:bg-[#e2a616] hover:shadow-[0_12px_36px_-8px_rgba(244,180,26,0.35)] active:scale-[0.98] transition-all duration-200">
+                                id="submit-btn"
+                                disabled
+                                class="w-full py-4 bg-yellow-500 text-black font-bold uppercase tracking-[2.5px] text-[11px] rounded-2xl hover:bg-[#e2a616] hover:shadow-[0_12px_36px_-8px_rgba(244,180,26,0.35)] active:scale-[0.98] transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-yellow-500 disabled:hover:shadow-none">
                             Create Account
                         </button>
                     </div>
@@ -160,6 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('signup-form');
     const usernameInput = document.getElementById('username');
     const usernameError = document.getElementById('username-error');
+    const emailInput = document.querySelector('input[name="email"]');
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirm_password');
     const confirmPasswordError = document.getElementById('confirm-password-error');
@@ -168,6 +171,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const reqNumber = document.getElementById('req-number');
     const reqSpecial = document.getElementById('req-special');
     const passReqs = document.getElementById('pass-requirements');
+    const submitBtn = document.getElementById('submit-btn');
 
     const USERNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]{2,19}$/;
     const SPECIAL_CHAR_REGEX = /[()[\]{}|\\`~!@#$%^&*_\-+=;:'",<>./?]/;
@@ -186,20 +190,55 @@ document.addEventListener('DOMContentLoaded', function() {
         return val.length >= 8 && /[A-Z]/.test(val) && /[0-9]/.test(val) && SPECIAL_CHAR_REGEX.test(val);
     }
 
+    function isUsernameValid() {
+        return USERNAME_REGEX.test(usernameInput.value.trim());
+    }
+
+    function isPasswordsMatch() {
+        return passwordInput.value === confirmPasswordInput.value && confirmPasswordInput.value.length > 0;
+    }
+
+    function isEmailValid() {
+        return emailInput.checkValidity();
+    }
+
+    // Single source of truth for "is the whole form currently valid?"
+    // Both the live button-disabling and the submit-time check use this,
+    // so they can never disagree with each other.
+    function isFormValid() {
+        return isEmailValid() &&
+               isUsernameValid() &&
+               isPasswordValid(passwordInput.value) &&
+               isPasswordsMatch();
+    }
+
+    function refreshSubmitState() {
+        submitBtn.disabled = !isFormValid();
+    }
+
     function validateUsername() {
-        const isValid = USERNAME_REGEX.test(usernameInput.value.trim());
+        const isValid = isUsernameValid();
         usernameError.classList.toggle('hidden', isValid);
         return isValid;
     }
 
     function validatePasswordMatch() {
-        const isValid = passwordInput.value === confirmPasswordInput.value && confirmPasswordInput.value.length > 0;
+        const isValid = isPasswordsMatch();
         confirmPasswordError.classList.toggle('hidden', isValid);
         return isValid;
     }
 
-    usernameInput.addEventListener('input', validateUsername);
-    confirmPasswordInput.addEventListener('input', validatePasswordMatch);
+    usernameInput.addEventListener('input', function() {
+        validateUsername();
+        refreshSubmitState();
+    });
+
+    emailInput.addEventListener('input', refreshSubmitState);
+
+    confirmPasswordInput.addEventListener('input', function() {
+        validatePasswordMatch();
+        refreshSubmitState();
+    });
 
     passwordInput.addEventListener('input', function() {
         const val = this.value;
@@ -217,13 +256,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirmPasswordInput.value) {
             validatePasswordMatch();
         }
+        refreshSubmitState();
     });
 
     form.addEventListener('submit', function(e) {
-        // Native required/type/pattern/minlength/maxlength checks
+        // Final hard gate at submit time — even if the button were somehow
+        // re-enabled (e.g. dev tools), this still blocks an invalid POST.
         let isValid = form.checkValidity();
 
-        // Custom checks
         if (!validateUsername()) isValid = false;
 
         if (!isPasswordValid(passwordInput.value)) {
@@ -239,6 +279,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!isValid) {
             e.preventDefault();
+            refreshSubmitState();
         }
     });
 

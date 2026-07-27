@@ -84,7 +84,9 @@
                     </div>
                     <div class="flex flex-col items-center gap-6">
                         <button type="submit"
-                                class="w-full h-14 bg-gold text-black font-black uppercase tracking-[3px] text-[10px] rounded-xl hover:bg-[#e2a616] transition-all transform active:scale-95 shadow-[0_10px_40px_rgba(244,180,26,0.15)]">
+                                id="submit-btn"
+                                disabled
+                                class="w-full h-14 bg-gold text-black font-black uppercase tracking-[3px] text-[10px] rounded-xl hover:bg-[#e2a616] transition-all transform active:scale-95 shadow-[0_10px_40px_rgba(244,180,26,0.15)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gold disabled:active:scale-100">
                             Verify & Authenticate
                         </button>
                         <div class="text-center">
@@ -110,6 +112,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerSpan = document.getElementById('timer-span');
     const resendBtn = document.getElementById('resend-btn');
     const resendText = document.getElementById('resend-text');
+    const submitBtn = document.getElementById('submit-btn');
+
+    // Single source of truth: are all 6 boxes filled with a digit?
+    function isOtpComplete() {
+        return Array.from(inputs).every(input => /^[0-9]$/.test(input.value));
+    }
+
+    function refreshSubmitState() {
+        submitBtn.disabled = !isOtpComplete();
+    }
 
     // OTP Input Logic
     inputs.forEach((input, index) => {
@@ -120,12 +132,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.value && index < inputs.length - 1) {
                 inputs[index + 1].focus();
             }
+
+            refreshSubmitState();
         });
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Backspace' && !input.value && index > 0) {
                 inputs[index - 1].focus();
             }
         });
+        input.addEventListener('keyup', refreshSubmitState);
 
         // Paste handling — works no matter which box the user pastes into
         input.addEventListener('paste', (e) => {
@@ -141,11 +156,21 @@ document.addEventListener('DOMContentLoaded', () => {
             // Focus the next empty box, or the last one if all filled
             const nextIndex = digits.length < inputs.length ? digits.length : inputs.length - 1;
             inputs[nextIndex].focus();
+
+            refreshSubmitState();
         });
     });
 
     // Combine inputs on submit
     form.addEventListener('submit', (e) => {
+        // Final hard gate — blocks submission if somehow triggered while incomplete
+        // (e.g. Enter key pressed before all boxes are filled).
+        if (!isOtpComplete()) {
+            e.preventDefault();
+            refreshSubmitState();
+            return;
+        }
+
         let otpValue = "";
         inputs.forEach(input => otpValue += input.value);
         combinedInput.value = otpValue;
