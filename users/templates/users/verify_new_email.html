@@ -47,6 +47,17 @@
                         Verify & Update Vault
                     </button>
                 </div>
+                <div class="text-center pt-2">
+                        <p class="text-[9px] text-slate-500 uppercase tracking-widest mb-2 {% if resend_wait_seconds <= 0 %}hidden{% endif %}"
+                           id="resend-text">
+                            Resend code in <span class="text-primary font-bold" id="timer-span">{{ resend_wait_seconds }}s</span>
+                        </p>
+                        <a href="{% url 'resend_new_email_otp' %}"
+                           id="resend-btn"
+                           class="{% if resend_wait_seconds > 0 %}hidden{% endif %} text-primary text-[9px] font-bold uppercase tracking-[0.3em] hover:underline cursor-pointer">
+                            Resend New Code
+                        </a>
+                    </div>
             </form>
             <div class="mt-12 text-center border-t border-white/5 pt-8">
                 <a href="{% url 'profile' %}"
@@ -56,4 +67,24 @@
             </div>
         </div>
     </main>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const timerSpan = document.getElementById('timer-span');
+        const resendBtn = document.getElementById('resend-btn');
+        const resendText = document.getElementById('resend-text');
+
+        let timeLeft = {{ resend_wait_seconds }};
+        if (timeLeft > 0) {
+            const countdown = setInterval(() => {
+                timeLeft--;
+                timerSpan.textContent = `${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    resendText.classList.add('hidden');
+                    resendBtn.classList.remove('hidden');
+                }
+            }, 1000);
+        }
+    });
+    </script>
 {% endblock %}

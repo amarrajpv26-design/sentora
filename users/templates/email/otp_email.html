@@ -92,12 +92,12 @@
                             <td align="center"
                                 style="border-top: 1px solid #1a1a1a;
                                        padding-top: 25px">
-                               <p style="margin: 0;
+                              <p style="margin: 0;
           font-size: 9px;
           color: #444444;
           text-transform: uppercase;
           letter-spacing: 2px">
-    This OTP is valid for 1 minutes and can only be used once.
+    This OTP is valid for {{ ttl_minutes }} minute{{ ttl_minutes|pluralize }} and can only be used once.
 </p>
                             </td>
                         </tr>

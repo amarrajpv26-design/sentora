@@ -41,17 +41,25 @@
                     </div>
                 {% endif %}
 
-                <form action="{% url 'user_signup' %}" method="POST" class="space-y-4">
+                <form action="{% url 'user_signup' %}" method="POST" class="space-y-4" id="signup-form" novalidate>
                     {% csrf_token %}
 
                     <div>
                         <label class="block text-[10px] text-gray-500 uppercase tracking-widest font-semibold mb-2 ml-1">Username</label>
                         <input type="text"
+                               id="username"
                                name="username"
                                value="{{ typed_username|default:'' }}"
                                placeholder="lux_user_01"
                                required
+                               minlength="3"
+                               maxlength="20"
+                               pattern="[a-zA-Z][a-zA-Z0-9_]{2,19}"
                                class="w-full bg-black/30 border border-white/[0.08] rounded-2xl px-5 py-3.5 text-[14px] text-white focus:border-gold/40 focus:bg-black/40 focus:outline-none focus:ring-4 focus:ring-gold/[0.06] transition-all duration-200 placeholder:text-white/[0.08]">
+                        <p id="username-error"
+                           class="hidden mt-2 ml-1 text-[9px] text-red-500/80 uppercase tracking-widest font-medium">
+                            3-20 characters, must start with a letter, only letters/numbers/underscore allowed.
+                        </p>
                     </div>
 
                     <div>
@@ -101,6 +109,11 @@
                         </div>
                     </div>
 
+                    <p id="confirm-password-error"
+                       class="hidden mt-1 ml-1 text-[9px] text-red-500/80 uppercase tracking-widest font-medium">
+                        Passwords do not match.
+                    </p>
+
                     <div id="pass-requirements" class="mt-3 space-y-1.5 hidden px-1">
     <p id="req-length" class="text-[9px] text-red-500/80 uppercase tracking-widest font-medium transition-colors duration-300 flex items-center gap-1">
         <i class="bi bi-dot text-sm"></i> Min 8 characters
@@ -144,12 +157,20 @@
 
         <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('signup-form');
+    const usernameInput = document.getElementById('username');
+    const usernameError = document.getElementById('username-error');
     const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirm_password');
+    const confirmPasswordError = document.getElementById('confirm-password-error');
     const reqLength = document.getElementById('req-length');
     const reqUpper = document.getElementById('req-upper');
     const reqNumber = document.getElementById('req-number');
     const reqSpecial = document.getElementById('req-special');
     const passReqs = document.getElementById('pass-requirements');
+
+    const USERNAME_REGEX = /^[a-zA-Z][a-zA-Z0-9_]{2,19}$/;
+    const SPECIAL_CHAR_REGEX = /[()[\]{}|\\`~!@#$%^&*_\-+=;:'",<>./?]/;
 
     function updateReq(el, isValid) {
         if (isValid) {
@@ -160,6 +181,25 @@ document.addEventListener('DOMContentLoaded', function() {
             el.classList.add('text-red-500/80');
         }
     }
+
+    function isPasswordValid(val) {
+        return val.length >= 8 && /[A-Z]/.test(val) && /[0-9]/.test(val) && SPECIAL_CHAR_REGEX.test(val);
+    }
+
+    function validateUsername() {
+        const isValid = USERNAME_REGEX.test(usernameInput.value.trim());
+        usernameError.classList.toggle('hidden', isValid);
+        return isValid;
+    }
+
+    function validatePasswordMatch() {
+        const isValid = passwordInput.value === confirmPasswordInput.value && confirmPasswordInput.value.length > 0;
+        confirmPasswordError.classList.toggle('hidden', isValid);
+        return isValid;
+    }
+
+    usernameInput.addEventListener('input', validateUsername);
+    confirmPasswordInput.addEventListener('input', validatePasswordMatch);
 
     passwordInput.addEventListener('input', function() {
         const val = this.value;
@@ -172,7 +212,34 @@ document.addEventListener('DOMContentLoaded', function() {
         updateReq(reqLength, val.length >= 8);
         updateReq(reqUpper, /[A-Z]/.test(val));
         updateReq(reqNumber, /[0-9]/.test(val));
-        updateReq(reqSpecial, /[()[\]{}|\\`~!@#$%^&*_\-+=;:'",<>./?]/.test(val));
+        updateReq(reqSpecial, SPECIAL_CHAR_REGEX.test(val));
+
+        if (confirmPasswordInput.value) {
+            validatePasswordMatch();
+        }
+    });
+
+    form.addEventListener('submit', function(e) {
+        // Native required/type/pattern/minlength/maxlength checks
+        let isValid = form.checkValidity();
+
+        // Custom checks
+        if (!validateUsername()) isValid = false;
+
+        if (!isPasswordValid(passwordInput.value)) {
+            passReqs.classList.remove('hidden');
+            updateReq(reqLength, passwordInput.value.length >= 8);
+            updateReq(reqUpper, /[A-Z]/.test(passwordInput.value));
+            updateReq(reqNumber, /[0-9]/.test(passwordInput.value));
+            updateReq(reqSpecial, SPECIAL_CHAR_REGEX.test(passwordInput.value));
+            isValid = false;
+        }
+
+        if (!validatePasswordMatch()) isValid = false;
+
+        if (!isValid) {
+            e.preventDefault();
+        }
     });
 
     function setupToggle(inputId, buttonId, iconId) {

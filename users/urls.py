@@ -77,6 +77,16 @@ urlpatterns = [
     path(
         "profile/email/verify-new/", views.verify_new_email_otp, name="verify_new_email"
     ),
+    path(
+        "profile/email/resend-otp/",
+        views.resend_email_change_otp,
+        name="resend_email_change_otp",
+    ),
+    path(
+        "profile/email/verify-new/resend/",
+        views.resend_new_email_otp,
+        name="resend_new_email_otp",
+    ),
     path("search/", views.search_products, name="search_products"),
     path("our-story/", views.our_story, name="our_story"),
     path("philosophy/", views.philosophy, name="philosophy"),
@@ -90,4 +100,6 @@ urlpatterns = [
     path("terms-conditions/", views.terms_conditions, name="terms_conditions"),
     path("about-scentora/", views.about_scentora, name="about_scentora"),
     path("404-test/", views.custom_404, name="404-test"),
+    path("500-test/", views.custom_500, name="500-test"),
+    path("403-test/", views.custom_403, name="403-test"),
 ]

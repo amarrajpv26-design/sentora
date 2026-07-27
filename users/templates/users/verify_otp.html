@@ -53,22 +53,34 @@
                         <input autofocus
                                class="otp-input w-12 h-16 bg-white/[0.03] border border-white/10 rounded-xl text-center text-2xl font-bold focus:outline-none transition-all"
                                maxlength="1"
-                               type="number">
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               type="text">
                         <input class="otp-input w-12 h-16 bg-white/[0.03] border border-white/10 rounded-xl text-center text-2xl font-bold focus:outline-none transition-all"
                                maxlength="1"
-                               type="number">
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               type="text">
                         <input class="otp-input w-12 h-16 bg-white/[0.03] border border-white/10 rounded-xl text-center text-2xl font-bold focus:outline-none transition-all"
                                maxlength="1"
-                               type="number">
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               type="text">
                         <input class="otp-input w-12 h-16 bg-white/[0.03] border border-white/10 rounded-xl text-center text-2xl font-bold focus:outline-none transition-all"
                                maxlength="1"
-                               type="number">
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               type="text">
                         <input class="otp-input w-12 h-16 bg-white/[0.03] border border-white/10 rounded-xl text-center text-2xl font-bold focus:outline-none transition-all"
                                maxlength="1"
-                               type="number">
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               type="text">
                         <input class="otp-input w-12 h-16 bg-white/[0.03] border border-white/10 rounded-xl text-center text-2xl font-bold focus:outline-none transition-all"
                                maxlength="1"
-                               type="number">
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               type="text">
                     </div>
                     <div class="flex flex-col items-center gap-6">
                         <button type="submit"
@@ -76,13 +88,13 @@
                             Verify & Authenticate
                         </button>
                         <div class="text-center">
-                            <p class="text-xs text-gray-500 uppercase tracking-widest mb-3"
+                            <p class="text-xs text-gray-500 uppercase tracking-widest mb-3 {% if resend_wait_seconds <= 0 %}hidden{% endif %}"
                                id="resend-text">
-                                Resend code in <span class="text-white font-bold" id="timer-span">60s</span>
+                                Resend code in <span class="text-white font-bold" id="timer-span">{{ resend_wait_seconds }}s</span>
                             </p>
                             <a href="{% url 'resend_otp' %}"
                                id="resend-btn"
-                               class="hidden text-gold text-xs font-bold uppercase tracking-widest hover:underline cursor-pointer">
+                               class="{% if resend_wait_seconds > 0 %}hidden{% endif %} text-gold text-xs font-bold uppercase tracking-widest hover:underline cursor-pointer">
                                 Resend New OTP
                             </a>
                         </div>
@@ -102,6 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // OTP Input Logic
     inputs.forEach((input, index) => {
         input.addEventListener('input', (e) => {
+            // Strip anything non-digit and keep only the first character typed/pasted here
+            e.target.value = e.target.value.replace(/\D/g, '').slice(0, 1);
+
             if (e.target.value && index < inputs.length - 1) {
                 inputs[index + 1].focus();
             }
@@ -112,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // NEW: Paste handling — works no matter which box the user pastes into
+        // Paste handling — works no matter which box the user pastes into
         input.addEventListener('paste', (e) => {
             e.preventDefault();
             const pasted = (e.clipboardData || window.clipboardData).getData('text');
@@ -137,16 +152,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Timer Logic
-    let timeLeft = 60;
-    const countdown = setInterval(() => {
-        timeLeft--;
-        timerSpan.textContent = `${timeLeft}s`;
-        if (timeLeft <= 0) {
-            clearInterval(countdown);
-            resendText.classList.add('hidden');
-            resendBtn.classList.remove('hidden');
-        }
-    }, 1000);
+    let timeLeft = {{ resend_wait_seconds }};
+    if (timeLeft > 0) {
+        const countdown = setInterval(() => {
+            timeLeft--;
+            timerSpan.textContent = `${timeLeft}s`;
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+                resendText.classList.add('hidden');
+                resendBtn.classList.remove('hidden');
+            }
+        }, 1000);
+    }
 });
 </script>
     </body>
