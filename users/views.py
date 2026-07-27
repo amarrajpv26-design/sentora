@@ -52,7 +52,7 @@ def welcome_view(request):
 
     return render(
         request,
-        "users/welcome.html",
+        "users/index.html",
         {
             "hero_categories": hero_categories,
             "featured_products": featured_products,
