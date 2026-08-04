@@ -27,6 +27,8 @@ from django.conf import settings
 from wallets.models import Wallet
 from products.models import Product, Category, ProductImage, Brand
 from django.template.loader import render_to_string
+from PIL import Image
+from django.utils.http import url_has_allowed_host_and_scheme
 
 # Server-side username rule (mirrors the JS check in signup.html):
 # 3-20 chars, must start with a letter, only letters/numbers/underscore after that.
@@ -332,6 +334,45 @@ def profile_view(request):
     )
 
 
+def validate_profile_image(image_file):
+    """Returns an error message string if invalid, or None if the image is valid."""
+    if image_file.size > 5 * 1024 * 1024:
+        return "Image must be smaller than 5MB."
+
+    valid_extensions = [".jpg", ".jpeg", ".png", ".webp"]
+    ext = (
+        image_file.name.lower()[image_file.name.rfind(".") :]
+        if "." in image_file.name
+        else ""
+    )
+    if ext not in valid_extensions:
+        return "Only JPG, PNG, and WEBP images are allowed."
+
+    try:
+        img = Image.open(image_file)
+        img.verify()
+        image_file.seek(0)
+    except Exception:
+        return "The uploaded file is not a valid image."
+
+    return None
+
+
+def safe_next_url(request, fallback="profile"):
+    """
+    Validates the 'next' POST param against open-redirect attacks.
+    Only allows redirects to the current site — never to an external domain.
+    """
+    next_url = request.POST.get("next")
+    if next_url and url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return next_url
+    return None
+
+
 @never_cache
 @login_required
 def edit_profile_view(request):
@@ -343,22 +384,42 @@ def edit_profile_view(request):
         last_name = request.POST.get("last_name", "").strip()
         phone_number = request.POST.get("phone_number", "").strip()
         new_email = request.POST.get("email", "").strip()
-        dob = request.POST.get("dob")  # Get DOB here
+        dob = request.POST.get("dob")
         profile_image = request.FILES.get("profile_image")
 
         errors = False
 
         processed_dob = user.dob
+
         # --- VALIDATION ---
         if not username:
             messages.error(request, "Username is required.", extra_tags="username")
             errors = True
-
+        elif not USERNAME_REGEX.match(username):
+            messages.error(
+                request,
+                "Username must be 3-20 characters, start with a letter, and contain "
+                "only letters, numbers, and underscores.",
+                extra_tags="username",
+            )
+            errors = True
         elif User.objects.filter(username=username).exclude(pk=user.pk).exists():
             messages.error(
                 request,
                 f"The identity '{username}' is already claimed.",
                 extra_tags="username",
+            )
+            errors = True
+
+        if first_name and not re.match(r'^[A-Za-z\s]+$', first_name):
+            messages.error(
+                request, "First name can only contain letters.", extra_tags="first_name"
+            )
+            errors = True
+
+        if last_name and not re.match(r'^[A-Za-z\s]+$', last_name):
+            messages.error(
+                request, "Last name can only contain letters.", extra_tags="last_name"
             )
             errors = True
 
@@ -368,14 +429,11 @@ def edit_profile_view(request):
             )
             errors = True
 
-        # DOB Logic (Cleaned up)
-        valid_dob = None
+        # DOB Logic
         if dob:
             try:
                 selected_date = date.fromisoformat(dob)
                 today = date.today()
-
-                # Calculate age
                 age = (
                     today.year
                     - selected_date.year
@@ -387,23 +445,23 @@ def edit_profile_view(request):
 
                 if selected_date > today:
                     messages.error(
-                        request, "Invalid Date: Future dates are not permitted."
+                        request, "Invalid Date: Future dates are not permitted.", extra_tags="dob"
                     )
                     errors = True
                 elif age < 15:
                     messages.error(
                         request,
                         "Identity rejected: Minimum age requirement is 15 years.",
+                        extra_tags="dob",
                     )
                     errors = True
                 else:
                     processed_dob = selected_date
 
             except ValueError:
-                messages.error(request, "Invalid date format.")
+                messages.error(request, "Invalid date format.", extra_tags="dob")
                 errors = True
         else:
-            # If the user clears the date, we allow it to be None
             processed_dob = None
 
         if new_email and new_email != user.email:
@@ -413,22 +471,27 @@ def edit_profile_view(request):
                 )
                 errors = True
 
+        # --- IMAGE VALIDATION (fixes the 500 error) ---
+        if profile_image:
+            image_error = validate_profile_image(profile_image)
+            if image_error:
+                messages.error(request, image_error, extra_tags="profile_image")
+                errors = True
+
         if errors:
-            return render(request, "users/edit_profile.html", {"user": user})
+            return render(request, "users/edit_profile.html", {"user": user}, status=400)
 
         # --- PROCESSING ---
-        # If email changed, save everything to session and redirect to OTP
         if new_email and new_email != user.email:
             request.session["pending_profile_update"] = {
                 "username": username,
                 "first_name": first_name,
                 "last_name": last_name,
                 "phone_number": phone_number,
-                "dob": dob,  # Save DOB to session too!
+                "dob": dob,
             }
             return redirect("change_email_request")
 
-        # Standard Update
         user.username = username
         user.first_name = first_name
         user.last_name = last_name
@@ -528,7 +591,7 @@ def add_address_view(request):
                 )
 
             messages.success(request, "New address added to your vault.")
-            next_url = request.POST.get("next")
+            next_url = safe_next_url(request)
             if next_url:
                 return redirect(next_url)
 
@@ -599,7 +662,7 @@ def edit_address_view(request, pk):
                 )
 
             messages.success(request, "Address updated in your vault.")
-            next_url = request.POST.get("next")
+            next_url = safe_next_url(request)
 
             if next_url:
                 return redirect(next_url)
