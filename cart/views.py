@@ -10,6 +10,8 @@ import json
 from .cart import Cart, CartItem
 from django.contrib.auth.decorators import login_required
 from offers.utils import get_effective_price
+from django.utils.http import url_has_allowed_host_and_scheme, urlencode
+
 
 
 @require_POST
@@ -23,8 +25,16 @@ def cart_add(request, variant_id):
             return response
         messages.error(request, "Please log in to add items to your cart.")
         login_url = reverse("user_login")
-        next_url = request.META.get("HTTP_REFERER", "/")
-        return redirect(f"{login_url}?next={next_url}")
+        referer = request.META.get("HTTP_REFERER", "/")
+        if url_has_allowed_host_and_scheme(
+            url=referer,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            next_url = referer
+        else:
+            next_url = "/"
+        return redirect(f"{login_url}?{urlencode({'next': next_url})}")
 
     cart = Cart(request)
     variant = get_object_or_404(ProductVariant, id=variant_id)
@@ -62,7 +72,14 @@ def cart_add(request, variant_id):
     else:
         messages.error(request, message)
 
-    return redirect(request.META.get("HTTP_REFERER", "shop:product_list"))
+    referer = request.META.get("HTTP_REFERER", "")
+    if url_has_allowed_host_and_scheme(
+        url=referer,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return redirect(referer)
+    return redirect("shop:product_list")
 
 
 def cart_count_only(request):

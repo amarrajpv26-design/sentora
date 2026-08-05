@@ -139,6 +139,7 @@
                 {% endif %}
                     <form class="space-y-10" method="POST" action="{% url 'user_login' %}">
                         {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ next }}">
                         <div class="space-y-10">
                             <div class="relative group">
                                 <label class="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mb-2 block group-focus-within:text-primary transition-colors">
@@ -179,6 +180,7 @@
                             <button class="w-full bg-primary hover:bg-white text-black font-bold py-5 transition-all duration-700 uppercase tracking-[0.4em] text-[11px] shadow-xl">
                                 Sign In
                             </button>
+                             </div>
                     </form>
                     <div class="mt-16 text-center border-t border-white/5 pt-10">
                         <p class="text-[9px] uppercase tracking-[0.3em] text-slate-600 mb-4">Not a member yet?</p>

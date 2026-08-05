@@ -277,6 +277,19 @@ def user_login(request):
     if request.user.is_authenticated:
         return redirect("home")
 
+    # 'next' can arrive via GET (e.g. redirected here from cart_add with ?next=...)
+    # or via POST (submitted back as a hidden field from the login form itself)
+    next_url = request.POST.get("next") or request.GET.get("next", "")
+
+    def safe_or_none(url):
+        if url and url_has_allowed_host_and_scheme(
+            url=url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure(),
+        ):
+            return url
+        return None
+
     if request.method == "POST":
         email = request.POST.get("email")
         password = request.POST.get("password")
@@ -296,12 +309,13 @@ def user_login(request):
 
         if user is not None:
             login(request, user)
-            return redirect("home")
+            safe_next = safe_or_none(next_url)
+            return redirect(safe_next) if safe_next else redirect("home")
         else:
             messages.error(request, "Invalid credentials.")
             return redirect("user_login")
 
-    return render(request, "users/login.html")
+    return render(request, "users/login.html", {"next": safe_or_none(next_url) or ""})
 
 
 @never_cache
