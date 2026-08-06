@@ -17,6 +17,26 @@ import uuid
 # ──────────────────────────────────────────────
 
 
+import re
+
+
+def validate_product_name(name):
+    """
+    Returns an error message string if invalid, or None if valid.
+    Rules:
+      - 2-100 characters
+      - Letters, numbers, spaces, and common punctuation (& ' - .) only
+      - No leading/trailing whitespace (already stripped by caller)
+    """
+    if len(name) < 2:
+        return "Product name must be at least 2 characters long."
+    if len(name) > 100:
+        return "Product name cannot exceed 100 characters."
+    if not re.match(r"^[A-Za-z0-9À-ÿ&'\-\.\s]+$", name):
+        return "Product name contains invalid characters. Only letters, numbers, spaces, and & ' - . are allowed."
+    return None
+
+
 @staff_member_required(login_url="admin_login")
 @never_cache
 def admin_category_list(request):
@@ -449,8 +469,12 @@ def add_product(request):
 
         if not name:
             form_errors.append("Product name is required.")
-        elif Product.objects.filter(name__iexact=name).exists():
-            form_errors.append(f"A product named '{name}' already exists.")
+        else:
+            name_error = validate_product_name(name)
+            if name_error:
+                form_errors.append(name_error)
+            elif Product.objects.filter(name__iexact=name).exists():
+                form_errors.append(f"A product named '{name}' already exists.")
 
         if not brand_input:
             form_errors.append("Brand / House is required.")
@@ -590,8 +614,16 @@ def edit_product(request, product_id):
 
         if not name:
             form_errors.append("Product name is required.")
-        elif Product.objects.filter(name__iexact=name).exclude(pk=product.pk).exists():
-            form_errors.append(f"A product named '{name}' already exists.")
+        else:
+            name_error = validate_product_name(name)
+            if name_error:
+                form_errors.append(name_error)
+            elif (
+                Product.objects.filter(name__iexact=name)
+                .exclude(pk=product.pk)
+                .exists()
+            ):
+                form_errors.append(f"A product named '{name}' already exists.")
 
         if not brand_input:
             form_errors.append("Brand / House is required.")
