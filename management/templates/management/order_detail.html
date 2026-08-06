@@ -126,7 +126,7 @@
 
                         <div class="space-y-1">
                             <label class="block text-[9px] text-gold/50 uppercase tracking-[3px] font-black">Timestamp Registry</label>
-                            <p class="text-white/60 text-sm italic">{{ order.created_at|date:"d F, Y — H:i" }}</p>
+                            <p class="text-white/60 text-sm italic">{{ order.created_at|date:"d M Y, h:i A" }}</p>
                         </div>
 
                         {% if order.cancellation_reason %}

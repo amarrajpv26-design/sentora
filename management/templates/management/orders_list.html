@@ -229,7 +229,7 @@
         {% for order in orders %}
         <tr class="group row-rise">
           <td class="px-8 py-6 text-xs text-white/50 font-mono font-bold tracking-wider">#{{ order.order_id }}</td>
-          <td class="px-8 py-6 text-xs text-white/60 font-light">{{ order.created_at|date:"M d, Y H:i" }}</td>
+          <td class="px-8 py-6 text-xs text-white/60 font-light">{{ order.created_at|date:"d M Y, h:i A" }}</td>
           <td class="px-8 py-6">
             <div class="text-sm text-white font-bold tracking-tight">{{ order.full_name }}</div>
             <div class="text-[10px] text-white/30 font-medium tracking-wide mt-0.5">{{ order.user.email }}</div>

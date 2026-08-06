@@ -60,7 +60,7 @@
         Online <span class="font-black luxury-shimmer">Payment</span>
       </h2>
       <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">
-        {{ order.created_at|date:"F d, Y — H:i" }}
+        {{ order.created_at|date:"d M Y, h:i A" }}
       </p>
     </div>
     <span class="mt-2 px-5 py-2.5 rounded-full text-[10px] uppercase font-black tracking-wider
@@ -192,7 +192,7 @@
         Transaction <span class="font-black luxury-shimmer">#{{ txn.pk }}</span>
       </h2>
       <p class="text-white/40 text-[11px] uppercase tracking-[3px] mt-2 font-medium">
-        {{ txn.created_at|date:"F d, Y — H:i" }}
+        {{ txn.created_at|date:"d M Y, h:i A" }}
       </p>
     </div>
     <span class="mt-2 px-5 py-2.5 rounded-full text-[10px] uppercase font-black tracking-wider
