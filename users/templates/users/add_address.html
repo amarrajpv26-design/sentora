@@ -16,6 +16,9 @@
     .input-group:focus-within .bottom-line {
         transform: scaleX(1);
     }
+    .input-error {
+    border-bottom-color: #ff4444 !important;
+}
 
     select {
         appearance: none;
@@ -86,6 +89,8 @@
                 </p>
             </div>
             <form method="POST"
+            id="address-form"
+                  novalidate
                   class="bg-neutral-900/50 backdrop-blur-md border border-white/5 rounded-3xl p-8 md:p-12 shadow-2xl">
                 {% csrf_token %}
                 {% if form.errors %}
@@ -263,4 +268,98 @@
         restrictToNumbers(pinField, 6);
     });
     </script>
+    <script>
+document.getElementById('address-form').addEventListener('submit', function (e) {
+    // Clear old errors
+    document.querySelectorAll('.field-error').forEach(el => el.remove());
+    document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+
+    const errors = [];
+
+    function addError(fieldId, message) {
+        errors.push(message);
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.classList.add('input-error');
+            const errorSpan = document.createElement('span');
+            errorSpan.className = 'field-error';
+            errorSpan.textContent = message;
+            field.parentElement.appendChild(errorSpan);
+        }
+    }
+
+    // Full Name — letters and spaces only, min 3 chars
+    const fullName = document.getElementById('id_full_name');
+    if (fullName) {
+        const val = fullName.value.trim();
+        if (!val) {
+            addError('id_full_name', 'Full name is required.');
+        } else if (val.length < 3) {
+            addError('id_full_name', 'Full name must be at least 3 characters.');
+        } else if (!/^[A-Za-z\s]+$/.test(val)) {
+            addError('id_full_name', 'Full name can only contain letters and spaces.');
+        }
+    }
+
+    // Phone — 10 digits, starts 6-9
+    const phone = document.getElementById('id_phone_number');
+    if (phone) {
+        const val = phone.value.trim();
+        if (!val) {
+            addError('id_phone_number', 'Phone number is required.');
+        } else if (!/^[6-9]\d{9}$/.test(val)) {
+            addError('id_phone_number', 'Enter a valid 10-digit Indian mobile number (must start with 6-9).');
+        }
+    }
+
+    // Address line 1 — min 5 chars
+    const addr1 = document.getElementById('id_address_line_1');
+    if (addr1) {
+        const val = addr1.value.trim();
+        if (!val) {
+            addError('id_address_line_1', 'Street address is required.');
+        } else if (val.length < 5) {
+            addError('id_address_line_1', 'Address must be at least 5 characters long.');
+        }
+    }
+
+    // City — letters and spaces only
+    const city = document.getElementById('id_city');
+    if (city) {
+        const val = city.value.trim();
+        if (!val) {
+            addError('id_city', 'City is required.');
+        } else if (!/^[A-Za-z\s]+$/.test(val)) {
+            addError('id_city', 'City can only contain letters and spaces.');
+        }
+    }
+
+    // State — letters and spaces only
+    const state = document.getElementById('id_state');
+    if (state) {
+        const val = state.value.trim();
+        if (!val) {
+            addError('id_state', 'State is required.');
+        } else if (!/^[A-Za-z\s]+$/.test(val)) {
+            addError('id_state', 'State can only contain letters and spaces.');
+        }
+    }
+
+    // Pincode — 6 digits, cannot start with 0
+    const pincode = document.getElementById('id_pincode');
+    if (pincode) {
+        const val = pincode.value.trim();
+        if (!val) {
+            addError('id_pincode', 'Pincode is required.');
+        } else if (!/^[1-9]\d{5}$/.test(val)) {
+            addError('id_pincode', 'Enter a valid 6-digit postal code (cannot start with 0).');
+        }
+    }
+
+    if (errors.length > 0) {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+});
+</script>
 {% endblock %}
