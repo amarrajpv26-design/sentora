@@ -454,7 +454,19 @@ if (offer !== null && offer >= price) {
 
     return errors;
 }
-
+function validateProductName(name) {
+    if (name.length < 2) {
+        return "Product name must be at least 2 characters long.";
+    }
+    if (name.length > 100) {
+        return "Product name cannot exceed 100 characters.";
+    }
+    const pattern = /^[A-Za-z0-9À-ÿ&'\-.\s]+$/;
+    if (!pattern.test(name)) {
+        return "Product name contains invalid characters. Only letters, numbers, spaces, and & ' - . are allowed.";
+    }
+    return null;
+}
 // ─────────────────────────────────────────────────────
 //  IMAGE GALLERY
 // ─────────────────────────────────────────────────────
@@ -606,10 +618,19 @@ document.getElementById('product-form').addEventListener('submit', function (e) 
     const allErrors = [];
 
     // Name
-    if (!document.getElementById('field-name').value.trim()) {
+    // Name
+    const nameVal = document.getElementById('field-name').value.trim();
+    if (!nameVal) {
         allErrors.push('Product name is required.');
         showFieldError('err-name', 'Name is required');
         document.getElementById('field-name').classList.add('input-error');
+    } else {
+        const nameError = validateProductName(nameVal);
+        if (nameError) {
+            allErrors.push(nameError);
+            showFieldError('err-name', nameError);
+            document.getElementById('field-name').classList.add('input-error');
+        }
     }
 
     // Brand
