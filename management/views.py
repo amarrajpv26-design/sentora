@@ -20,6 +20,7 @@ from django.http import HttpResponse
 from openpyxl import Workbook
 from weasyprint import HTML
 from django.template.loader import render_to_string
+from decimal import Decimal
 from itertools import chain  # only if not already there
 
 
@@ -108,6 +109,9 @@ def change_order_status(request, order_id):
     # -----------------------------
     if new_status == "CANCELLED":
 
+        was_paid = order.payment_status == "PAID"
+        total_refund = Decimal("0.00")
+
         for item in order.items.select_related("product_variant").all():
 
             if item.item_status == "ACTIVE" and item.product_variant:
@@ -116,8 +120,27 @@ def change_order_status(request, order_id):
                     stock=F("stock") + item.quantity
                 )
 
+                if was_paid:
+                    total_refund += calculate_item_refund(item)
+
                 item.item_status = "CANCELLED"
                 item.save()
+
+        if was_paid and total_refund > 0:
+            wallet, _ = Wallet.objects.get_or_create(user=order.user)
+            wallet.balance += total_refund
+            wallet.save()
+
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                amount=total_refund,
+                transaction_type="CREDIT",
+                purpose="REFUND",
+                order_id=order.order_id,
+                description=f"Admin cancelled order refund (Order #{order.order_id})",
+            )
+
+            order.payment_status = "REFUNDED"
 
         recalculate_order_totals(order)
 
