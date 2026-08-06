@@ -924,7 +924,10 @@
     // just displays whatever it returns without leaving the page.
     form.addEventListener("submit", async function(e) {
         e.preventDefault();
-        clearFormErrors();
+        if (!validateAddressFields()) {
+            return;
+        }
+
 
         const originalText = modalSubmitBtn.innerText;
         modalSubmitBtn.disabled = true;
@@ -980,6 +983,70 @@
             modalSubmitBtn.innerText = originalText;
         }
     });
+
+    function validateAddressFields() {
+    clearFormErrors();
+    let isValid = true;
+
+    const fullName = document.getElementById('full_name').value.trim();
+    if (!fullName) {
+        showFieldError('full_name', 'Full name is required.');
+        isValid = false;
+    } else if (fullName.length < 3) {
+        showFieldError('full_name', 'Full name must be at least 3 characters.');
+        isValid = false;
+    } else if (!/^[A-Za-z\s]+$/.test(fullName)) {
+        showFieldError('full_name', 'Full name can only contain letters and spaces.');
+        isValid = false;
+    }
+
+    const phone = document.getElementById('phone_number').value.trim();
+    if (!phone) {
+        showFieldError('phone_number', 'Phone number is required.');
+        isValid = false;
+    } else if (!/^[6-9]\d{9}$/.test(phone)) {
+        showFieldError('phone_number', 'Enter a valid 10-digit mobile number starting with 6-9.');
+        isValid = false;
+    }
+
+    const addr1 = document.getElementById('address_line_1').value.trim();
+    if (!addr1) {
+        showFieldError('address_line_1', 'Street address is required.');
+        isValid = false;
+    } else if (addr1.length < 5) {
+        showFieldError('address_line_1', 'Address must be at least 5 characters long.');
+        isValid = false;
+    }
+
+    const city = document.getElementById('city').value.trim();
+    if (!city) {
+        showFieldError('city', 'City is required.');
+        isValid = false;
+    } else if (!/^[A-Za-z\s]+$/.test(city)) {
+        showFieldError('city', 'City can only contain letters and spaces.');
+        isValid = false;
+    }
+
+    const state = document.getElementById('state').value.trim();
+    if (!state) {
+        showFieldError('state', 'State is required.');
+        isValid = false;
+    } else if (!/^[A-Za-z\s]+$/.test(state)) {
+        showFieldError('state', 'State can only contain letters and spaces.');
+        isValid = false;
+    }
+
+    const pincode = document.getElementById('pincode').value.trim();
+    if (!pincode) {
+        showFieldError('pincode', 'Pincode is required.');
+        isValid = false;
+    } else if (!/^[1-9]\d{5}$/.test(pincode)) {
+        showFieldError('pincode', 'Enter a valid 6-digit pincode (cannot start with 0).');
+        isValid = false;
+    }
+
+    return isValid;
+}
 
     // ---------------- Coupon: apply / remove (AJAX) ----------------
     const couponMessage = document.getElementById("coupon-message");
