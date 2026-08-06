@@ -221,12 +221,18 @@
                                 <span class="text-xs text-white/60 font-medium">{{ product.brand.name }}</span>
                             </td>
                             <td class="px-8 py-6">
-                                <div class="flex flex-wrap gap-2">
-                                    {% for cat in product.categories.all|slice:":1" %}
-                                        <span class="px-2 py-0.5 bg-gold/10 border border-gold/20 text-[8px] text-gold uppercase tracking-widest rounded">
+                                <div class="flex flex-wrap gap-1.5 max-w-[180px]">
+                                    {% for cat in product.categories.all|slice:":3" %}
+                                        <span class="px-2 py-0.5 bg-gold/10 border border-gold/20 text-[8px] text-gold uppercase tracking-widest rounded whitespace-nowrap">
                                             {{ cat.name }}
                                         </span>
                                     {% endfor %}
+                                    {% if product.categories.count > 3 %}
+                                        <span class="px-2 py-0.5 bg-white/5 border border-white/10 text-[8px] text-white/40 uppercase tracking-widest rounded"
+                                              title="{% for cat in product.categories.all|slice:'3:' %}{{ cat.name }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+                                            +{{ product.categories.count|add:"-3" }}
+                                        </span>
+                                    {% endif %}
                                 </div>
                             </td>
                             <td class="px-8 py-6">

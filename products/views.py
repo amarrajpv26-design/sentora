@@ -356,6 +356,9 @@ def _validate_variants_server(sizes, prices, offers):
         except ValueError:
             errors.append(f"Invalid price for {size}.")
             continue
+        if price <= 0:
+            errors.append(f"{size}: Price must be greater than zero.")
+            continue
 
         offer = None
         if offer_raw:
@@ -363,6 +366,9 @@ def _validate_variants_server(sizes, prices, offers):
                 parsed_offer = float(offer_raw)
             except ValueError:
                 errors.append(f"Invalid offer price for {size}.")
+                continue
+            if parsed_offer < 0:
+                errors.append(f"{size}: Offer price cannot be negative.")
                 continue
             if parsed_offer > 0:
                 offer = parsed_offer
@@ -418,6 +424,7 @@ def _validate_variants_server(sizes, prices, offers):
                 )
 
     return errors
+
 
 @staff_member_required(login_url="admin_login")
 def add_product(request):
@@ -477,6 +484,7 @@ def add_product(request):
                     "categories": Category.objects.filter(is_active=True),
                     "post": request.POST,  # pass back for re-filling the form
                 },
+                status=400,
             )
 
         # ── Create Brand & Product ────────────────────────────────────────────
@@ -559,6 +567,7 @@ def add_product(request):
         },
     )
 
+
 @staff_member_required(login_url="admin_login")
 def edit_product(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
@@ -593,6 +602,9 @@ def edit_product(request, product_id):
         # ── Variant validation ────────────────────────────────────────────────
         variant_errors = _validate_variants_server(sizes, prices, offers)
         form_errors.extend(variant_errors)
+        category_ids_check = request.POST.getlist("category")
+        if not any(str(c).isdigit() for c in category_ids_check):
+            form_errors.append("At least one category must be selected.")
 
         # ── Server-side minimum image count check ─────────────────────────────
         images_data_check = request.POST.getlist("cropped_images[]")
@@ -607,7 +619,16 @@ def edit_product(request, product_id):
         if form_errors:
             for err in form_errors:
                 messages.error(request, err)
-            return redirect("edit_product", product_id=product.id)
+            return render(
+                request,
+                "products/admin_edit_product.html",
+                {
+                    "product": product,
+                    "brands": Brand.objects.all(),
+                    "categories": Category.objects.filter(is_active=True),
+                },
+                status=400,
+            )
 
         # ── Brand ─────────────────────────────────────────────────────────────
         if brand_input:
@@ -626,12 +647,10 @@ def edit_product(request, product_id):
         product.save()
 
         # ── Category ──────────────────────────────────────────────────────────
-        cat_id = request.POST.get("category")
-        if cat_id and str(cat_id).isdigit():
-            try:
-                product.categories.set([Category.objects.get(id=int(cat_id))])
-            except Category.DoesNotExist:
-                pass
+        category_ids = request.POST.getlist("category")
+        valid_category_ids = [cid for cid in category_ids if str(cid).isdigit()]
+        if valid_category_ids:
+            product.categories.set(valid_category_ids)
 
         # ── Variants ──────────────────────────────────────────────────────────
         existing_variant_ids = []

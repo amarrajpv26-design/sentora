@@ -127,12 +127,17 @@
 
                         <!-- Category -->
                         <div>
-                            <label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Primary Vault</label>
-                            <select name="category" class="luxury-input py-4 px-6 rounded-xl text-sm w-full appearance-none">
+                            <label class="block text-[9px] text-white/40 uppercase tracking-[3px] font-black mb-3">Vaults</label>
+                            <div class="grid grid-cols-2 gap-3 p-4 rounded-xl border border-white/10 bg-white/[0.02] max-h-48 overflow-y-auto">
                                 {% for cat in categories %}
-                                    <option value="{{ cat.id }}" {% if cat in product.categories.all %}selected{% endif %}>{{ cat.name }}</option>
+                                <label class="flex items-center gap-2 text-sm text-white/70 hover:text-white cursor-pointer">
+                                    <input type="checkbox" name="category" value="{{ cat.id }}"
+                                           {% if cat in product.categories.all %}checked{% endif %}
+                                           class="w-4 h-4 rounded accent-gold cursor-pointer">
+                                    {{ cat.name }}
+                                </label>
                                 {% endfor %}
-                            </select>
+                            </div>
                         </div>
                     </div>
 

@@ -266,11 +266,16 @@
                                                 </div>
                                                 <!-- Categories -->
                                                 <div class="flex flex-wrap gap-2">
-                                                    {% for category in product.categories.all %}
+                                                    {% for category in product.categories.all|slice:":2" %}
                                                         <div class="px-3 py-1.5 bg-white/[0.03] border border-white/5 rounded-full">
                                                             <p class="text-[8px] font-bold uppercase tracking-[0.25em] text-slate-400">{{ category.name }}</p>
                                                         </div>
                                                     {% endfor %}
+                                                    {% if product.categories.count > 2 %}
+                                                        <div class="px-3 py-1.5 bg-primary/5 border border-primary/10 rounded-full">
+                                                            <p class="text-[8px] font-bold uppercase tracking-[0.25em] text-primary">+{{ product.categories.count|add:"-2" }}</p>
+                                                        </div>
+                                                    {% endif %}
                                                 </div>
                                             </div>
                                             <!-- PRODUCT INFO -->
