@@ -104,6 +104,18 @@ def change_order_status(request, order_id):
         messages.error(request, f"Cannot change from {old_status} to {new_status}.")
         return redirect("management:admin_order_detail", order_id=order.order_id)
 
+    if (
+        order.payment_method == "ONLINE"
+        and order.payment_status != "PAID"
+        and new_status != "CANCELLED"
+    ):
+        messages.error(
+            request,
+            "Cannot progress this order — online payment has not been "
+            "completed yet. Only cancellation is allowed until payment succeeds.",
+        )
+        return redirect("management:admin_order_detail", order_id=order.order_id)
+
     # -----------------------------
     # 3. CANCEL ORDER → RESTOCK ITEMS
     # -----------------------------
