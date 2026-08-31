@@ -206,7 +206,7 @@ def product_detail(request, product_uuid):
                 order__user=request.user,
                 product_variant__product=product,
                 item_status="ACTIVE",
-                order__order_status="DELIVERED",
+                order__order_status__in=["DELIVERED", "RETURN_REJECTED"],
             )
             .exclude(review__isnull=False)
             .exists()
