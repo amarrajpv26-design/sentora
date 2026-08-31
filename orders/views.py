@@ -10,7 +10,7 @@ from django.template.loader import render_to_string
 from django.db.models import Count
 from decimal import Decimal, ROUND_HALF_UP
 from django.core.paginator import Paginator
-
+from django.db.models import Count, F
 # Maps order_status -> step index used by the horizontal tracking stepper
 # in the template. Statuses not in this dict (CANCELLED, RETURN_REQUESTED,
 # RETURNED, RETURN_REJECTED) are handled separately in the template, since
@@ -458,6 +458,11 @@ def admin_approve_return_view(request, order_id):
     for item in order.items.filter(item_status="RETURN_REQUESTED"):
         item.item_status = "RETURNED"
         item.save()
+        if item.product_variant:
+            ProductVariant.objects.filter(id=item.product_variant.id).update(
+            stock=F("stock") + item.quantity
+        )
+    
 
     messages.success(
         request,
