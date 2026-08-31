@@ -21,6 +21,7 @@ from openpyxl import Workbook
 from weasyprint import HTML
 from django.template.loader import render_to_string
 from decimal import Decimal
+from openpyxl.styles import Font 
 from itertools import chain  # only if not already there
 
 
@@ -978,6 +979,102 @@ def sales_report_pdf(request):
 
     return response
 
+def sales_report_excel(request):
+
+    report_type = request.GET.get("type", "daily")
+
+    orders = (
+        Order.objects.filter(payment_status="PAID")
+        .exclude(order_status="CANCELLED")
+        .order_by("-created_at")
+    )
+
+    today = timezone.now()
+
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
+    # Apply same filters as sales_report / sales_report_pdf
+
+    if report_type == "daily":
+        orders = orders.filter(created_at__date=today.date())
+
+    elif report_type == "weekly":
+        week_start = today - timedelta(days=7)
+        orders = orders.filter(created_at__gte=week_start)
+
+    elif report_type == "yearly":
+        orders = orders.filter(created_at__year=today.year)
+
+    elif report_type == "custom":
+        if start_date and end_date:
+            orders = orders.filter(created_at__date__range=[start_date, end_date])
+
+    # Summary calculations (same as the other two views)
+
+    total_orders = orders.count()
+    total_sales = orders.aggregate(total=Sum("total_amount"))["total"] or 0
+    total_product_discount = orders.aggregate(total=Sum("discount"))["total"] or 0
+    total_coupon_discount = orders.aggregate(total=Sum("coupon_discount"))["total"] or 0
+    total_discount = total_product_discount + total_coupon_discount
+    net_revenue = total_sales - total_product_discount - total_coupon_discount
+
+    # -----------------------------
+    # BUILD WORKBOOK
+    # -----------------------------
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Sales Report"
+
+    # Title / meta rows
+    ws.append([f"Sales Report — {report_type.title()}"])
+    ws.append([f"Generated: {timezone.now().strftime('%d %b %Y, %I:%M %p')}"])
+    ws.append([])
+
+    # Summary block
+    ws.append(["Total Orders", total_orders])
+    ws.append(["Total Sales", float(total_sales)])
+    ws.append(["Product Discount", float(total_product_discount)])
+    ws.append(["Coupon Discount", float(total_coupon_discount)])
+    ws.append(["Total Discount", float(total_discount)])
+    ws.append(["Net Revenue", float(net_revenue)])
+    ws.append([])
+
+    # Table header
+    header = ["Order ID", "Customer", "Email", "Date", "Amount", "Status"]
+    ws.append(header)
+    header_row_idx = ws.max_row
+    for cell in ws[header_row_idx]:
+        cell.font = Font(bold=True)
+
+    # Table rows
+    for order in orders:
+        ws.append(
+            [
+                order.order_id,
+                order.full_name,
+                order.user.email if order.user else "",
+                order.created_at.strftime("%d %b %Y"),
+                float(order.total_amount),
+                order.order_status,
+            ]
+        )
+
+    # Auto-size columns (simple heuristic)
+    for column_cells in ws.columns:
+        length = max(len(str(cell.value)) if cell.value is not None else 0 for cell in column_cells)
+        col_letter = column_cells[0].column_letter
+        ws.column_dimensions[col_letter].width = min(max(length + 2, 12), 40)
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    filename = f"sales_report_{report_type}.xlsx"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    wb.save(response)
+
+    return response
 
 @staff_member_required(login_url="user_login")
 def admin_revenue_list(request):

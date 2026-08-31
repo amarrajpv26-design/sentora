@@ -26,7 +26,10 @@ Sales Reports </span>
            class="px-5 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-[10px] font-black uppercase tracking-[2px]">
             PDF Export
         </a>
-
+<a href="{% url 'management:sales_report_excel' %}?type={{ report_type }}&start_date={{ start_date }}&end_date={{ end_date }}"
+   class="px-5 py-3 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-[10px] font-black uppercase tracking-[2px]">
+    Excel Export
+</a>
         
     </div>
 

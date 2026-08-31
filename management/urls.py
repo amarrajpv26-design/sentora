@@ -66,6 +66,11 @@ urlpatterns = [
         name="sales_report",
     ),
     path(
+        "sales-report/excel/",
+        views.sales_report_excel,
+        name="sales_report_excel",
+    ),
+    path(
         "sales-report/pdf/",
         views.sales_report_pdf,
         name="sales_report_pdf",
