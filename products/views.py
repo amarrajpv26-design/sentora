@@ -5,12 +5,13 @@ from django.db.models import Q
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.cache import never_cache
 from .models import Category, Product, Brand, ProductVariant, ProductImage
-from .forms import CategoryForm
+from .forms import CategoryForm, ProductForm
 import base64
 from django.utils.text import slugify
 from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
 import uuid
+from .models import Category, Product
 
 # ──────────────────────────────────────────────
 #  CATEGORY VIEWS  (unchanged)
@@ -84,12 +85,6 @@ def add_category(request):
             category = form.save(commit=False)
             category.name = category.name.strip().capitalize()
 
-            if Category.objects.filter(name__iexact=category.name).exists():
-                form.add_error("name", f"The vault '{category.name}' already exists.")
-                return render(
-                    request, "products/admin_add_category.html", {"form": form}
-                )
-
             if cropped_data:
                 try:
                     format, imgstr = cropped_data.split(";base64,")
@@ -136,20 +131,6 @@ def edit_category(request, category_id):
         if form.is_valid():
             updated_category = form.save(commit=False)
             updated_category.name = updated_category.name.strip().capitalize()
-
-            if (
-                Category.objects.filter(name__iexact=updated_category.name)
-                .exclude(pk=category.pk)
-                .exists()
-            ):
-                form.add_error(
-                    "name", f"The vault '{updated_category.name}' already exists."
-                )
-                return render(
-                    request,
-                    "products/admin_edit_category.html",
-                    {"form": form, "category": category},
-                )
 
             if cropped_data:
                 try:
@@ -449,45 +430,26 @@ def _validate_variants_server(sizes, prices, offers):
 @staff_member_required(login_url="admin_login")
 def add_product(request):
     if request.method == "POST":
-        # ── Core fields ──────────────────────────────────────────────────────
-        name = request.POST.get("name", "").strip()
         brand_input = request.POST.get("brand_name", "").strip()
-        description = request.POST.get("description", "").strip()
-        top_notes = request.POST.get("top_notes", "").strip()
-        heart_notes = request.POST.get("heart_notes", "").strip()
-        base_notes = request.POST.get("base_notes", "").strip()
-        is_featured = "is_featured" in request.POST
-        category_ids = request.POST.getlist("category")
 
         sizes = request.POST.getlist("v_size[]")
         prices = request.POST.getlist("v_price[]")
         offers = request.POST.getlist("v_offer[]")
         stocks = request.POST.getlist("v_stock[]")
 
-        # ── Basic field validation ────────────────────────────────────────────
-        form_errors = []
+        form = ProductForm(request.POST)
 
-        if not name:
-            form_errors.append("Product name is required.")
-        else:
-            name_error = validate_product_name(name)
-            if name_error:
-                form_errors.append(name_error)
-            elif Product.objects.filter(name__iexact=name).exists():
-                form_errors.append(f"A product named '{name}' already exists.")
-
+        # ── Brand: still handled manually (free-text + auto-create) ──────────
         if not brand_input:
-            form_errors.append("Brand / House is required.")
-
-        if not description:
-            form_errors.append("Scent narrative (description) is required.")
+            form.add_error(None, "Brand / House is required.")
 
         # ── Variant validation ────────────────────────────────────────────────
         variant_errors = _validate_variants_server(sizes, prices, offers)
-        form_errors.extend(variant_errors)
+        for err in variant_errors:
+            form.add_error(None, err)
 
         if not any(s.strip() for s in sizes):
-            form_errors.append("At least one product variant is required.")
+            form.add_error(None, "At least one product variant is required.")
 
         # ── Server-side minimum image count check ─────────────────────────────
         images_data_check = request.POST.getlist("cropped_images[]")
@@ -495,18 +457,19 @@ def add_product(request):
             1 for img in images_data_check if img and img.strip() and ";base64," in img
         )
         if valid_image_count < 4:
-            form_errors.append("Minimum 4 product images are required.")
+            form.add_error(None, "Minimum 4 product images are required.")
 
-        if form_errors:
-            for err in form_errors:
-                messages.error(request, err)
+        if not form.is_valid():
+            for field, errors in form.errors.items():
+                for err in errors:
+                    messages.error(request, err)
             return render(
                 request,
                 "products/admin_add_product.html",
                 {
                     "brands": Brand.objects.all(),
                     "categories": Category.objects.filter(is_active=True),
-                    "post": request.POST,  # pass back for re-filling the form
+                    "post": request.POST,
                 },
                 status=400,
             )
@@ -514,18 +477,10 @@ def add_product(request):
         # ── Create Brand & Product ────────────────────────────────────────────
         brand_obj = _get_or_create_brand(brand_input)
 
-        product = Product.objects.create(
-            name=name,
-            brand=brand_obj,
-            description=description,
-            top_notes=top_notes,
-            heart_notes=heart_notes,
-            base_notes=base_notes,
-            is_featured=is_featured,
-        )
-
-        if category_ids:
-            product.categories.set(category_ids)
+        product = form.save(commit=False)
+        product.brand = brand_obj
+        product.save()
+        form.save_m2m()  # saves the categories ManyToMany selection
 
         # ── Create Variants ───────────────────────────────────────────────────
         SIZE_ORDER = {"8ml": 8, "20ml": 20, "50ml": 50, "100ml": 100}
@@ -597,10 +552,7 @@ def edit_product(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
 
     if request.method == "POST":
-        # ── Core fields (read first, validate before mutating `product`) ──────
-        name = request.POST.get("name", "").strip()
         brand_input = request.POST.get("brand_name", "").strip()
-        description = request.POST.get("description", "").strip()
 
         sizes = request.POST.getlist("v_size[]")
         prices = request.POST.getlist("v_price[]")
@@ -609,36 +561,15 @@ def edit_product(request, product_id):
         stocks_original = request.POST.getlist("v_stock_original[]")
         variant_ids = request.POST.getlist("variant_id[]")
 
-        # ── Basic field validation ────────────────────────────────────────────
-        form_errors = []
-
-        if not name:
-            form_errors.append("Product name is required.")
-        else:
-            name_error = validate_product_name(name)
-            if name_error:
-                form_errors.append(name_error)
-            elif (
-                Product.objects.filter(name__iexact=name)
-                .exclude(pk=product.pk)
-                .exists()
-            ):
-                form_errors.append(f"A product named '{name}' already exists.")
+        form = ProductForm(request.POST, instance=product)
 
         if not brand_input:
-            form_errors.append("Brand / House is required.")
+            form.add_error(None, "Brand / House is required.")
 
-        if not description:
-            form_errors.append("Scent narrative (description) is required.")
-
-        # ── Variant validation ────────────────────────────────────────────────
         variant_errors = _validate_variants_server(sizes, prices, offers)
-        form_errors.extend(variant_errors)
-        category_ids_check = request.POST.getlist("category")
-        if not any(str(c).isdigit() for c in category_ids_check):
-            form_errors.append("At least one category must be selected.")
+        for err in variant_errors:
+            form.add_error(None, err)
 
-        # ── Server-side minimum image count check ─────────────────────────────
         images_data_check = request.POST.getlist("cropped_images[]")
         valid_image_count = sum(
             1
@@ -646,11 +577,12 @@ def edit_product(request, product_id):
             if img and img.strip() and img.strip() != "REMOVED"
         )
         if valid_image_count < 4:
-            form_errors.append("Minimum 4 product images are required.")
+            form.add_error(None, "Minimum 4 product images are required.")
 
-        if form_errors:
-            for err in form_errors:
-                messages.error(request, err)
+        if not form.is_valid():
+            for field, errors in form.errors.items():
+                for err in errors:
+                    messages.error(request, err)
             return render(
                 request,
                 "products/admin_edit_product.html",
@@ -664,25 +596,13 @@ def edit_product(request, product_id):
 
         # ── Brand ─────────────────────────────────────────────────────────────
         if brand_input:
-            product.brand = _get_or_create_brand(
-                brand_input
-            )  # FIX: was broken get_or_create
+            product.brand = _get_or_create_brand(brand_input)
 
-        # ── Core fields ───────────────────────────────────────────────────────
-        product.name = name
-        product.description = description
-        product.top_notes = request.POST.get("top_notes", product.top_notes)
-        product.heart_notes = request.POST.get("heart_notes", product.heart_notes)
-        product.base_notes = request.POST.get("base_notes", product.base_notes)
-        product.is_featured = "is_featured" in request.POST
-
+        # ── Core fields + categories (via the form) ─────────────────────────────
+        product = form.save(commit=False)
+        product.brand = _get_or_create_brand(brand_input)
         product.save()
-
-        # ── Category ──────────────────────────────────────────────────────────
-        category_ids = request.POST.getlist("category")
-        valid_category_ids = [cid for cid in category_ids if str(cid).isdigit()]
-        if valid_category_ids:
-            product.categories.set(valid_category_ids)
+        form.save_m2m()
 
         # ── Variants ──────────────────────────────────────────────────────────
         existing_variant_ids = []
@@ -733,7 +653,6 @@ def edit_product(request, product_id):
                 )
                 existing_variant_ids.append(variant.id)
 
-        # Delete removed variants
         product.variants.exclude(id__in=existing_variant_ids).delete()
 
         # ── Images ────────────────────────────────────────────────────────────
