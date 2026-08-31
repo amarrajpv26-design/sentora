@@ -79,20 +79,7 @@ class CategoryForm(forms.ModelForm):
                 },
             ),
         }
-        def clean_name(self):
-        name = self.cleaned_data.get("name", "").strip()
 
-        if len(name) < 2:
-            raise forms.ValidationError("Category name must be at least 2 characters long.")
-        if len(name) > 100:
-            raise forms.ValidationError("Category name cannot exceed 100 characters.")
-        if not re.match(r"^[A-Za-z0-9\s&'\-]+$", name):
-            raise forms.ValidationError(
-                "Category name contains invalid characters. Only letters, numbers, "
-                "spaces, and & ' - are allowed."
-            )
-        return name
-    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["name"].required = True
@@ -106,6 +93,25 @@ class CategoryForm(forms.ModelForm):
             "season_end_day",
         ]:
             self.fields[f].required = False
+
+        def clean_name(self):
+            name = self.cleaned_data.get("name", "").strip()
+
+            if len(name) < 2:
+                raise forms.ValidationError(
+                    "Category name must be at least 2 characters long."
+                )
+            if len(name) > 100:
+                raise forms.ValidationError(
+                    "Category name cannot exceed 100 characters."
+                )
+            if not re.match(r"^[A-Za-z0-9\s&'\-]+$", name):
+                raise forms.ValidationError(
+                    "Category name contains invalid characters. Only letters, numbers, "
+                    "spaces, and & ' - are allowed."
+                )
+
+        return name
 
 
 class ProductForm(forms.ModelForm):
