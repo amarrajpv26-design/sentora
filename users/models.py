@@ -15,7 +15,16 @@ def linked_social_account(request, sociallogin, **kwargs):
     user.is_active = True
     user.save()
 
+from django.core.files.uploadedfile import UploadedFile
+
 def validate_image_only(value):
+    if not value:
+        return
+    if not isinstance(value, UploadedFile):
+        # Already-persisted file (FieldFile/Cloudinary asset, etc.) — its
+        # stored `name` may have no extension (Cloudinary strips it), so
+        # only extension-check genuinely new uploads, not re-saves.
+        return
     ext = os.path.splitext(value.name)[1].lower()
     allowed = ['.jpg', '.jpeg', '.png', '.webp', '.gif']
     if ext not in allowed:

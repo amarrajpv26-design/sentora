@@ -15,24 +15,20 @@ from .utils import (
     is_otp_expired,
     get_resend_wait_seconds,
 )
+from .forms import UserProfileForm, AddressForm, USERNAME_REGEX, validate_profile_image
 from django.utils import timezone
 from django.db import IntegrityError
 from django.http import JsonResponse
 from .forms import UserEditForm
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
-from .forms import UserProfileForm, AddressForm
 from django.core.mail import send_mail
 from django.conf import settings
 from wallets.models import Wallet
-from products.models import Product, Category, ProductImage, Brand
+from products.models import Product, Category, Brand
 from django.template.loader import render_to_string
-from PIL import Image
 from django.utils.http import url_has_allowed_host_and_scheme
 
-# Server-side username rule (mirrors the JS check in signup.html):
-# 3-20 chars, must start with a letter, only letters/numbers/underscore after that.
-USERNAME_REGEX = re.compile(r"^[a-zA-Z][a-zA-Z0-9_]{2,19}$")
 
 
 @never_cache
@@ -348,28 +344,7 @@ def profile_view(request):
     )
 
 
-def validate_profile_image(image_file):
-    """Returns an error message string if invalid, or None if the image is valid."""
-    if image_file.size > 5 * 1024 * 1024:
-        return "Image must be smaller than 5MB."
 
-    valid_extensions = [".jpg", ".jpeg", ".png", ".webp"]
-    ext = (
-        image_file.name.lower()[image_file.name.rfind(".") :]
-        if "." in image_file.name
-        else ""
-    )
-    if ext not in valid_extensions:
-        return "Only JPG, PNG, and WEBP images are allowed."
-
-    try:
-        img = Image.open(image_file)
-        img.verify()
-        image_file.seek(0)
-    except Exception:
-        return "The uploaded file is not a valid image."
-
-    return None
 
 
 def safe_next_url(request, fallback="profile"):
@@ -393,57 +368,14 @@ def edit_profile_view(request):
     user = request.user
 
     if request.method == "POST":
-        username = request.POST.get("username", "").strip()
-        first_name = request.POST.get("first_name", "").strip()
-        last_name = request.POST.get("last_name", "").strip()
-        phone_number = request.POST.get("phone_number", "").strip()
+        form = UserProfileForm(request.POST, request.FILES, instance=user)
         new_email = request.POST.get("email", "").strip()
         dob = request.POST.get("dob")
-        profile_image = request.FILES.get("profile_image")
 
-        errors = False
-
+        extra_errors = False
         processed_dob = user.dob
 
-        # --- VALIDATION ---
-        if not username:
-            messages.error(request, "Username is required.", extra_tags="username")
-            errors = True
-        elif not USERNAME_REGEX.match(username):
-            messages.error(
-                request,
-                "Username must be 3-20 characters, start with a letter, and contain "
-                "only letters, numbers, and underscores.",
-                extra_tags="username",
-            )
-            errors = True
-        elif User.objects.filter(username=username).exclude(pk=user.pk).exists():
-            messages.error(
-                request,
-                f"The identity '{username}' is already claimed.",
-                extra_tags="username",
-            )
-            errors = True
-
-        if first_name and not re.match(r'^[A-Za-z\s]+$', first_name):
-            messages.error(
-                request, "First name can only contain letters.", extra_tags="first_name"
-            )
-            errors = True
-
-        if last_name and not re.match(r'^[A-Za-z\s]+$', last_name):
-            messages.error(
-                request, "Last name can only contain letters.", extra_tags="last_name"
-            )
-            errors = True
-
-        if phone_number and (not phone_number.isdigit() or len(phone_number) != 10):
-            messages.error(
-                request, "Phone number must be exactly 10 digits.", extra_tags="phone"
-            )
-            errors = True
-
-        # DOB Logic
+        # DOB — handled separately since it's not a plain model field validator
         if dob:
             try:
                 selected_date = date.fromisoformat(dob)
@@ -456,66 +388,56 @@ def edit_profile_view(request):
                         < (selected_date.month, selected_date.day)
                     )
                 )
-
                 if selected_date > today:
                     messages.error(
-                        request, "Invalid Date: Future dates are not permitted.", extra_tags="dob"
+                        request,
+                        "Invalid Date: Future dates are not permitted.",
+                        extra_tags="dob",
                     )
-                    errors = True
+                    extra_errors = True
                 elif age < 15:
                     messages.error(
                         request,
                         "Identity rejected: Minimum age requirement is 15 years.",
                         extra_tags="dob",
                     )
-                    errors = True
+                    extra_errors = True
                 else:
                     processed_dob = selected_date
-
             except ValueError:
                 messages.error(request, "Invalid date format.", extra_tags="dob")
-                errors = True
+                extra_errors = True
         else:
             processed_dob = None
 
-        if new_email and new_email != user.email:
-            if User.objects.filter(email=new_email).exists():
-                messages.error(
-                    request, "This email is already linked.", extra_tags="email"
-                )
-                errors = True
+        # Email change — handled separately since it triggers the OTP flow, not a direct save
+        email_changing = new_email and new_email != user.email
+        if email_changing and User.objects.filter(email=new_email).exists():
+            messages.error(request, "This email is already linked.", extra_tags="email")
+            extra_errors = True
 
-        # --- IMAGE VALIDATION (fixes the 500 error) ---
-        if profile_image:
-            image_error = validate_profile_image(profile_image)
-            if image_error:
-                messages.error(request, image_error, extra_tags="profile_image")
-                errors = True
+        if not form.is_valid() or extra_errors:
+            for field, errors in form.errors.items():
+                for err in errors:
+                    messages.error(request, err, extra_tags=field)
+            return render(
+                request, "users/edit_profile.html", {"user": user}, status=400
+            )
 
-        if errors:
-            return render(request, "users/edit_profile.html", {"user": user}, status=400)
-
-        # --- PROCESSING ---
-        if new_email and new_email != user.email:
+        if email_changing:
             request.session["pending_profile_update"] = {
-                "username": username,
-                "first_name": first_name,
-                "last_name": last_name,
-                "phone_number": phone_number,
+                "username": form.cleaned_data["username"],
+                "first_name": form.cleaned_data["first_name"],
+                "last_name": form.cleaned_data["last_name"],
+                "phone_number": form.cleaned_data["phone_number"],
                 "dob": dob,
             }
             return redirect("change_email_request")
 
-        user.username = username
-        user.first_name = first_name
-        user.last_name = last_name
-        user.phone_number = phone_number
-        user.dob = processed_dob
+        updated_user = form.save(commit=False)
+        updated_user.dob = processed_dob
+        updated_user.save()
 
-        if profile_image:
-            user.profile_image = profile_image
-
-        user.save()
         messages.success(request, "VAULT UPDATED: YOUR IDENTITY HAS BEEN REFINED.")
         return redirect("profile")
 
