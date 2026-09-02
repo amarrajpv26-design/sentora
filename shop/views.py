@@ -205,9 +205,14 @@ def product_detail(request, product_uuid):
             OrderItem.objects.filter(
                 order__user=request.user,
                 product_variant__product=product,
-                item_status="ACTIVE",
-                order__order_status__in=["DELIVERED", "RETURN_REJECTED"],
+                order__order_status__in=[
+                    "DELIVERED",
+                    "RETURN_REQUESTED",
+                    "RETURNED",
+                    "RETURN_REJECTED",
+                ],
             )
+            .exclude(item_status="CANCELLED")
             .exclude(review__isnull=False)
             .exists()
         )

@@ -25,9 +25,13 @@ def submit_review(request, product_id):
     delivered_item = OrderItem.objects.filter(
         order__user=request.user,
         product_variant__product=product,
-        item_status='ACTIVE',
-        order__order_status__in=['DELIVERED', 'RETURN_REJECTED'],
-    ).exclude(review__isnull=False).first()
+        order__order_status__in=[
+            'DELIVERED',
+            'RETURN_REQUESTED',
+            'RETURNED',
+            'RETURN_REJECTED',
+        ],
+    ).exclude(item_status='CANCELLED').exclude(review__isnull=False).first()
 
     if not delivered_item:
         messages.error(request, "You can only review products you have purchased and received.")
