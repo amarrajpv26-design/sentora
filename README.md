@@ -1,3 +1,4 @@
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/b2253fc5-9dd0-4b6f-8cf2-ab620fd5d40f" />
 # 🌟 Scentora
 
 Scentora is a luxury perfume e-commerce platform built using Django. It provides a seamless shopping experience with advanced product management, offers, coupons, wallet integration, referral rewards, and an executive admin dashboard.
@@ -96,7 +97,7 @@ Scentora/
 ### Clone Repository
 
 ```bash
-git clone (https://github.com/amarrajpv26-design/sentora.git)
+git clone https://github.com/amarrajpv26-design/sentora.git
 cd scentora
 ```
 
